@@ -1,0 +1,8 @@
+
+{
+  "fallenScreen.fallen_text": "You have fallen",
+  "fallenScreen.wait_text": "Wait to be revived OR",
+  "fallenScreen.force_death_text": "Hold right mouse for {seconds} seconds to end life.",
+  "reviveScreen.being_revived": "Being Revived...",
+  "reviveScreen.reviving": "Reviving..."
+}
