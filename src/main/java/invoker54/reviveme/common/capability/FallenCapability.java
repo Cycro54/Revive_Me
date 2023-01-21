@@ -1,6 +1,7 @@
 package invoker54.reviveme.common.capability;
 
 import invoker54.reviveme.common.api.FallenProvider;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
@@ -110,6 +111,8 @@ public class FallenCapability {
     }
 
     public float GetTimeLeft(boolean divideByMax) {
+        if (ReviveMeConfig.timeLeft == 0) return 1;
+
         if (divideByMax)
             return 1 - ((level.getGameTime() - fellStart)/(float) fellEnd);
 
@@ -117,7 +120,7 @@ public class FallenCapability {
     }
 
     public boolean shouldDie(){
-        return level.getGameTime() > (fellEnd + fellStart);
+        return level.getGameTime() > (fellEnd + fellStart) && ReviveMeConfig.timeLeft != 0;
     }
 
     public void SetTimeLeft(int timeStart, float maxSeconds) {

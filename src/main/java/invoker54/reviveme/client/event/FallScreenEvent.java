@@ -5,6 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.gui.render.CircleRender;
 import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.FontRenderer;
@@ -73,18 +74,21 @@ public class FallScreenEvent {
             AbstractGui.drawCenteredString(stack, font, editText, width/2, (startTextHeight * 2), 16777215);
 
             //Where the timer will be placed.
-            int x = (width / 2);
-            int y = height - (height/3);
+            float x = (width / 2F);
+            float y = height - (height/3F);
             float seconds = cap.GetTimeLeft(true);
 
             //System.out.println(seconds);
 
             //green color: 2616150
-            CircleRender.drawArc(stack, x, y, 36, 0, 360 * seconds, 2616150);
+            CircleRender.drawArc(stack, Math.round(x), y, 36, 0, 360 * seconds, 2616150);
 
             //Increase seconds by 1 if seconds isn't at 0
             seconds = cap.GetTimeLeft(false);
             seconds += (seconds == 0 ? 0 : 1);
+
+            String timeLeftString = Integer.toString((int) seconds);
+            if (ReviveMeConfig.timeLeft == 0) timeLeftString = "INF";
 
             stack.pushPose();
             stack.scale(2, 2, 1);
@@ -93,12 +97,12 @@ public class FallScreenEvent {
             inst.getTextureManager().bind(Timer_TEXTURE);
             RenderSystem.enableBlend();
             RenderSystem.defaultBlendFunc();
-            blit(stack,(x - 32)/2, (y - 32)/2, 0, 0F, 0F, 32, 32, 32, 32);
+            blit(stack,Math.round(((x - 32)/2F)), (int) ((y - 32)/2F), 0, 0F, 0F, 32, 32, 32, 32);
             RenderSystem.disableBlend();
             inst.getTextureManager().release(Timer_TEXTURE);
 
             //Seconds left text (the 9 here stands for font height)
-            font.draw(stack, Integer.toString((int) seconds), (x - font.width(Integer.toString((int) seconds)))/2f,
+            font.draw(stack, timeLeftString, (x - font.width(timeLeftString))/2f,
                     (y/2f - 9/2), TextFormatting.RED.getColor());
             stack.popPose();
         }

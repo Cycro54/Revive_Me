@@ -3,6 +3,8 @@ package invoker54.reviveme.common.event;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
+import invoker54.reviveme.common.network.NetworkHandler;
+import invoker54.reviveme.common.network.message.SyncClientCapMsg;
 import net.minecraft.entity.Pose;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.FoodStats;
@@ -10,6 +12,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.network.PacketDistributor;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class FallenTimerEvent {
@@ -24,20 +27,37 @@ public class FallenTimerEvent {
 
         FallenCapability cap = FallenCapability.GetFallCap(event.player);
 
-//        //System.out.println("event player UUID equals inst player id?: " +
-//                (event.player.getUUID() == Minecraft.getInstance().player.getUUID()));
-
         if (!cap.isFallen() || cap.getOtherPlayer() != null) return;
+
+        //If they are in creative mode, cancel the event
+        if (event.player.isCreative()){
+            cap.setFallen(false);
+            event.player.setPose(Pose.STANDING);
+            //Remove all potion effects
+            event.player.removeAllEffects();
+            event.player.setHealth(event.player.getMaxHealth());
+            return;
+        }
 
         //Make sure they aren't sprinting.
         if(event.player.isSprinting()) event.player.setSprinting(false);
+
+        //Make sure they aren't healing
+        if(event.player.getHealth() != 1){
+            event.player.setHealth(1);
+        }
+//
+//        //Make sure they aren't invulnerable either.
+//        if (event.player.isInvulnerable()){
+//            event.player.setInvulnerable(false);
+//        }
 
         if (!cap.shouldDie()) return;
 
         if (event.side == LogicalSide.CLIENT) return;
 
-        event.player.setInvulnerable(false);
-        event.player.hurt(cap.getDamageSource(), Float.MAX_VALUE);
+//        event.player.setInvulnerable(false);
+        event.player.hurt(cap.getDamageSource().bypassInvul().bypassArmor(), Float.MAX_VALUE);
         //System.out.println("Who's about to die: " + event.player.getDisplayName());
     }
 
@@ -116,12 +136,17 @@ public class FallenTimerEvent {
             fellPlayer.getFoodData().eat(1, Math.max(0, foodAmount - 20)/2);
 
             //Make them vulnerable to damage
-            fellPlayer.setInvulnerable(false);
+//            fellPlayer.setInvulnerable(false);
             //Remove all potion effects
             fellPlayer.removeAllEffects();
         }
 
         cap.setFallen(false);
         fellPlayer.setPose(Pose.STANDING);
+
+        if (event.side == LogicalSide.SERVER){
+            NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY.with(() -> fellPlayer),
+                    new SyncClientCapMsg(cap.writeNBT(), fellPlayer.getStringUUID()));
+        }
     }
 }

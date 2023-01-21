@@ -50,15 +50,15 @@ public final class ReviveMeConfig {
             builder.push("Revive Me! Config");
             //This is how you place a variable in the config file
             //exampleInt = BUILDER.comment("This is an integer. Default value is 3.").define("Example Integer", 54);
-            timeLeft = builder.comment("How long you have before death. Default is 30 seconds").define("Time Left", 30);
+            timeLeft = builder.comment("How long you have before death. Default is 30 seconds. Setting to 0 will disable the timer").defineInRange("Time Left", 30,0, Integer.MAX_VALUE);
 
-            reviveTime = builder.comment("How long to revive someone").define("Revive Time", 3);
+            reviveTime = builder.comment("How long to revive someone").define("Revive Time", 4);
 
             revivedHealth = builder.comment("How much health you will be revived with, 0 is max health, Less than 1 is percentage").defineInRange("Revive Health", 10F, 0F, Integer.MAX_VALUE);
 
             revivedFood = builder.comment("How much food you will be revived with, 0 is max food, Less than 1 is percentage").defineInRange("Revive Food", 6F, 0F, Integer.MAX_VALUE);
 
-            penaltyType = builder.comment("What the reviver will lose").defineEnum("Penalty Type", FallenCapability.PENALTYPE.HEALTH);
+            penaltyType = builder.comment("What the reviver will lose").defineEnum("Penalty Type", FallenCapability.PENALTYPE.FOOD);
 
             penaltyAmount = builder.comment("Amount that will be taken from reviver, Numbers below 1 and greater than 0 will turn it into a percentage").define("Penalty Amount", 10F);
 

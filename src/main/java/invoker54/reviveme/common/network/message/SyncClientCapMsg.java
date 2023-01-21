@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 public class SyncClientCapMsg {
     //The data
     private INBT nbtData;
-    private String playerID = "";
+    private String playerID;
 
     public SyncClientCapMsg(INBT nbtData, String playerID){
         this.nbtData = nbtData;
