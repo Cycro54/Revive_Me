@@ -18,6 +18,7 @@ public final class ReviveMeConfig {
     public static Double revivedFood;
     public static FallenCapability.PENALTYPE penaltyType;
     public static Float penaltyAmount;
+    public static Double reviveInvulnTime;
 
     static {
         final Pair<CommonConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(CommonConfig::new);
@@ -32,6 +33,7 @@ public final class ReviveMeConfig {
         revivedFood = COMMON.revivedFood.get();
         penaltyType = COMMON.penaltyType.get();
         penaltyAmount = COMMON.penaltyAmount.get();
+        reviveInvulnTime = COMMON.reviveInvulnTime.get();
     }
 
     public static class CommonConfig {
@@ -44,6 +46,7 @@ public final class ReviveMeConfig {
         public final ForgeConfigSpec.ConfigValue<Double> revivedFood;
         public final ForgeConfigSpec.EnumValue<FallenCapability.PENALTYPE> penaltyType;
         public final ForgeConfigSpec.ConfigValue<Float> penaltyAmount;
+        public final ForgeConfigSpec.ConfigValue<Double> reviveInvulnTime;
 
         public CommonConfig(ForgeConfigSpec.Builder builder) {
             //This is what goes on top inside of the config
@@ -61,6 +64,8 @@ public final class ReviveMeConfig {
             penaltyType = builder.comment("What the reviver will lose").defineEnum("Penalty Type", FallenCapability.PENALTYPE.FOOD);
 
             penaltyAmount = builder.comment("Amount that will be taken from reviver, Numbers below 1 and greater than 0 will turn it into a percentage").define("Penalty Amount", 10F);
+
+            reviveInvulnTime = builder.comment("How many seconds of invulnerability you have on revive").defineInRange("Revive_Invuln_Time", 3F, 0F, Float.MAX_VALUE);
 
             builder.pop();
         }

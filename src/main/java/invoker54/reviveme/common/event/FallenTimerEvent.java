@@ -7,6 +7,8 @@ import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
 import net.minecraft.entity.Pose;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.potion.EffectInstance;
+import net.minecraft.potion.Effects;
 import net.minecraft.util.FoodStats;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -135,10 +137,14 @@ public class FallenTimerEvent {
             //Then their saturation
             fellPlayer.getFoodData().eat(1, Math.max(0, foodAmount - 20)/2);
 
-            //Make them vulnerable to damage
-//            fellPlayer.setInvulnerable(false);
             //Remove all potion effects
             fellPlayer.removeAllEffects();
+
+            //Add invulnerability if it isn't 0
+            if (ReviveMeConfig.reviveInvulnTime != 0) {
+                fellPlayer.addEffect(new EffectInstance(Effects.DAMAGE_RESISTANCE, (int) (ReviveMeConfig.reviveInvulnTime * 20), 5));
+                fellPlayer.addEffect(new EffectInstance(Effects.FIRE_RESISTANCE, (int) (ReviveMeConfig.reviveInvulnTime * 20), 5));
+            }
         }
 
         cap.setFallen(false);
