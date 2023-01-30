@@ -6,6 +6,7 @@ import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.ClientUtil;
 import invoker54.reviveme.client.gui.render.CircleRender;
 import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -36,159 +37,6 @@ public class RenderFallPlateEvent {
     private static final DecimalFormat df = new DecimalFormat("0.0");
     private static final int progCircle = new Color(39, 235, 86, 255).getRGB();
     private static final int blackBg = new Color(0, 0, 0, 255).getRGB();
-
-//    @SubscribeEvent
-//    public static void renderWorldFallTimer(RenderPlayerEvent.Post event){
-//        if (!(event.getEntity() instanceof PlayerEntity)) return;
-//
-//        PlayerEntity player = (PlayerEntity) event.getEntity();
-//        FallenCapability cap = FallenCapability.GetFallCap(player);
-//        MatrixStack stack = event.getMatrixStack();
-//        FontRenderer font = inst.font;
-//        if (player.equals(inst.player)) return;
-//
-//        if (!cap.isFallen()) return;
-//
-//        float f = player.getBbHeight() * 0.5f;
-//        stack.pushPose();
-//        RenderSystem.disableCull();
-//        RenderSystem.enableBlend();
-//        RenderSystem.defaultBlendFunc();
-//        RenderSystem.disableDepthTest();
-//
-//        //Getting into position
-//        stack.translate(0, f, 0);
-//        stack.mulPose(inst.getEntityRenderDispatcher().cameraOrientation());
-//        stack.scale(-0.025F, -0.025F, 0.025F);
-//
-//        //Green circular progress
-//        CircleRender.drawArc(stack, 0,0,22,0,cap.GetTimeLeft(true) * 360, progCircle);
-//
-//        TextureManager tManager = inst.textureManager;
-//
-//        //Timer texture
-//        tManager.bind(Timer_TEXTURE);
-//        blit(stack, -16, -16, 0, 0F, 0F, 32, 32, 32, 32);
-//        tManager.release(Timer_TEXTURE);
-//
-//        //Revive type background
-//        fill(stack,2,-14,14, -2, blackBg);
-//
-//        //Revive type item texture
-//        switch (cap.getPenaltyType()) {
-//            case NONE:
-//                break;
-//            case HEALTH:
-//                tManager.bind(HEALTH_TEXTURE);
-//                blit(stack,4,-12,0,0F,0F,8,8,8,8);
-//                tManager.release(HEALTH_TEXTURE);
-//                break;
-//            case EXPERIENCE:
-//                tManager.bind(EXPERIENCE_TEXTURE);
-//                blit(stack,4,-12,0,0F,0F,8,8,8,8);
-//                tManager.release(EXPERIENCE_TEXTURE);
-//                break;
-//            case FOOD:
-//                tManager.bind(FOOD_TEXTURE);
-//                blit(stack,4,-12,0,0F,0F,8,8,8,8);
-//                tManager.release(FOOD_TEXTURE);
-//                break;
-//        }
-//
-//        //Penalty txt
-//        String penaltyAmount = Float.toString(cap.getPenaltyAmount(player));
-//        int txtWidth =  font.width(penaltyAmount);
-//        int txtHeight = 9;
-//        int txtColor = (cap.hasEnough(inst.player) == true ? TextFormatting.GREEN.getColor() : TextFormatting.RED.getColor());
-//        float scale = (font.width("0")/(float)txtWidth) * 2.5f;
-//        scale = Float.parseFloat(df.format(scale));
-//        stack.scale(scale, scale, scale);
-//
-//        renderText(player, penaltyAmount, stack, event.getBuffers(), event.getLight(), txtColor, txtWidth, txtHeight, scale);
-//
-//        RenderSystem.disableBlend();
-//        RenderSystem.enableDepthTest();
-//        RenderSystem.enableCull();
-//        stack.popPose();
-//        //drawInternal(font,penaltyAmount,-txtHalfWidth/2, -9/2, txtColor, false, stack.last().pose(), event.getRenderTypeBuffer(), event.getPackedLight());
-//    }
-/** */
-//    @SubscribeEvent
-//    public static void renderWorldFallTimer(RenderWorldLastEvent event){
-//        for (Entity entity : inst.level.entitiesForRendering()){
-//            if (!(entity instanceof PlayerEntity)) continue;
-//
-//            PlayerEntity player = (PlayerEntity) entity;
-//            FallenCapability cap = FallenCapability.GetFallCap(player);
-//            MatrixStack stack = event.getMatrixStack();
-////            if (player.equals(inst.player)) return;
-//
-//            if (!cap.isFallen()) return;
-//
-////            float f = player.getBbHeight() * 0.5f;
-//            stack.pushPose();
-//            RenderSystem.disableCull();
-//            RenderSystem.enableBlend();
-//            RenderSystem.defaultBlendFunc();
-//            RenderSystem.disableDepthTest();
-//
-//            //Getting into position
-//            Vector3d cam = inst.gameRenderer.getMainCamera().getPosition().reverse();
-//            stack.translate(cam.x(), cam.y(), cam.z());
-//            stack.mulPose(inst.getEntityRenderDispatcher().cameraOrientation());
-//
-//            //Green circular progress
-//            Vector3d pos = Vector3d.ZERO.add(player.position());
-//            float size = 2;
-//            CircleRender.drawArcWorld(stack, player.position(), size,0,cap.GetTimeLeft(true) * 360, progCircle);
-//
-//            //Timer texture
-//            ClientUtil.TEXTURE_MANAGER.bind(Timer_TEXTURE);
-//            ClientUtil.blitImageWorld(stack, player.position(), 1, 0, 64, 0, 64, 64);
-//            ClientUtil.TEXTURE_MANAGER.release(Timer_TEXTURE);
-//
-//            //Revive type background
-//            fill(stack,2,-14,14, -2, blackBg);
-//
-//            //Revive type item texture
-//            switch (cap.getPenaltyType()) {
-//                case NONE:
-//                    break;
-//                case HEALTH:
-//                    ClientUtil.TEXTURE_MANAGER.bind(HEALTH_TEXTURE);
-//                    blit(stack,4,-12,0,0F,0F,8,8,8,8);
-//                    ClientUtil.TEXTURE_MANAGER.release(HEALTH_TEXTURE);
-//                    break;
-//                case EXPERIENCE:
-//                    ClientUtil.TEXTURE_MANAGER.bind(EXPERIENCE_TEXTURE);
-//                    blit(stack,4,-12,0,0F,0F,8,8,8,8);
-//                    ClientUtil.TEXTURE_MANAGER.release(EXPERIENCE_TEXTURE);
-//                    break;
-//                case FOOD:
-//                    ClientUtil.TEXTURE_MANAGER.bind(FOOD_TEXTURE);
-//                    blit(stack,4,-12,0,0F,0F,8,8,8,8);
-//                    ClientUtil.TEXTURE_MANAGER.release(FOOD_TEXTURE);
-//                    break;
-//            }
-//
-//            //Penalty txt
-//            String penaltyAmount = Float.toString(cap.getPenaltyAmount(player));
-//            int txtWidth =  ClientUtil.mC.font.width(penaltyAmount);
-//            int txtHeight = 9;
-//            int txtColor = (cap.hasEnough(inst.player) ? TextFormatting.GREEN.getColor() : TextFormatting.RED.getColor());
-//            float scale = (ClientUtil.mC.font.width("0")/(float)txtWidth) * 2.5f;
-//            scale = Float.parseFloat(df.format(scale));
-//            stack.scale(scale, scale, scale);
-//
-//            renderText(player, penaltyAmount, stack, event.getBuffers(), event.getLight(), txtColor, txtWidth, txtHeight, scale);
-//
-//            RenderSystem.disableBlend();
-//            RenderSystem.enableDepthTest();
-//            RenderSystem.enableCull();
-//            stack.popPose();
-//            //drawInternal(font,penaltyAmount,-txtHalfWidth/2, -9/2, txtColor, false, stack.last().pose(), event.getRenderTypeBuffer(), event.getPackedLight());
-//        }
-//    }
 
     @SubscribeEvent
     public static void renderWorldFallTimer(RenderWorldLastEvent event) {
@@ -222,7 +70,8 @@ public class RenderFallPlateEvent {
             //Green circular progress
             float origSize = 22;
             float modSize = 40;
-            CircleRender.drawArc(stack, 0, 0, origSize, 0, cap.GetTimeLeft(true) * 360, progCircle);
+            if (ReviveMeConfig.timeLeft == 0 || cap.GetTimeLeft(false) <= 0) CircleRender.drawArc(stack, 0, 0, origSize, 0, 360, progCircle);
+            else CircleRender.drawArc(stack, 0, 0, origSize, 0, cap.GetTimeLeft(true) * 360, progCircle);
 
             //Timer texture
             ClientUtil.TEXTURE_MANAGER.bind(Timer_TEXTURE);

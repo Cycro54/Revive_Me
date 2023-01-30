@@ -81,14 +81,15 @@ public class FallScreenEvent {
             //System.out.println(seconds);
 
             //green color: 2616150
-            CircleRender.drawArc(stack, Math.round(x), y, 36, 0, 360 * seconds, 2616150);
+            float endAngle = seconds <= 0 ? 360 : seconds * 360;
+            CircleRender.drawArc(stack, Math.round(x), y, 36, 0, endAngle, 2616150);
 
             //Increase seconds by 1 if seconds isn't at 0
             seconds = cap.GetTimeLeft(false);
             seconds += (seconds == 0 ? 0 : 1);
 
             String timeLeftString = Integer.toString((int) seconds);
-            if (ReviveMeConfig.timeLeft == 0) timeLeftString = "INF";
+            if (ReviveMeConfig.timeLeft == 0 || seconds <= 0) timeLeftString = "INF";
 
             stack.pushPose();
             stack.scale(2, 2, 1);

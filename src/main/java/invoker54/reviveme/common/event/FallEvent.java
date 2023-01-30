@@ -56,19 +56,18 @@ public class FallEvent {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void StopDeath(LivingDeathEvent event){
-        LOGGER.info("WAS IT CANCELLED? " + event.isCanceled());
+//        LOGGER.info("WAS IT CANCELLED? " + event.isCanceled());
         if (event.isCanceled()) return;
-        LOGGER.info("IS IT A PLAYER? " + (event.getEntityLiving() instanceof PlayerEntity));
+//        LOGGER.info("IS IT A PLAYER? " + (event.getEntityLiving() instanceof PlayerEntity));
         if (!(event.getEntityLiving() instanceof PlayerEntity)) return;
-
 
         PlayerEntity player = (PlayerEntity) event.getEntityLiving();
 
         //They are probs not allowed to die.
-        event.setCanceled(beginFallenPhase(player, event.getSource()));
+        event.setCanceled(cancelEvent(player, event.getSource()));
     }
 
-    public static boolean beginFallenPhase(PlayerEntity player, DamageSource source){
+    public static boolean cancelEvent(PlayerEntity player, DamageSource source){
         FallenCapability instance = FallenCapability.GetFallCap(player);
 
         //If they are in creative mode, don't bother with any of this.
@@ -119,8 +118,8 @@ public class FallEvent {
 
             //Finally send capability code to all players
             CompoundNBT nbt = new CompoundNBT();
-            nbt.put(player.getStringUUID(),instance.writeNBT());
-            NetworkHandler.INSTANCE.send((PacketDistributor.ALL.noArg()), new SyncClientCapMsg(nbt, ""));
+            nbt.put(player.getStringUUID(), instance.writeNBT());
+            NetworkHandler.INSTANCE.send((PacketDistributor.ALL.noArg()), new SyncClientCapMsg(nbt));
 
             return true;
         }

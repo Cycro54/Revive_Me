@@ -92,11 +92,11 @@ public class FallenCapability {
             case NONE:
                 return true;
             case HEALTH:
-                return player.getHealth() >= this.penaltyAmount;
+                return player.getHealth() > this.penaltyAmount;
             case EXPERIENCE:
-                return player.experienceLevel >= this.penaltyAmount;
+                return player.experienceLevel > this.penaltyAmount;
             case FOOD:
-                return player.getFoodData().getFoodLevel() >= this.penaltyAmount;
+                return (player.getFoodData().getFoodLevel() + player.getFoodData().getSaturationLevel()) > this.penaltyAmount;
             default:
                 return false;
         }

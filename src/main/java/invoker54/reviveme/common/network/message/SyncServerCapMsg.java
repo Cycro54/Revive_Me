@@ -3,6 +3,7 @@ package invoker54.reviveme.common.network.message;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.event.CapabilityEvents;
 import invoker54.reviveme.common.network.NetworkHandler;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.network.PacketBuffer;
@@ -48,17 +49,14 @@ public class SyncServerCapMsg {
 
             for (String key : nbt.getAllKeys()) {
                 //Make sure player can be found
-                if (list.getPlayer(UUID.fromString(key)) == null) {
-                    //System.out.println("Player can't be found! ");
-
-                    return;
-                }
+                PlayerEntity player = list.getPlayer(UUID.fromString(key));
+                if (player == null) continue;
 
                 //Adds all players tracking current key (the UUID)
                 trackingPlayers.addAll(CapabilityEvents.playerTracking.get(UUID.fromString(key)));
 
                 //System.out.println("Player found!");
-                FallenCapability.GetFallCap(list.getPlayer(UUID.fromString(key))).readNBT(nbt.get(key));
+                FallenCapability.GetFallCap(player).readNBT(nbt.get(key));
             }
 
             //region Start removing duplicates from list
@@ -70,8 +68,8 @@ public class SyncServerCapMsg {
             //endregion
 
             //Finally send that cap data to the players
-            for (int i = 0; i < trackingPlayers.size(); i++){
-                NetworkHandler.sendToPlayer(list.getPlayer(trackingPlayers.get(i)), new SyncClientCapMsg(nbt, ""));
+            for (UUID trackingPlayer : trackingPlayers) {
+                NetworkHandler.sendToPlayer(list.getPlayer(trackingPlayer), new SyncClientCapMsg(nbt));
             }
 
         });

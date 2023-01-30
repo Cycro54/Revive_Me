@@ -43,7 +43,7 @@ public class CapabilityEvents {
         CompoundNBT nbt = new CompoundNBT();
         nbt.put(playerUUID.toString(), cap.writeNBT());
 
-        NetworkHandler.sendToPlayer(event.getPlayer(), new SyncClientCapMsg(nbt,""));
+        NetworkHandler.sendToPlayer(event.getPlayer(), new SyncClientCapMsg(nbt));
     }
 
     @SubscribeEvent
@@ -71,7 +71,7 @@ public class CapabilityEvents {
         nbt.put(targPlayer.getStringUUID(),cap.writeNBT());
 
         //Finally send cap data to the player who is now tracking targPlayer
-        NetworkHandler.sendToPlayer(event.getPlayer(), new SyncClientCapMsg(nbt, ""));
+        NetworkHandler.sendToPlayer(event.getPlayer(), new SyncClientCapMsg(nbt));
     }
 
     @SubscribeEvent

@@ -3,6 +3,7 @@ package invoker54.reviveme.common.network.message;
 import invoker54.reviveme.common.capability.FallenCapability;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.network.PacketBuffer;
@@ -14,21 +15,17 @@ import java.util.function.Supplier;
 public class SyncClientCapMsg {
     //The data
     private INBT nbtData;
-    private String playerID;
 
-    public SyncClientCapMsg(INBT nbtData, String playerID){
+    public SyncClientCapMsg(INBT nbtData){
         this.nbtData = nbtData;
-        this.playerID = playerID;
     }
 
     public static void Encode(SyncClientCapMsg msg, PacketBuffer buffer){
         buffer.writeNbt((CompoundNBT) msg.nbtData);
-        buffer.writeUtf(msg.playerID);
-
     }
 
     public static SyncClientCapMsg Decode(PacketBuffer buffer){
-        return new SyncClientCapMsg(buffer.readNbt(), buffer.readUtf());
+        return new SyncClientCapMsg(buffer.readNbt());
     }
 
     //This is how the Network Handler will handle the message
@@ -39,13 +36,16 @@ public class SyncClientCapMsg {
             //System.out.println("Syncing cap data for a client...");
 
             ClientWorld world = Minecraft.getInstance().level;
+            if (world == null) return;
 
             CompoundNBT nbt = (CompoundNBT) msg.nbtData;
 
             for (String key : nbt.getAllKeys()) {
-                FallenCapability.GetFallCap(world.getPlayerByUUID(UUID.fromString(key))).readNBT(nbt.get(key));
-            }
+                PlayerEntity player = world.getPlayerByUUID(UUID.fromString(key));
+                if (player == null) continue;
 
+                FallenCapability.GetFallCap(player).readNBT(nbt.get(key));
+            }
         });
         context.setPacketHandled(true);
     }

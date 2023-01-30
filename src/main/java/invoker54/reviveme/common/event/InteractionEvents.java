@@ -72,8 +72,8 @@ public class InteractionEvents {
         nbt.put(revplayer.getStringUUID(), myCap.writeNBT());
         nbt.put(targPlayer.getStringUUID(), targCap.writeNBT());
 
-        NetworkHandler.sendToPlayer(targPlayer, new SyncClientCapMsg(nbt, ""));
-        NetworkHandler.sendToPlayer(revplayer, new SyncClientCapMsg(nbt, ""));
+        NetworkHandler.sendToPlayer(targPlayer, new SyncClientCapMsg(nbt));
+        NetworkHandler.sendToPlayer(revplayer, new SyncClientCapMsg(nbt));
     }
 
     @SubscribeEvent
@@ -84,6 +84,7 @@ public class InteractionEvents {
 
         PlayerEntity player = (PlayerEntity) event.getEntityLiving();
         FallenCapability cap = FallenCapability.GetFallCap(player);
+
 
         LOGGER.info("START OF ATTACKING");
         LOGGER.info("What is the source? : " + event.getSource());
@@ -115,6 +116,9 @@ public class InteractionEvents {
         else {
             LOGGER.info("CANCELING THE ATTACK EVENT");
             event.setCanceled(true);
+//            if (event.getSource() != null && event.getSource().getEntity() instanceof MobEntity){
+//                CancelMobTargetEvent.scrubMobMemories((MobEntity) event.getSource().getEntity(), (PlayerEntity) event.getEntityLiving());
+//            }
         }
     }
 }

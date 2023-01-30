@@ -7,6 +7,7 @@ import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
 import net.minecraft.entity.Pose;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.util.FoodStats;
@@ -150,9 +151,12 @@ public class FallenTimerEvent {
         cap.setFallen(false);
         fellPlayer.setPose(Pose.STANDING);
 
+        CompoundNBT nbt = new CompoundNBT();
+        nbt.put(fellPlayer.getStringUUID(), cap.writeNBT());
+
         if (event.side == LogicalSide.SERVER){
             NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY.with(() -> fellPlayer),
-                    new SyncClientCapMsg(cap.writeNBT(), fellPlayer.getStringUUID()));
+                    new SyncClientCapMsg(nbt));
         }
     }
 }
