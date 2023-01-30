@@ -9,6 +9,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -86,5 +87,19 @@ public class CapabilityEvents {
 
         //Now add themselves to the targets list of players who are tracking them.
         playerTracking.get(targPlayer.getUUID()).remove(event.getPlayer().getUUID());
+    }
+
+    @SubscribeEvent
+    public static void onWorldJoin(EntityJoinWorldEvent event){
+        if (event.getWorld().isClientSide) return;
+        if (!(event.getEntity() instanceof PlayerEntity)) return;
+
+        PlayerEntity player = (PlayerEntity) event.getEntity();
+        FallenCapability cap = FallenCapability.GetFallCap(player);
+
+        CompoundNBT nbt = new CompoundNBT();
+        nbt.put(player.getStringUUID(), cap.writeNBT());
+
+        NetworkHandler.sendToPlayer(player, new SyncClientCapMsg(nbt));
     }
 }

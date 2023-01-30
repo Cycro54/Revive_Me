@@ -13,6 +13,10 @@ import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Util;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -84,6 +88,10 @@ public class FallEvent {
         LOGGER.info("Are they fallen? " + instance.isFallen());
         if (!instance.isFallen()) {
             LOGGER.info("MAKING THEM FALLEN");
+            for(PlayerEntity player1 : ((ServerWorld)player.level).getServer().getPlayerList().getPlayers()){
+                player1.sendMessage(new StringTextComponent(player.getName().getString())
+                        .append(new TranslationTextComponent("revive-me.chat.player_fallen")), Util.NIL_UUID);
+            }
 
             //Set to fallen state
             instance.setFallen(true);
