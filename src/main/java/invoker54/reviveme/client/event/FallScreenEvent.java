@@ -1,7 +1,8 @@
 package invoker54.reviveme.client.event;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
+import invoker54.invocore.client.ClientUtil;
+import invoker54.invocore.client.TextUtil;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.gui.render.CircleRender;
 import invoker54.reviveme.common.capability.FallenCapability;
@@ -11,6 +12,7 @@ import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
@@ -19,8 +21,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import java.text.DecimalFormat;
-
-import static net.minecraft.client.gui.AbstractGui.blit;
 
 @Mod.EventBusSubscriber(value = Dist.CLIENT)
 public class FallScreenEvent {
@@ -35,6 +35,12 @@ public class FallScreenEvent {
             ResourceLocation(ReviveMe.MOD_ID,"textures/revive_types/hunger.png");
     public static final ResourceLocation EXPERIENCE_TEXTURE = new
             ResourceLocation(ReviveMe.MOD_ID,"textures/revive_types/experience_bottle.png");
+
+    //Images
+    public static ClientUtil.Image timerIMG = new ClientUtil.Image(Timer_TEXTURE, 0, 64, 0, 64, 64);
+    public static ClientUtil.Image heartIMG = new ClientUtil.Image(HEALTH_TEXTURE, 0, 8, 0, 8, 8);
+    public static ClientUtil.Image xpIMG = new ClientUtil.Image(EXPERIENCE_TEXTURE, 0, 16, 0, 16, 16);
+    public static ClientUtil.Image foodIMG = new ClientUtil.Image(FOOD_TEXTURE, 0, 18, 0, 18,18);
 
     private static final ITextComponent titleText = new TranslationTextComponent("fallenScreen.fallen_text");
     private static final ITextComponent waitText = new TranslationTextComponent("fallenScreen.wait_text");
@@ -70,6 +76,7 @@ public class FallScreenEvent {
             AbstractGui.drawCenteredString(stack, font, waitText, width/2, (int) (startTextHeight * 1.5f), 16777215);
             //Force death text
             String editText = forceDeathText.getString();
+            editText = editText.replace("{attack}", inst.options.keyAttack.getKey().getDisplayName().getString());
             editText = editText.replace("{seconds}", df.format(2 - (FallenPlayerActionsEvent.timeHeld/20f)));
             AbstractGui.drawCenteredString(stack, font, editText, width/2, (startTextHeight * 2), 16777215);
 
@@ -82,30 +89,32 @@ public class FallScreenEvent {
 
             //green color: 2616150
             float endAngle = seconds <= 0 ? 360 : seconds * 360;
-            CircleRender.drawArc(stack, Math.round(x), y, 36, 0, endAngle, 2616150);
+            float radius = 36;
+            CircleRender.drawArc(stack, x, y, radius, 0, endAngle, 2616150);
 
             //Increase seconds by 1 if seconds isn't at 0
             seconds = cap.GetTimeLeft(false);
             seconds += (seconds == 0 ? 0 : 1);
 
-            String timeLeftString = Integer.toString((int) seconds);
-            if (ReviveMeConfig.timeLeft == 0 || seconds <= 0) timeLeftString = "INF";
-
-            stack.pushPose();
-            stack.scale(2, 2, 1);
+            ITextComponent timeLeftString =
+                    new StringTextComponent((ReviveMeConfig.timeLeft == 0 || seconds <= 0) ? "INF" : Integer.toString((int) seconds))
+                    .withStyle(TextFormatting.RED,TextFormatting.BOLD);
 
             //This is the timer background
-            inst.getTextureManager().bind(Timer_TEXTURE);
-            RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
-            blit(stack,Math.round(((x - 32)/2F)), (int) ((y - 32)/2F), 0, 0F, 0F, 32, 32, 32, 32);
-            RenderSystem.disableBlend();
-            inst.getTextureManager().release(Timer_TEXTURE);
+            timerIMG.resetScale();
+            timerIMG.setActualSize(64,64);
+            timerIMG.moveTo(0,0);
+            timerIMG.centerImageX(0, width);
+            timerIMG.centerImageY((int) (y - radius), (int) (radius * 2));
+            timerIMG.RenderImage(stack);
+//            blit(stack,Math.round(((x - 32)/2F)), (int) ((y - 32)/2F), 0, 0F, 0F, 32, 32, 32, 32);
 
             //Seconds left text (the 9 here stands for font height)
-            font.draw(stack, timeLeftString, (x - font.width(timeLeftString))/2f,
-                    (y/2f - 9/2), TextFormatting.RED.getColor());
-            stack.popPose();
+
+//            font.draw(stack, timeLeftString, timerIMG.centerOnImageX(font.width(timeLeftString)),
+//                    timerIMG.centerOnImageY(font.lineHeight), -1);
+            TextUtil.renderText(stack, timeLeftString, false,timerIMG.x0 + 17, 30, timerIMG.y0 + 17, 30,
+                    0, TextUtil.txtAlignment.MIDDLE);
         }
     }
 }

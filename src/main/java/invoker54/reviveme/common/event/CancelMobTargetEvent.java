@@ -55,18 +55,18 @@ public class CancelMobTargetEvent {
         if (mobEntity.getKillCredit() != null && mobEntity.getKillCredit().getId() == fallenPlayer.getId()){
             mobEntity.setLastHurtByMob(null);
             mobEntity.setLastHurtByPlayer(null);
-            LOGGER.info("SETTING LAST HURT TO NULL");
+            // LOGGER.info("SETTING LAST HURT TO NULL");
         }
 
         //Finally set their target to null
         mobEntity.setTarget(null);
 
         Brain<?> brain = mobEntity.getBrain();
-        LOGGER.info(brain.getClass());
+        // LOGGER.info(brain.getClass());
 
-        LOGGER.info("Whos the player: " + fallenPlayer.getName().getString());
-        LOGGER.info("Whos the mob: " + mobEntity.getName().getString());
-        LOGGER.info("What are there memories? ");
+        // LOGGER.info("Whos the player: " + fallenPlayer.getName().getString());
+        // LOGGER.info("Whos the mob: " + mobEntity.getName().getString());
+        // LOGGER.info("What are there memories? ");
 
         //Trick the target selector for the mob by making it so the player appears to be dead
         fallenPlayer.setHealth(0);
@@ -76,7 +76,7 @@ public class CancelMobTargetEvent {
 
         //If there attack target is the fallen player, scrub the mobs memory
         if (brain.checkMemory(MemoryModuleType.ATTACK_TARGET, MemoryModuleStatus.REGISTERED)) {
-            LOGGER.info("REMOVING FROM ATTACK TARGET");
+// LOGGER.info("REMOVING FROM ATTACK TARGET");
             brain.getMemory(MemoryModuleType.ATTACK_TARGET).ifPresent((targetEntity) -> {
                 if (targetEntity.getId() == fallenPlayer.getId()) {
                     brain.setMemory(MemoryModuleType.ATTACK_TARGET, (LivingEntity) null);
@@ -87,7 +87,7 @@ public class CancelMobTargetEvent {
 
         //If the nearest visible targetable player is fallen, scrub the mobs memory
         if (brain.checkMemory(MemoryModuleType.NEAREST_VISIBLE_TARGETABLE_PLAYER, MemoryModuleStatus.REGISTERED)) {
-            LOGGER.info("REMOVING FROM NEAREST VISIBLE TARGETABLE PLAYER");
+// LOGGER.info("REMOVING FROM NEAREST VISIBLE TARGETABLE PLAYER");
             brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_TARGETABLE_PLAYER).ifPresent((targetEntity) -> {
                 if (targetEntity.getId() == fallenPlayer.getId()) {
                     brain.setMemory(MemoryModuleType.NEAREST_VISIBLE_TARGETABLE_PLAYER, (PlayerEntity) null);
@@ -98,7 +98,7 @@ public class CancelMobTargetEvent {
 
         //If the angering player is fallen, scrub the mobs memory
         if (brain.checkMemory(MemoryModuleType.ANGRY_AT, MemoryModuleStatus.REGISTERED)) {
-            LOGGER.info("REMOVING FROM ANGRY AT");
+// LOGGER.info("REMOVING FROM ANGRY AT");
             brain.getMemory(MemoryModuleType.ANGRY_AT).ifPresent((targetEntity) -> {
                 if (targetEntity == fallenPlayer.getUUID()) {
                     brain.setMemory(MemoryModuleType.ANGRY_AT, (UUID) null);
@@ -109,7 +109,7 @@ public class CancelMobTargetEvent {
 
         //If the rude player is fallen, scrub the mobs memory
         if (brain.checkMemory(MemoryModuleType.HURT_BY_ENTITY, MemoryModuleStatus.REGISTERED)) {
-            LOGGER.info("REMOVING FROM HURT BY ENTITY");
+// LOGGER.info("REMOVING FROM HURT BY ENTITY");
             brain.getMemory(MemoryModuleType.HURT_BY_ENTITY).ifPresent((targetEntity) -> {
                 if (targetEntity.getId() == fallenPlayer.getId()) {
                     brain.setMemory(MemoryModuleType.HURT_BY_ENTITY, (LivingEntity) null);
@@ -120,7 +120,7 @@ public class CancelMobTargetEvent {
 
         //If the rude player is fallen, scrub the mobs memory
         if (brain.checkMemory(MemoryModuleType.HURT_BY, MemoryModuleStatus.REGISTERED)) {
-            LOGGER.info("REMOVING FROM HURT BY");
+// LOGGER.info("REMOVING FROM HURT BY");
             brain.getMemory(MemoryModuleType.HURT_BY).ifPresent((source) -> {
                 if (!(source.getEntity() instanceof PlayerEntity)) return;
                 if (source.getEntity().getId() == fallenPlayer.getId()) {
@@ -132,7 +132,7 @@ public class CancelMobTargetEvent {
 
         //If the seen player is fallen, scrub the mobs memory
         if (brain.checkMemory(MemoryModuleType.NEAREST_VISIBLE_PLAYER, MemoryModuleStatus.REGISTERED)) {
-            LOGGER.info("REMOVING FROM NEAREST VISIBLE PLAYER");
+            // LOGGER.info("REMOVING FROM NEAREST VISIBLE PLAYER");
             brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_PLAYER).ifPresent((targetEntity) -> {
                 if (targetEntity.getId() == fallenPlayer.getId()) {
                     brain.setMemory(MemoryModuleType.NEAREST_VISIBLE_PLAYER, (PlayerEntity) null);
@@ -142,7 +142,7 @@ public class CancelMobTargetEvent {
         }
 
         if (brain.checkMemory(MemoryModuleType.LIVING_ENTITIES, MemoryModuleStatus.REGISTERED)) {
-            LOGGER.info("REMOVING FROM LIVING ENTITIES");
+            // LOGGER.info("REMOVING FROM LIVING ENTITIES");
             Optional<List<LivingEntity>> optional1 = brain.getMemory(MemoryModuleType.LIVING_ENTITIES);
             if (optional1.isPresent()) {
                 List<LivingEntity> list = optional1.get();
@@ -151,7 +151,7 @@ public class CancelMobTargetEvent {
         }
 
         if (brain.checkMemory(MemoryModuleType.VISIBLE_LIVING_ENTITIES, MemoryModuleStatus.REGISTERED)) {
-            LOGGER.info("REMOVING FROM VISIBLE LIVING ENTITIES");
+            // LOGGER.info("REMOVING FROM VISIBLE LIVING ENTITIES");
             Optional<List<LivingEntity>> optional2 = brain.getMemory(MemoryModuleType.VISIBLE_LIVING_ENTITIES);
             if (optional2.isPresent()) {
                 List<LivingEntity> list = optional2.get();
@@ -160,21 +160,21 @@ public class CancelMobTargetEvent {
         }
 
         if (brain.checkMemory(MemoryModuleType.NEAREST_PLAYERS, MemoryModuleStatus.REGISTERED)) {
-            LOGGER.info("REMOVING FROM NEAREST PLAYERS");
+            // LOGGER.info("REMOVING FROM NEAREST PLAYERS");
             Optional<List<PlayerEntity>> optional3 = brain.getMemory(MemoryModuleType.NEAREST_PLAYERS);
             if (optional3.isPresent()) {
                 List<PlayerEntity> list = optional3.get();
                 list.removeIf((entity) -> entity.getId() == fallenPlayer.getId());
             }
         }
-
-        try {
-            mobEntity = null;
-            mobEntity.getId();
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
+//
+//        try {
+//            mobEntity = null;
+//            mobEntity.getId();
+//        }
+//        catch (Exception e){
+//            e.printStackTrace();
+//        }
     }
 
     @SubscribeEvent

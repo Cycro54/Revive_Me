@@ -122,6 +122,9 @@ public class FallEvent {
             //Dismount the player if riding something
             player.stopRiding();
 
+            //stop them from using an item if they are using one
+            player.stopUsingItem();
+
             //System.out.println("Am I fallen?: " + FallenCapability.GetFallCap(player).isFallen());
 
             //Finally send capability code to all players

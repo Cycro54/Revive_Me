@@ -7,6 +7,7 @@ import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -29,6 +30,9 @@ public class InteractionEvents {
 
         //Make sure the player isn't fallen
         if (myCap.isFallen()) return;
+
+        //Make sure they aren't crouching
+        if (revplayer.isDiscrete()) return;
 
         //Make sure target is a player
         if (!(event.getTarget() instanceof PlayerEntity)) return;
@@ -121,4 +125,28 @@ public class InteractionEvents {
 //            }
         }
     }
+
+    @SubscribeEvent
+    public static void cancelItemUse(TickEvent.PlayerTickEvent event){
+        if (event.phase == TickEvent.Phase.END) return;
+
+        FallenCapability cap = FallenCapability.GetFallCap(event.player);
+        if (cap.isFallen()) return;
+        if (cap.getOtherPlayer() == null) return;
+
+        //Cancel item use if they are using an item
+        if (event.player.isUsingItem()) event.player.stopUsingItem();
+    }
+
+//    @SubscribeEvent
+//    public static void stopItemUse(LivingEntityUseItemEvent event){
+//        if (event.isCanceled()) return;
+//        if (!(event.getEntityLiving() instanceof PlayerEntity)) return;
+//        PlayerEntity player = (PlayerEntity) event.getEntityLiving();
+//        FallenCapability cap = FallenCapability.GetFallCap(player);
+//
+//        if (cap.isFallen()) player.stopUsingItem();
+//        if (cap.getOtherPlayer() != null) player.stopUsingItem();
+//
+//    }
 }

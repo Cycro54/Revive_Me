@@ -22,7 +22,7 @@ public class FallenCapability {
     public static final String REVIVE_START_INT = "revStartREVIVE";
     public static final String REVIVE_END_INT = "revEndREVIVE";
     public static final String PENALTY_ENUM = "penaltyTypeREVIVE";
-    public static final String PENALTY_FLOAT = "penaltyIntREVIVE";
+    public static final String PENALTY_DOUBLE = "penaltyDoubleREVIVE";
     public static final String OTHERPLAYER_UUID = "otherPlayerREVIVE";
     //endregion
 
@@ -41,7 +41,7 @@ public class FallenCapability {
     protected DamageSource damageSource = DamageSource.OUT_OF_WORLD;
     protected boolean isFallen = false;
     protected UUID otherPlayer = null;
-    protected float penaltyAmount = 0;
+    protected Double penaltyAmount = 0D;
     protected PENALTYPE penaltyType = PENALTYPE.HEALTH;
     public enum PENALTYPE {
         NONE,
@@ -54,13 +54,13 @@ public class FallenCapability {
         return player.getCapability(FallenProvider.FALLENDATA).orElseGet(FallenCapability::new);
     }
 
-    public void setPenalty(PENALTYPE type, float amount){
+    public void setPenalty(PENALTYPE type, Double amount){
         this.penaltyAmount = amount;
         this.penaltyType = type;
     }
 
     public float getPenaltyAmount(LivingEntity player){
-        float actualAmount = penaltyAmount;
+        Double actualAmount = penaltyAmount;
         switch (penaltyType){
             case NONE:
                 break;
@@ -185,7 +185,7 @@ public class FallenCapability {
         cNBT.putInt(REVIVE_START_INT, this.revStart);
         cNBT.putInt(REVIVE_END_INT, this.revEnd/20);
         cNBT.putString(PENALTY_ENUM, this.penaltyType.name());
-        cNBT.putFloat(PENALTY_FLOAT, this.penaltyAmount);
+        cNBT.putDouble(PENALTY_DOUBLE, this.penaltyAmount);
 
         if(this.otherPlayer != null)
         cNBT.putUUID(OTHERPLAYER_UUID, this.otherPlayer);
@@ -196,7 +196,7 @@ public class FallenCapability {
         this.SetTimeLeft(cNBT.getInt(FELL_START_INT), cNBT.getInt(FELL_END_FLOAT));
         this.setFallen(cNBT.getBoolean(FALLEN_BOOL));
         this.setProgress(cNBT.getInt(REVIVE_START_INT), cNBT.getInt(REVIVE_END_INT));
-        this.setPenalty(PENALTYPE.valueOf(cNBT.getString(PENALTY_ENUM)), cNBT.getInt(PENALTY_FLOAT));
+        this.setPenalty(PENALTYPE.valueOf(cNBT.getString(PENALTY_ENUM)), cNBT.getDouble(PENALTY_DOUBLE));
 
         if(cNBT.hasUUID(OTHERPLAYER_UUID)) {
             this.setOtherPlayer(cNBT.getUUID(OTHERPLAYER_UUID));
@@ -216,7 +216,7 @@ public class FallenCapability {
             cNBT.putFloat(FELL_END_FLOAT, instance.fellEnd/20);
             cNBT.putBoolean(FALLEN_BOOL, instance.isFallen());
             cNBT.putString(PENALTY_ENUM, instance.penaltyType.name());
-            cNBT.putFloat(PENALTY_FLOAT, instance.penaltyAmount);
+            cNBT.putDouble(PENALTY_DOUBLE, instance.penaltyAmount);
             return cNBT;
         }
 
@@ -226,12 +226,12 @@ public class FallenCapability {
             instance.SetTimeLeft(cNBT.getInt(FELL_START_INT), cNBT.getInt(FELL_END_FLOAT));
             instance.setFallen(cNBT.getBoolean(FALLEN_BOOL));
             try {
-                instance.setPenalty(PENALTYPE.valueOf(cNBT.getString(PENALTY_ENUM)), cNBT.getInt(PENALTY_FLOAT));
+                instance.setPenalty(PENALTYPE.valueOf(cNBT.getString(PENALTY_ENUM)), cNBT.getDouble(PENALTY_DOUBLE));
             }
 
             catch (Exception e){
                 //System.out.println("Couldn't find PENALTY type, doing default...");
-                instance.setPenalty(PENALTYPE.NONE,0);
+                instance.setPenalty(PENALTYPE.NONE,0D);
             }
         }
     }

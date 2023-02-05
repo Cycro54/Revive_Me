@@ -12,7 +12,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '1.2.2'
+version = '1.4.0'
 group = 'invoker54.rme' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'revive-me-1.16.5'
 
@@ -123,6 +123,8 @@ dependencies {
     // compile "some.group:artifact:version:classifier"
     // compile "some.group:artifact:version"
 
+    implementation fg.deobf("invoker54:invocore-1.16.5:1.6.0")
+
     // Real examples
     // compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
     // compile 'com.googlecode.efficient-java-matrix-library:ejml:0.24' // adds ejml to the dev env
@@ -137,6 +139,24 @@ dependencies {
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
 
+}
+
+repositories {
+    // Put repositories for dependencies here
+    // ForgeGradle automatically adds the Forge maven and Maven Central for you
+    // If you have mod jar dependencies in ./libs, you can declare them as a repository like so:
+     flatDir {
+         dir 'libs'
+     }
+    maven {
+        url "https://www.cursemaven.com"
+        content {
+            includeGroup "curse.maven"
+        }
+    }
+//    jcenter()
+    mavenCentral()
+    mavenLocal()
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..

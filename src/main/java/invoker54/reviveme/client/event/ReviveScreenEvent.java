@@ -17,12 +17,12 @@ import java.awt.*;
 @Mod.EventBusSubscriber(value = Dist.CLIENT)
 public class ReviveScreenEvent {
     private static Minecraft inst = Minecraft.getInstance();
-    private static ITextComponent beingRevivedText = new TranslationTextComponent("reviveScreen.being_revived");
-    private static ITextComponent revivingText = new TranslationTextComponent("reviveScreen.reviving");
+    public static ITextComponent beingRevivedText = new TranslationTextComponent("reviveScreen.being_revived");
+    public static ITextComponent revivingText = new TranslationTextComponent("reviveScreen.reviving");
 
-    private static final int bgColor = new Color(35,35,35,255).getRGB();
-    private static final int revColor = new Color(77, 77, 77, 121).getRGB();
-    private static final int progressColor = new Color(247,247,247,255).getRGB();
+    public static final int bgColor = new Color(35,35,35,255).getRGB();
+    public static final int revColor = new Color(77, 77, 77, 121).getRGB();
+    public static final int progressColor = new Color(247,247,247,255).getRGB();
 
     @SubscribeEvent
     public static void renderReviveScreen(RenderGameOverlayEvent.Pre event){

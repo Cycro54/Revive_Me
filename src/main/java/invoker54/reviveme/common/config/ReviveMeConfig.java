@@ -17,7 +17,7 @@ public final class ReviveMeConfig {
     public static Double revivedHealth;
     public static Double revivedFood;
     public static FallenCapability.PENALTYPE penaltyType;
-    public static Float penaltyAmount;
+    public static Double penaltyAmount;
     public static Double reviveInvulnTime;
 
     static {
@@ -45,7 +45,7 @@ public final class ReviveMeConfig {
         public final ForgeConfigSpec.ConfigValue<Double> revivedHealth;
         public final ForgeConfigSpec.ConfigValue<Double> revivedFood;
         public final ForgeConfigSpec.EnumValue<FallenCapability.PENALTYPE> penaltyType;
-        public final ForgeConfigSpec.ConfigValue<Float> penaltyAmount;
+        public final ForgeConfigSpec.ConfigValue<Double> penaltyAmount;
         public final ForgeConfigSpec.ConfigValue<Double> reviveInvulnTime;
 
         public CommonConfig(ForgeConfigSpec.Builder builder) {
@@ -63,7 +63,7 @@ public final class ReviveMeConfig {
 
             penaltyType = builder.comment("What the reviver will lose").defineEnum("Penalty Type", FallenCapability.PENALTYPE.FOOD);
 
-            penaltyAmount = builder.comment("Amount that will be taken from reviver, Numbers below 1 and greater than 0 will turn it into a percentage").define("Penalty Amount", 10F);
+            penaltyAmount = builder.comment("Amount that will be taken from reviver, Numbers below 1 and greater than 0 will turn it into a percentage").define("Penalty Amount", 15D);
 
             reviveInvulnTime = builder.comment("How many seconds of invulnerability you have on revive").defineInRange("Revive_Invuln_Time", 3F, 0F, Float.MAX_VALUE);
 

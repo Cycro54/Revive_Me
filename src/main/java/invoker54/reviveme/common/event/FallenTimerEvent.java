@@ -49,6 +49,9 @@ public class FallenTimerEvent {
         if(event.player.getHealth() != 1){
             event.player.setHealth(1);
         }
+
+        //Make sure they have no food either
+        event.player.getFoodData().setFoodLevel(0);
 //
 //        //Make sure they aren't invulnerable either.
 //        if (event.player.isInvulnerable()){
