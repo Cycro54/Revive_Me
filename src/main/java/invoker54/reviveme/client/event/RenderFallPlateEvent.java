@@ -176,7 +176,7 @@ public class RenderFallPlateEvent {
                     }
                 }
             }
-            else if (!mC.player.getUUID().equals(null)){
+            else if (!mC.player.getUUID().equals(cap.getOtherPlayer())){
                 int radius = 20;
 
                 //region Render the revive text
