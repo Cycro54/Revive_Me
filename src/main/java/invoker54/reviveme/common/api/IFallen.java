@@ -1,12 +1,12 @@
 package invoker54.reviveme.common.api;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 
 public interface IFallen {
     float progress = 0;
     float timeLeft = 0;
     boolean isFallen = false;
-    ServerPlayerEntity revivingPlayer = null;
+    ServerPlayer revivingPlayer = null;
 
     float GetProgress();
 
@@ -22,5 +22,5 @@ public interface IFallen {
 
     void setFallen(boolean fallen);
 
-    ServerPlayerEntity revivingPlayer();
+    ServerPlayer revivingPlayer();
 }

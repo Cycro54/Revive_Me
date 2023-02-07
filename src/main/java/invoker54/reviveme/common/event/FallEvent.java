@@ -5,23 +5,23 @@ import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.potion.EffectInstance;
-import net.minecraft.potion.Effects;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Util;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.Util;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.network.PacketDistributor;
+import net.minecraftforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,9 +33,9 @@ public class FallEvent {
 //    @SubscribeEvent(priority = EventPriority.LOWEST)
 //    public static void InterruptDeath(LivingDamageEvent event) {
 //        if (event.isCanceled()) return;
-//        if (!(event.getEntityLiving() instanceof PlayerEntity)) return;
+//        if (!(event.getEntityLiving() instanceof Player)) return;
 //
-//        PlayerEntity player = (PlayerEntity) event.getEntityLiving();
+//        Player player = (Player) event.getEntityLiving();
 //
 //        LOGGER.info("Is it enough damage? " + (player.getHealth() - event.getAmount() <= 0));
 //
@@ -62,35 +62,35 @@ public class FallEvent {
     public static void StopDeath(LivingDeathEvent event){
 //        LOGGER.info("WAS IT CANCELLED? " + event.isCanceled());
         if (event.isCanceled()) return;
-//        LOGGER.info("IS IT A PLAYER? " + (event.getEntityLiving() instanceof PlayerEntity));
-        if (!(event.getEntityLiving() instanceof PlayerEntity)) return;
+//        LOGGER.info("IS IT A PLAYER? " + (event.getEntityLiving() instanceof Player));
+        if (!(event.getEntityLiving() instanceof Player)) return;
 
-        PlayerEntity player = (PlayerEntity) event.getEntityLiving();
+        Player player = (Player) event.getEntityLiving();
 
         //They are probs not allowed to die.
         event.setCanceled(cancelEvent(player, event.getSource()));
     }
 
-    public static boolean cancelEvent(PlayerEntity player, DamageSource source){
+    public static boolean cancelEvent(Player player, DamageSource source){
         FallenCapability instance = FallenCapability.GetFallCap(player);
 
         //If they are in creative mode, don't bother with any of this.
         if (player.isCreative()) return false;
 
-        //If they have a totem of undying in their hand, dont cancel the events
-        for(Hand hand : Hand.values()) {
-            ItemStack itemstack1 = player.getItemInHand(hand);
+        //If they have a totem of undying in their InteractionHand, dont cancel the events
+        for(InteractionHand InteractionHand : InteractionHand.values()) {
+            ItemStack itemstack1 = player.getItemInHand(InteractionHand);
             if (itemstack1.getItem() == Items.TOTEM_OF_UNDYING) {
                 return false;
             }
         }
 
-        LOGGER.info("Are they fallen? " + instance.isFallen());
+//        LOGGER.info("Are they fallen? " + instance.isFallen());
         if (!instance.isFallen()) {
-            LOGGER.info("MAKING THEM FALLEN");
-            for(PlayerEntity player1 : ((ServerWorld)player.level).getServer().getPlayerList().getPlayers()){
-                player1.sendMessage(new StringTextComponent(player.getName().getString())
-                        .append(new TranslationTextComponent("revive-me.chat.player_fallen")), Util.NIL_UUID);
+//            LOGGER.info("MAKING THEM FALLEN");
+            for(Player player1 : ((ServerLevel)player.level).getServer().getPlayerList().getPlayers()){
+                player1.sendMessage(new TextComponent(player.getName().getString())
+                        .append(new TranslatableComponent("revive-me.chat.player_fallen")), Util.NIL_UUID);
             }
 
             //Set to fallen state
@@ -117,7 +117,7 @@ public class FallEvent {
             player.removeAllEffects();
 
             //Make it so they can't move very fast.
-            player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 99999, 3, false, false, false));
+            player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 99999, 3, false, false, false));
 
             //Dismount the player if riding something
             player.stopRiding();
@@ -128,7 +128,7 @@ public class FallEvent {
             //System.out.println("Am I fallen?: " + FallenCapability.GetFallCap(player).isFallen());
 
             //Finally send capability code to all players
-            CompoundNBT nbt = new CompoundNBT();
+            CompoundTag nbt = new CompoundTag();
             nbt.put(player.getStringUUID(), instance.writeNBT());
             NetworkHandler.INSTANCE.send((PacketDistributor.ALL.noArg()), new SyncClientCapMsg(nbt));
 

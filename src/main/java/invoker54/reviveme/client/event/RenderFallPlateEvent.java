@@ -1,24 +1,25 @@
 package invoker54.reviveme.client.event;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import invoker54.invocore.client.ClientUtil;
 import invoker54.invocore.client.TextUtil;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.gui.render.CircleRender;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.AbstractGui;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.network.chat.BaseComponent;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -39,16 +40,17 @@ public class RenderFallPlateEvent {
     private static final int blackBg = new Color(0, 0, 0, 176).getRGB();
 
     @SubscribeEvent
-    public static void renderWorldFallTimer(RenderWorldLastEvent event) {
+    public static void renderWorldFallTimer(RenderLevelStageEvent event) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRIPWIRE_BLOCKS) return;
 
         for (Entity entity : inst.level.entitiesForRendering()) {
-            if (!(entity instanceof PlayerEntity)) continue;
+            if (!(entity instanceof Player)) continue;
             if (entity.equals(mC.player)) continue;
             if (entity.distanceTo(mC.player) > 20) continue;
 
-            PlayerEntity player = (PlayerEntity) entity;
+            Player player = (Player) entity;
             FallenCapability cap = FallenCapability.GetFallCap(player);
-            MatrixStack stack = event.getMatrixStack();
+            PoseStack stack = event.getPoseStack();
 
 
             if (!cap.isFallen()) return;
@@ -60,14 +62,14 @@ public class RenderFallPlateEvent {
             RenderSystem.disableDepthTest();
 
             //Getting into position
-            Vector3d difference = entity.position().subtract(mC.gameRenderer.getMainCamera().getPosition());
+            Vec3 difference = entity.position().subtract(mC.gameRenderer.getMainCamera().getPosition());
             stack.translate(difference.x, difference.y + f, difference.z);
             stack.mulPose(mC.getEntityRenderDispatcher().cameraOrientation());
             stack.scale(-0.025F, -0.025F, 0.025F);
 
             if (cap.getOtherPlayer() == null) {
                 //This txt is for showing how the long the player has left to die
-                if (!mC.player.isCrouching()) {
+                if (!mC.player.isCrouching() && !player.isDeadOrDying()) {
                     //Green circular progress
                     int radius = 22;
                     int modSize = 40;
@@ -117,9 +119,9 @@ public class RenderFallPlateEvent {
                     }
 
                     //Penalty txt
-                    ITextComponent penaltyAmount = new StringTextComponent(Integer.toString((int) cap.getPenaltyAmount(player)))
-                            .withStyle(TextFormatting.BOLD)
-                            .withStyle(cap.hasEnough(inst.player) ? TextFormatting.GREEN : TextFormatting.RED);
+                    MutableComponent penaltyAmount = new TextComponent(Integer.toString((int) cap.getPenaltyAmount(player)))
+                            .withStyle(ChatFormatting.BOLD)
+                            .withStyle(cap.hasEnough(inst.player) ? ChatFormatting.GREEN : ChatFormatting.RED);
 
                     float scaleFactor = (timerIMG.getWidth() / 64F);
                     TextUtil.renderText(stack, penaltyAmount, false, timerIMG.x0 + (17 * scaleFactor), 30 * scaleFactor,
@@ -138,7 +140,7 @@ public class RenderFallPlateEvent {
                     timerIMG.moveTo(-(timerIMG.getWidth() / 2), -(timerIMG.getHeight() / 2));
                     timerIMG.RenderImage(stack);
 
-                    ITextComponent killTxt = new StringTextComponent("0").withStyle(TextFormatting.BOLD, TextFormatting.RED);
+                    MutableComponent killTxt = new TextComponent("0").withStyle(ChatFormatting.BOLD, ChatFormatting.RED);
 
                     float scaleFactor = (timerIMG.getWidth() / 64F);
                     TextUtil.renderText(stack, killTxt, false, timerIMG.x0 + (17 * scaleFactor), 30 * scaleFactor,
@@ -148,14 +150,14 @@ public class RenderFallPlateEvent {
                 if (mC.crosshairPickEntity == player && !player.isDeadOrDying()) {
                     int radius = 30;
 
-                    ITextComponent message = null;
+                    BaseComponent message = null;
                     if (mC.player.isCrouching()) {
-                        message = new TranslationTextComponent("revive-me.fall_plate.kill");
-                        message = new StringTextComponent(message.getString()
+                        message = new TranslatableComponent("revive-me.fall_plate.kill");
+                        message = new TextComponent(message.getString()
                                 .replace("{attack}", inst.options.keyAttack.getKey().getDisplayName().getString()));
                     } else if (cap.hasEnough(mC.player)) {
-                        message = new TranslationTextComponent("revive-me.fall_plate.revive");
-                        message = new StringTextComponent(message.getString()
+                        message = new TranslatableComponent("revive-me.fall_plate.revive");
+                        message = new TextComponent(message.getString()
                                 .replace("{use}", inst.options.keyUse.getKey().getDisplayName().getString()));
 
                     }
@@ -167,29 +169,25 @@ public class RenderFallPlateEvent {
                         int width = txtWidth + (padding * 2);
                         int height = (mC.font.lineHeight + (padding * 2));
 
-                        RenderSystem.disableDepthTest();
                         ClientUtil.blitColor(stack, -(width) / 2, width, -(height + radius), height, blackBg);
-                        RenderSystem.enableDepthTest();
 
                         height = mC.font.lineHeight;
                         TextUtil.renderText(message, stack, -txtWidth / 2F, -(height + radius + padding), false);
                     }
                 }
             }
-            else if (!mC.player.getUUID().equals(cap.getOtherPlayer())){
+            else if (!mC.player.getUUID().equals(null)){
                 int radius = 20;
 
                 //region Render the revive text
-                ITextComponent message = ReviveScreenEvent.beingRevivedText;
+                BaseComponent message = ReviveScreenEvent.beingRevivedText;
                 int txtWidth = mC.font.width(message);
                 int padding = 1;
 
                 int width = txtWidth + (padding * 2);
                 int height = (mC.font.lineHeight + (padding * 2));
 
-                RenderSystem.disableDepthTest();
                 ClientUtil.blitColor(stack, -(width) / 2, width, -(height + radius), height, blackBg);
-                RenderSystem.enableDepthTest();
 
                 height = mC.font.lineHeight;
                 TextUtil.renderText(message, stack, -txtWidth / 2F, -(height + radius + padding), false);
@@ -199,8 +197,7 @@ public class RenderFallPlateEvent {
                 int yOrigin = -10;
 
                 //progress bar background
-                RenderSystem.disableDepthTest();
-                AbstractGui.fill(event.getMatrixStack(), xOrigin - padding, 0 + padding,
+                Gui.fill(event.getPoseStack(), xOrigin - padding, 0 + padding,
                         Math.abs(xOrigin - padding), yOrigin - padding, bgColor); //prev color: 2302755
 
                 float progress = cap.getProgress();
@@ -208,9 +205,8 @@ public class RenderFallPlateEvent {
                 //System.out.println(progress);
 
                 //Actual progress bar
-                AbstractGui.fill(event.getMatrixStack(),  Math.round (xOrigin * -progress), 0,
-                        Math.round (xOrigin * progress), yOrigin, progressColor);
-                RenderSystem.enableDepthTest();
+                ClientUtil.blitColor(event.getPoseStack(),  xOrigin * progress,
+                        xOrigin * -progress * 2F,0, yOrigin, progressColor);
             }
 
             RenderSystem.enableDepthTest();
@@ -219,64 +215,4 @@ public class RenderFallPlateEvent {
             stack.popPose();
         }
     }
-
-//    @SubscribeEvent
-//    public static void renderFallenInfo(RenderNameplateEvent event){
-//        if (!(event.getEntity() instanceof PlayerEntity)) return;
-//
-//        FallenCapability cap = FallenCapability.GetFallCap((LivingEntity) event.getEntity());
-//        if (!cap.isFallen()) return;
-//        if (mC.crosshairPickEntity != event.getEntity()) return;
-//        if (cap.getOtherPlayer() != null) return;
-//
-//        event.setResult(Event.Result.DENY);
-//
-////
-////        ITextComponent message = null;
-////        if (mC.player.isCrouching()) {
-////            message = new TranslationTextComponent("revive-me.fall_plate.kill");
-////            message = new StringTextComponent(message.getString()
-////                    .replace("{attack}", inst.options.keyAttack.getKey().getDisplayName().getString()));
-////        }
-////        else if (cap.hasEnough(mC.player)) {
-////            message = new TranslationTextComponent("revive-me.fall_plate.revive");
-////            message = new StringTextComponent(message.getString()
-////                    .replace("{use}", inst.options.keyUse.getKey().getDisplayName().getString()));
-////
-////        }
-////
-////        if (message != null) event.setContent(message);
-//
-////        if (mC.crosshairPickEntity == player) {
-////            int radius = 22;
-////
-////            ITextComponent message = null;
-////            if (mC.player.isCrouching()) {
-////                message = new TranslationTextComponent("revive-me.fall_plate.kill");
-////                message = new StringTextComponent(message.getString()
-////                        .replace("{attack}", inst.options.keyAttack.getKey().getDisplayName().getString()));
-////            }
-////            else if (cap.hasEnough(mC.player)) {
-////                message = new TranslationTextComponent("revive-me.fall_plate.revive");
-////                message = new StringTextComponent(message.getString()
-////                        .replace("{use}", inst.options.keyUse.getKey().getDisplayName().getString()));
-////
-////            }
-////
-////            if (message != null) {
-////                int txtWidth = mC.font.width(message);
-////                int padding = 2;
-////
-////                int width = txtWidth + (padding * 2);
-////                int height = (mC.font.lineHeight + (padding * 2));
-////
-////                RenderSystem.disableDepthTest();
-////                ClientUtil.blitColor(stack, -(width) / 2, width, -(height + radius), height, blackBg);
-////                RenderSystem.enableDepthTest();
-////
-////                height = mC.font.lineHeight;
-////                GuiUtil.renderText(message, stack, -txtWidth / 2F, -(height + radius + padding), false);
-////            }
-////        }
-//    }
 }

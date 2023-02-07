@@ -2,7 +2,7 @@ package invoker54.reviveme.common.event;
 
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
-import net.minecraft.entity.Pose;
+import net.minecraft.world.entity.Pose;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;

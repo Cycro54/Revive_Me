@@ -2,8 +2,8 @@ package invoker54.reviveme.client.event;
 
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
-import net.minecraft.client.entity.player.AbstractClientPlayerEntity;
-import net.minecraft.client.renderer.entity.model.PlayerModel;
+import net.minecraft.client.model.PlayerModel;
+import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -17,7 +17,7 @@ public class PlayerRenderEvent {
     @SubscribeEvent
     public static void onRender(RenderPlayerEvent.Pre event){
         if (FallenCapability.GetFallCap(event.getPlayer()).isFallen()){
-            PlayerModel<AbstractClientPlayerEntity> player = event.getRenderer().getModel();
+            PlayerModel<AbstractClientPlayer> player = event.getRenderer().getModel();
             player.crouching = true;
         }
     }

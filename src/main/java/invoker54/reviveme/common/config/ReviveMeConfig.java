@@ -55,7 +55,7 @@ public final class ReviveMeConfig {
             //exampleInt = BUILDER.comment("This is an integer. Default value is 3.").define("Example Integer", 54);
             timeLeft = builder.comment("How long you have before death. Default is 30 seconds. Setting to 0 will disable the timer").defineInRange("Time Left", 30,0, Integer.MAX_VALUE);
 
-            reviveTime = builder.comment("How long to revive someone").define("Revive Time", 4);
+            reviveTime = builder.comment("How long to revive someone").define("Revive Time", 3);
 
             revivedHealth = builder.comment("How much health you will be revived with, 0 is max health, Less than 1 is percentage").defineInRange("Revive Health", 10F, 0F, Integer.MAX_VALUE);
 
@@ -63,7 +63,7 @@ public final class ReviveMeConfig {
 
             penaltyType = builder.comment("What the reviver will lose").defineEnum("Penalty Type", FallenCapability.PENALTYPE.FOOD);
 
-            penaltyAmount = builder.comment("Amount that will be taken from reviver, Numbers below 1 and greater than 0 will turn it into a percentage").define("Penalty Amount", 15D);
+            penaltyAmount = builder.comment("Amount that will be taken from reviver, Numbers below 1 and greater than 0 will turn it into a percentage").define("Penalty Amount", 10D);
 
             reviveInvulnTime = builder.comment("How many seconds of invulnerability you have on revive").defineInRange("Revive_Invuln_Time", 3F, 0F, Float.MAX_VALUE);
 

@@ -5,8 +5,8 @@ import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncServerCapMsg;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -34,20 +34,20 @@ public class RevivePlayerActionsEvent {
 
         if (myCap.isFallen()) return;
 
-        PlayerEntity targPlayer = inst.level.getPlayerByUUID(myCap.getOtherPlayer());
+        Player targPlayer = inst.level.getPlayerByUUID(myCap.getOtherPlayer());
 
         boolean cancelEvent = false;
 
         //Check if it's a player
-        //System.out.println("Player entity instance? : " + (inst.crosshairPickEntity instanceof PlayerEntity));
+        //System.out.println("Player entity instance? : " + (inst.crosshairPickEntity instanceof Player));
 
-        cancelEvent = !(inst.crosshairPickEntity instanceof PlayerEntity);
+        cancelEvent = !(inst.crosshairPickEntity instanceof Player);
 
         //Check if that player is being revived by them
         if (!cancelEvent) {
-//            //System.out.println("Someone I'm reviving? : " + (FallenCapability.GetFallCap((PlayerEntity)inst.crosshairPickEntity).
+//            //System.out.println("Someone I'm reviving? : " + (FallenCapability.GetFallCap((Player)inst.crosshairPickEntity).
 //                    compareUUID(myUUID)));
-            cancelEvent = !(FallenCapability.GetFallCap((PlayerEntity) inst.crosshairPickEntity).
+            cancelEvent = !(FallenCapability.GetFallCap((Player) inst.crosshairPickEntity).
                     compareUUID(myUUID));
         }
 
@@ -65,7 +65,7 @@ public class RevivePlayerActionsEvent {
                 targCap.setOtherPlayer(null);
                 targCap.resumeFallTimer();
 
-                CompoundNBT nbt = new CompoundNBT();
+                CompoundTag nbt = new CompoundTag();
                 nbt.put(targPlayer.getStringUUID(), targCap.writeNBT());
                 nbt.put(inst.player.getStringUUID(), myCap.writeNBT());
 

@@ -1,12 +1,14 @@
 package invoker54.reviveme.client.event;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import invoker54.invocore.client.ClientUtil;
 import invoker54.reviveme.common.capability.FallenCapability;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.AbstractGui;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.network.chat.BaseComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -17,8 +19,8 @@ import java.awt.*;
 @Mod.EventBusSubscriber(value = Dist.CLIENT)
 public class ReviveScreenEvent {
     private static Minecraft inst = Minecraft.getInstance();
-    public static ITextComponent beingRevivedText = new TranslationTextComponent("reviveScreen.being_revived");
-    public static ITextComponent revivingText = new TranslationTextComponent("reviveScreen.reviving");
+    public static BaseComponent beingRevivedText = new TranslatableComponent("reviveScreen.being_revived");
+    public static BaseComponent revivingText = new TranslatableComponent("reviveScreen.reviving");
 
     public static final int bgColor = new Color(35,35,35,255).getRGB();
     public static final int revColor = new Color(77, 77, 77, 121).getRGB();
@@ -31,36 +33,37 @@ public class ReviveScreenEvent {
         //MAKE SURE this only happens if you are being revived, or reviving someone
         if(cap.getOtherPlayer() == null) return;
 
-        MatrixStack stack = event.getMatrixStack();
+        PoseStack stack = event.getMatrixStack();
         int width = event.getWindow().getGuiScaledWidth();
         int height = event.getWindow().getGuiScaledHeight();
         int startTextHeight = (height/5);
-        FontRenderer font = inst.font;
+        Font font = inst.font;
 
         if(event.getType() == RenderGameOverlayEvent.ElementType.ALL){
-            ITextComponent titleText;
+            BaseComponent titleText;
             //Only do the red if you are the fallen
             if(cap.isFallen()) {
-                AbstractGui.fill(event.getMatrixStack(), 0, 0, width, height, 1615855616);
+                Gui.fill(event.getMatrixStack(), 0, 0, width, height, 1615855616);
                 titleText = beingRevivedText;
             }
             else {
-                AbstractGui.fill(event.getMatrixStack(), 0, 0, width, height, revColor);
+                Gui.fill(event.getMatrixStack(), 0, 0, width, height, revColor);
                 titleText = revivingText;
             }
 
             //Being Revived text
             stack.pushPose();
             stack.scale(2, 2,2 );
-            AbstractGui.drawCenteredString(stack, font, titleText, (width/2)/2, (startTextHeight - 5)/2, 16777215);
+            Gui.drawCenteredString(stack, font, titleText, (width/2)/2, (startTextHeight - 5)/2, 16777215);
             stack.popPose();
 
             int xOrigin = width/2;
             int yOrigin = height/2;
 
 
+            RenderSystem.disableDepthTest();
             //progress bar background
-            AbstractGui.fill(event.getMatrixStack(),  (int) (xOrigin * 0.5f), yOrigin + 8,
+            Gui.fill(event.getMatrixStack(),  (int) (xOrigin * 0.5f), yOrigin + 8,
                     (int) (xOrigin * 1.5f), yOrigin - 8, bgColor); //prev color: 2302755
 
             float progress = cap.getProgress();
@@ -68,8 +71,9 @@ public class ReviveScreenEvent {
             //System.out.println(progress);
 
             //Actual progress bar
-            AbstractGui.fill(event.getMatrixStack(),  (int) (xOrigin * (1 - 0.5f * progress)), yOrigin + 6,
-                    (int) (xOrigin * (1 + 0.5f * progress)), yOrigin - 6, progressColor);
+            ClientUtil.blitColor(event.getMatrixStack(),  (xOrigin * (1 - 0.5f * progress)), xOrigin * progress,
+                    yOrigin - 6, 12, progressColor);
+            RenderSystem.enableDepthTest();
         }
     }
 

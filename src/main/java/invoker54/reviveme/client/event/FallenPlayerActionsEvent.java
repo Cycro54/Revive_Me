@@ -6,11 +6,11 @@ import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.InstaKillMsg;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.Hand;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.FOVUpdateEvent;
+import net.minecraftforge.client.event.FOVModifierEvent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -46,7 +46,7 @@ public class FallenPlayerActionsEvent {
         if(inst.options.keyAttack.isDown()) {
             timeHeld++;
             if (!ClientUtil.getPlayer().swinging) {
-                ClientUtil.getPlayer().swing(Hand.MAIN_HAND);
+                ClientUtil.getPlayer().swing(InteractionHand.MAIN_HAND);
             }
 
             if (timeHeld == 40) {
@@ -58,17 +58,17 @@ public class FallenPlayerActionsEvent {
     }
 
     @SubscribeEvent
-    public static void modifyFOV(FOVUpdateEvent event){
-        PlayerEntity player = event.getEntity();
+    public static void modifyFOV(FOVModifierEvent event){
+        Player player = event.getEntity();
         if (!FallenCapability.GetFallCap(player).isFallen()) return;
 
         float f = 1.0F;
-        if (player.abilities.flying) {
+        if (player.getAbilities().flying) {
             f *= 1.1F;
         }
 
-        f = (float) ((double) f * ((player.getAttributeValue(Attributes.MOVEMENT_SPEED) / (double) player.abilities.getWalkingSpeed() + 1.0D) / 2.0D));
-        if (player.abilities.getWalkingSpeed() == 0.0F || Float.isNaN(f) || Float.isInfinite(f)) {
+        f = (float) ((double) f * ((player.getAttributeValue(Attributes.MOVEMENT_SPEED) / (double) player.getAbilities().getWalkingSpeed() + 1.0D) / 2.0D));
+        if (player.getAbilities().getWalkingSpeed() == 0.0F || Float.isNaN(f) || Float.isInfinite(f)) {
             f = 1.0F;
         }
 

@@ -1,13 +1,15 @@
 package invoker54.reviveme.common.network;
 
 import invoker54.reviveme.ReviveMe;
-import invoker54.reviveme.common.network.message.*;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.network.NetworkRegistry;
-import net.minecraftforge.fml.network.PacketDistributor;
-import net.minecraftforge.fml.network.simple.SimpleChannel;
+import invoker54.reviveme.common.network.message.InstaKillMsg;
+import invoker54.reviveme.common.network.message.SyncClientCapMsg;
+import invoker54.reviveme.common.network.message.SyncServerCapMsg;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.network.simple.SimpleChannel;
 
 public class NetworkHandler {
     //Increment the first number if you add new stuff to NetworkHandler class
@@ -37,7 +39,7 @@ public class NetworkHandler {
     }
 
     //Custom method used to send data to players
-    public static void sendToPlayer(PlayerEntity player, Object message) {
-        NetworkHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) player), message);
+    public static void sendToPlayer(Player player, Object message) {
+        NetworkHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), message);
     }
 }

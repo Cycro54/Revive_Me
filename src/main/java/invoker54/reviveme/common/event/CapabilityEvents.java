@@ -5,9 +5,9 @@ import invoker54.reviveme.common.api.FallenProvider;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -26,7 +26,7 @@ public class CapabilityEvents {
     @SubscribeEvent
     public static void AttachCapability(AttachCapabilitiesEvent<Entity> event) {
 
-            if (event.getObject() instanceof PlayerEntity) {
+            if (event.getObject() instanceof Player) {
                 event.addCapability(ReviveMe.FALLEN_LOC, new FallenProvider(event.getObject().level));
             }
 
@@ -41,7 +41,7 @@ public class CapabilityEvents {
 
         FallenCapability cap = FallenCapability.GetFallCap(event.getPlayer());
 
-        CompoundNBT nbt = new CompoundNBT();
+        CompoundTag nbt = new CompoundTag();
         nbt.put(playerUUID.toString(), cap.writeNBT());
 
         NetworkHandler.sendToPlayer(event.getPlayer(), new SyncClientCapMsg(nbt));
@@ -54,11 +54,11 @@ public class CapabilityEvents {
 
     @SubscribeEvent
     public static void onStartTrack(PlayerEvent.StartTracking event){
-        if (!(event.getTarget() instanceof PlayerEntity)) return;
+        if (!(event.getTarget() instanceof Player)) return;
         //System.out.println("Start tracking: " + event.getTarget().getDisplayName());
 
         //Get the target player
-        PlayerEntity targPlayer = (PlayerEntity) event.getTarget();
+        Player targPlayer = (Player) event.getTarget();
 
         //Grab their cap data
         FallenCapability cap = FallenCapability.GetFallCap(targPlayer);
@@ -67,8 +67,8 @@ public class CapabilityEvents {
         playerTracking.putIfAbsent(targPlayer.getUUID(), new ArrayList<>());
         playerTracking.get(targPlayer.getUUID()).add(event.getPlayer().getUUID());
 
-        //Turn it into a CompoundNBT
-        CompoundNBT nbt = new CompoundNBT();
+        //Turn it into a CompoundTag
+        CompoundTag nbt = new CompoundTag();
         nbt.put(targPlayer.getStringUUID(),cap.writeNBT());
 
         //Finally send cap data to the player who is now tracking targPlayer
@@ -77,11 +77,11 @@ public class CapabilityEvents {
 
     @SubscribeEvent
     public static void onStopTrack(PlayerEvent.StopTracking event){
-        if (!(event.getTarget() instanceof PlayerEntity)) return;
+        if (!(event.getTarget() instanceof Player)) return;
         //System.out.println("Stop tracking: " + event.getTarget().getDisplayName());
 
         //Get the target player
-        PlayerEntity targPlayer = (PlayerEntity) event.getTarget();
+        Player targPlayer = (Player) event.getTarget();
 
         if (playerTracking.get(targPlayer.getUUID()) == null) return;
 
@@ -92,12 +92,12 @@ public class CapabilityEvents {
     @SubscribeEvent
     public static void onWorldJoin(EntityJoinWorldEvent event){
         if (event.getWorld().isClientSide) return;
-        if (!(event.getEntity() instanceof PlayerEntity)) return;
+        if (!(event.getEntity() instanceof Player)) return;
 
-        PlayerEntity player = (PlayerEntity) event.getEntity();
+        Player player = (Player) event.getEntity();
         FallenCapability cap = FallenCapability.GetFallCap(player);
 
-        CompoundNBT nbt = new CompoundNBT();
+        CompoundTag nbt = new CompoundTag();
         nbt.put(player.getStringUUID(), cap.writeNBT());
 
         NetworkHandler.sendToPlayer(player, new SyncClientCapMsg(nbt));

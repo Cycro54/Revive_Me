@@ -2,19 +2,19 @@ package invoker54.reviveme.common.capability;
 
 import invoker54.reviveme.common.api.FallenProvider;
 import invoker54.reviveme.common.config.ReviveMeConfig;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.INBT;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.Direction;
-import net.minecraft.world.World;
-import net.minecraftforge.common.capabilities.Capability;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import javax.annotation.Nullable;
 import java.util.UUID;
 
 public class FallenCapability {
+    private static final Logger LOGGER = LogManager.getLogger();
 
     public static final String FALLEN_BOOL = "isFallenREVIVE";
     public static final String FELL_START_INT = "fellStartREVIVE";
@@ -26,14 +26,14 @@ public class FallenCapability {
     public static final String OTHERPLAYER_UUID = "otherPlayerREVIVE";
     //endregion
 
-    public FallenCapability(World level){
+    public FallenCapability(Level level){
         this.level = level;
     }
     public FallenCapability() {
 
     }
 
-    protected World level;
+    protected Level level;
     protected int revStart = 0;
     protected int revEnd = 0;
     protected int fellStart = 0;
@@ -71,7 +71,7 @@ public class FallenCapability {
                 break;
             case EXPERIENCE:
                 if (actualAmount > 0 && actualAmount < 1){
-                    actualAmount *= ((PlayerEntity)player).totalExperience;
+                    actualAmount *= ((Player)player).experienceLevel;
                 }
                 break;
             case FOOD:
@@ -79,6 +79,7 @@ public class FallenCapability {
                     actualAmount *= 40;
                 }
         }
+        if ((player instanceof Player) && ((Player)player).isCreative()) actualAmount = 0D;
 
         return Math.round(actualAmount);
     }
@@ -87,7 +88,9 @@ public class FallenCapability {
         return penaltyType;
     }
 
-    public boolean hasEnough(PlayerEntity player){
+    public boolean hasEnough(Player player){
+        if (player.isCreative()) return true;
+
         switch (penaltyType) {
             case NONE:
                 return true;
@@ -96,7 +99,7 @@ public class FallenCapability {
             case EXPERIENCE:
                 return player.experienceLevel > this.penaltyAmount;
             case FOOD:
-                return (player.getFoodData().getFoodLevel() + player.getFoodData().getSaturationLevel()) > this.penaltyAmount;
+                return (player.getFoodData().getFoodLevel() + Math.max(player.getFoodData().getSaturationLevel(), 0)) > this.penaltyAmount;
             default:
                 return false;
         }
@@ -177,8 +180,8 @@ public class FallenCapability {
     }
 
 
-    public INBT writeNBT(){
-        CompoundNBT cNBT = new CompoundNBT();
+    public Tag writeNBT(){
+        CompoundTag cNBT = new CompoundTag();
         cNBT.putInt(FELL_START_INT, this.fellStart);
         cNBT.putFloat(FELL_END_FLOAT, this.fellEnd/20);
         cNBT.putBoolean(FALLEN_BOOL, this.isFallen);
@@ -191,8 +194,8 @@ public class FallenCapability {
         cNBT.putUUID(OTHERPLAYER_UUID, this.otherPlayer);
         return cNBT;
     }
-    public void readNBT(INBT nbt){
-        CompoundNBT cNBT = (CompoundNBT) nbt;
+    public void readNBT(Tag nbt){
+        CompoundTag cNBT = (CompoundTag) nbt;
         this.SetTimeLeft(cNBT.getInt(FELL_START_INT), cNBT.getInt(FELL_END_FLOAT));
         this.setFallen(cNBT.getBoolean(FALLEN_BOOL));
         this.setProgress(cNBT.getInt(REVIVE_START_INT), cNBT.getInt(REVIVE_END_INT));
@@ -206,33 +209,33 @@ public class FallenCapability {
         }
     }
 
-    public static class FallenNBTStorage implements Capability.IStorage<FallenCapability> {
-
-        @Nullable
-        @Override
-        public INBT writeNBT(Capability<FallenCapability> capability, FallenCapability instance, Direction side) {
-            CompoundNBT cNBT = new CompoundNBT();
-            cNBT.putInt(FELL_START_INT, instance.fellStart);
-            cNBT.putFloat(FELL_END_FLOAT, instance.fellEnd/20);
-            cNBT.putBoolean(FALLEN_BOOL, instance.isFallen());
-            cNBT.putString(PENALTY_ENUM, instance.penaltyType.name());
-            cNBT.putDouble(PENALTY_DOUBLE, instance.penaltyAmount);
-            return cNBT;
-        }
-
-        @Override
-        public void readNBT(Capability<FallenCapability> capability, FallenCapability instance, Direction side, INBT nbt) {
-            CompoundNBT cNBT = (CompoundNBT) nbt;
-            instance.SetTimeLeft(cNBT.getInt(FELL_START_INT), cNBT.getInt(FELL_END_FLOAT));
-            instance.setFallen(cNBT.getBoolean(FALLEN_BOOL));
-            try {
-                instance.setPenalty(PENALTYPE.valueOf(cNBT.getString(PENALTY_ENUM)), cNBT.getDouble(PENALTY_DOUBLE));
-            }
-
-            catch (Exception e){
-                //System.out.println("Couldn't find PENALTY type, doing default...");
-                instance.setPenalty(PENALTYPE.NONE,0D);
-            }
-        }
-    }
+//    public static class FallenNBTStorage implements Capability<FallenCapability> {
+//
+//        @Nullable
+//        @Override
+//        public Tag writeNBT(Capability<FallenCapability> capability, FallenCapability instance, Direction side) {
+//            CompoundTag cNBT = new CompoundTag();
+//            cNBT.putInt(FELL_START_INT, instance.fellStart);
+//            cNBT.putFloat(FELL_END_FLOAT, instance.fellEnd/20);
+//            cNBT.putBoolean(FALLEN_BOOL, instance.isFallen());
+//            cNBT.putString(PENALTY_ENUM, instance.penaltyType.name());
+//            cNBT.putDouble(PENALTY_DOUBLE, instance.penaltyAmount);
+//            return cNBT;
+//        }
+//
+//        @Override
+//        public void readNBT(Capability<FallenCapability> capability, FallenCapability instance, Direction side, Tag nbt) {
+//            CompoundTag cNBT = (CompoundTag) nbt;
+//            instance.SetTimeLeft(cNBT.getInt(FELL_START_INT), cNBT.getInt(FELL_END_FLOAT));
+//            instance.setFallen(cNBT.getBoolean(FALLEN_BOOL));
+//            try {
+//                instance.setPenalty(PENALTYPE.valueOf(cNBT.getString(PENALTY_ENUM)), cNBT.getDouble(PENALTY_DOUBLE));
+//            }
+//
+//            catch (Exception e){
+//                //System.out.println("Couldn't find PENALTY type, doing default...");
+//                instance.setPenalty(PENALTYPE.NONE,0D);
+//            }
+//        }
+//    }
 }

@@ -1,8 +1,8 @@
 package invoker54.reviveme.common.network.message;
 
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -15,11 +15,11 @@ public class InstaKillMsg {
         this.playerID = playerID;
     }
 
-    public static void Encode(InstaKillMsg msg, PacketBuffer buffer){
+    public static void Encode(InstaKillMsg msg, FriendlyByteBuf buffer){
         buffer.writeUUID(msg.playerID);
     }
 
-    public static InstaKillMsg Decode(PacketBuffer buffer){
+    public static InstaKillMsg Decode(FriendlyByteBuf buffer){
         return new InstaKillMsg(buffer.readUUID());
     }
 
