@@ -80,8 +80,7 @@ public class CircleRender {
             //Increases the current angle by angleIncrement for the next cycle
             arcPos += angleIncrement;
         } while (!arcFinished && arcPos <= Math.toRadians(360.0)); // arcPos test is a fail safe to prevent infinite loop in case of problem with angle arguments
-        bufferbuilder.end();
-        BufferUploader.end(bufferbuilder);
+        BufferUploader.drawWithShader(bufferbuilder.end());
         RenderSystem.enableTexture();
         RenderSystem.disableBlend();
         RenderSystem.enableCull();
@@ -180,9 +179,7 @@ public class CircleRender {
             arcPos += angleIncrement;
         } while (!arcFinished && arcPos <= Math.toRadians(360.0));      // arcPos test is a fail safe to prevent infinite loop in case of problem with angle arguments
         //System.out.println("COORDINATES STOP ");
-
-        bufferbuilder.end();
-        BufferUploader.end(bufferbuilder);
+        BufferUploader.drawWithShader(bufferbuilder.end());
         RenderSystem.enableTexture();
         //GL11.glEnd();
     }

@@ -14,7 +14,7 @@ public class DropEvent {
     public static void onDrop(ItemTossEvent event){
         FallenCapability cap = FallenCapability.GetFallCap(event.getPlayer());
         if (event.isCancelable() && cap.isFallen()){
-            ItemStack itemStack = event.getEntityItem().getItem();
+            ItemStack itemStack = event.getEntity().getItem();
             event.setCanceled(true);
             event.getPlayer().getInventory().placeItemBackInInventory(itemStack);
         }

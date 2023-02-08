@@ -10,7 +10,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.FOVModifierEvent;
+import net.minecraftforge.client.event.ComputeFovModifierEvent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -26,8 +26,9 @@ public class FallenPlayerActionsEvent {
     public static int timeHeld = 0;
 
     @SubscribeEvent
-    public static void onAttack(InputEvent.ClickInputEvent event){
+    public static void onAttack(InputEvent.InteractionKeyMappingTriggered event){
         if (FallenCapability.GetFallCap(inst.player).isFallen()) {
+
             event.setCanceled(true);
             if (event.isAttack()){
                 event.setSwingHand(false);
@@ -58,8 +59,8 @@ public class FallenPlayerActionsEvent {
     }
 
     @SubscribeEvent
-    public static void modifyFOV(FOVModifierEvent event){
-        Player player = event.getEntity();
+    public static void modifyFOV(ComputeFovModifierEvent event){
+        Player player = event.getPlayer();
         if (!FallenCapability.GetFallCap(player).isFallen()) return;
 
         float f = 1.0F;
@@ -78,6 +79,6 @@ public class FallenPlayerActionsEvent {
 
         f *= 1.0F - f1 * 0.15F;
 
-        event.setNewfov(f);
+        event.setNewFovModifier(f);
     }
 }

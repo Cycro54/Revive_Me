@@ -11,10 +11,8 @@ import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.network.chat.BaseComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
@@ -119,7 +117,7 @@ public class RenderFallPlateEvent {
                     }
 
                     //Penalty txt
-                    MutableComponent penaltyAmount = new TextComponent(Integer.toString((int) cap.getPenaltyAmount(player)))
+                    MutableComponent penaltyAmount = Component.literal(Integer.toString((int) cap.getPenaltyAmount(player)))
                             .withStyle(ChatFormatting.BOLD)
                             .withStyle(cap.hasEnough(inst.player) ? ChatFormatting.GREEN : ChatFormatting.RED);
 
@@ -140,7 +138,7 @@ public class RenderFallPlateEvent {
                     timerIMG.moveTo(-(timerIMG.getWidth() / 2), -(timerIMG.getHeight() / 2));
                     timerIMG.RenderImage(stack);
 
-                    MutableComponent killTxt = new TextComponent("0").withStyle(ChatFormatting.BOLD, ChatFormatting.RED);
+                    MutableComponent killTxt = Component.literal("0").withStyle(ChatFormatting.BOLD, ChatFormatting.RED);
 
                     float scaleFactor = (timerIMG.getWidth() / 64F);
                     TextUtil.renderText(stack, killTxt, false, timerIMG.x0 + (17 * scaleFactor), 30 * scaleFactor,
@@ -150,14 +148,14 @@ public class RenderFallPlateEvent {
                 if (mC.crosshairPickEntity == player && !player.isDeadOrDying()) {
                     int radius = 30;
 
-                    BaseComponent message = null;
+                    MutableComponent message = null;
                     if (mC.player.isCrouching()) {
-                        message = new TranslatableComponent("revive-me.fall_plate.kill");
-                        message = new TextComponent(message.getString()
+                        message = Component.translatable("revive-me.fall_plate.kill");
+                        message = Component.literal(message.getString()
                                 .replace("{attack}", inst.options.keyAttack.getKey().getDisplayName().getString()));
                     } else if (cap.hasEnough(mC.player)) {
-                        message = new TranslatableComponent("revive-me.fall_plate.revive");
-                        message = new TextComponent(message.getString()
+                        message = Component.translatable("revive-me.fall_plate.revive");
+                        message = Component.literal(message.getString()
                                 .replace("{use}", inst.options.keyUse.getKey().getDisplayName().getString()));
 
                     }
@@ -180,7 +178,7 @@ public class RenderFallPlateEvent {
                 int radius = 20;
 
                 //region Render the revive text
-                BaseComponent message = ReviveScreenEvent.beingRevivedText;
+                MutableComponent message = ReviveScreenEvent.beingRevivedText;
                 int txtWidth = mC.font.width(message);
                 int padding = 1;
 

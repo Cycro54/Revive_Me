@@ -16,7 +16,7 @@ public class PlayerRenderEvent {
     //This will make the player look like they are crouching (on client side ONLY)
     @SubscribeEvent
     public static void onRender(RenderPlayerEvent.Pre event){
-        if (FallenCapability.GetFallCap(event.getPlayer()).isFallen()){
+        if (FallenCapability.GetFallCap(event.getEntity()).isFallen()){
             PlayerModel<AbstractClientPlayer> player = event.getRenderer().getModel();
             player.crouching = true;
         }

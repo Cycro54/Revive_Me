@@ -32,8 +32,6 @@ public class RevivePlayerActionsEvent {
 
         if (myCap.getOtherPlayer() == null) return;
 
-        if (myCap.isFallen()) return;
-
         Player targPlayer = inst.level.getPlayerByUUID(myCap.getOtherPlayer());
 
         boolean cancelEvent = false;
@@ -51,13 +49,19 @@ public class RevivePlayerActionsEvent {
                     compareUUID(myUUID));
         }
 
+        //Check if I'm holding the use button down
         if(!cancelEvent) {
             //System.out.println("Am I holding use down?: " + inst.options.keyUse.isDown());
             cancelEvent = !inst.options.keyUse.isDown();
         }
 
-        if (cancelEvent){
+        //Check if I am fallen
+        if (!cancelEvent && myCap.isFallen()){
+            cancelEvent = myCap.isFallen();
+            myCap.resumeFallTimer();
+        }
 
+        if (cancelEvent){
             myCap.setOtherPlayer(null);
 
             if (targPlayer != null) {

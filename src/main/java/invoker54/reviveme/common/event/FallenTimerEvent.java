@@ -36,10 +36,27 @@ public class FallenTimerEvent {
         if (event.player.isCreative()){
             cap.setFallen(false);
             event.player.setPose(Pose.STANDING);
-            //Remove all potion effects
-            event.player.removeAllEffects();
-            event.player.setHealth(event.player.getMaxHealth());
+            event.player.setInvulnerable(false);
+
+            if (event.side.isServer()) {
+                //Remove all potion effects
+                event.player.removeAllEffects();
+                event.player.setHealth(event.player.getMaxHealth());
+
+                CompoundTag nbt = new CompoundTag();
+                nbt.put(event.player.getStringUUID(), cap.writeNBT());
+
+                if (event.side == LogicalSide.SERVER) {
+                    NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY.with(() -> event.player),
+                            new SyncClientCapMsg(nbt));
+                }
+            }
             return;
+        }
+
+        //Make sure they are still invulnerable
+        if (!event.player.isInvulnerable()){
+            event.player.setInvulnerable(true);
         }
 
         //Make sure they aren't sprinting.
@@ -52,17 +69,12 @@ public class FallenTimerEvent {
 
         //Make sure they have no food either
         event.player.getFoodData().setFoodLevel(0);
-//
-//        //Make sure they aren't invulnerable either.
-//        if (event.player.isInvulnerable()){
-//            event.player.setInvulnerable(false);
-//        }
 
         if (!cap.shouldDie()) return;
 
         if (event.side == LogicalSide.CLIENT) return;
 
-//        event.player.setInvulnerable(false);
+        event.player.setInvulnerable(false);
         event.player.hurt(cap.getDamageSource().bypassInvul().bypassArmor(), Float.MAX_VALUE);
         //System.out.println("Who's about to die: " + event.player.getDisplayName());
     }
@@ -147,6 +159,9 @@ public class FallenTimerEvent {
 
             //Remove all potion effects
             fellPlayer.removeAllEffects();
+
+            //Make it so they aren't invulnerable anymore
+            fellPlayer.setInvulnerable(false);
 
             //Add invulnerability if it isn't 0
             if (ReviveMeConfig.reviveInvulnTime != 0) {

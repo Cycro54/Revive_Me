@@ -5,10 +5,8 @@ import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
-import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
@@ -63,9 +61,9 @@ public class FallEvent {
 //        LOGGER.info("WAS IT CANCELLED? " + event.isCanceled());
         if (event.isCanceled()) return;
 //        LOGGER.info("IS IT A PLAYER? " + (event.getEntityLiving() instanceof Player));
-        if (!(event.getEntityLiving() instanceof Player)) return;
+        if (!(event.getEntity() instanceof Player)) return;
 
-        Player player = (Player) event.getEntityLiving();
+        Player player = (Player) event.getEntity();
 
         //They are probs not allowed to die.
         event.setCanceled(cancelEvent(player, event.getSource()));
@@ -88,9 +86,9 @@ public class FallEvent {
 //        LOGGER.info("Are they fallen? " + instance.isFallen());
         if (!instance.isFallen()) {
 //            LOGGER.info("MAKING THEM FALLEN");
-            for(Player player1 : ((ServerLevel)player.level).getServer().getPlayerList().getPlayers()){
-                player1.sendMessage(new TextComponent(player.getName().getString())
-                        .append(new TranslatableComponent("revive-me.chat.player_fallen")), Util.NIL_UUID);
+            for(Player player1 : ((ServerLevel)player.level).players()){
+                player1.sendSystemMessage(Component.literal(player.getName().getString())
+                        .append(Component.translatable("revive-me.chat.player_fallen")));
             }
 
             //Set to fallen state
@@ -113,7 +111,8 @@ public class FallEvent {
             //System.out.println(ReviveMeConfig.penaltyType);
 
             //Make them invulnerable to all damage (besides void and creative of course.)
-//                    player.setInvulnerable(true);
+            player.setInvulnerable(true);
+
             player.removeAllEffects();
 
             //Make it so they can't move very fast.
