@@ -15,14 +15,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.gui.OverlayRegistry;
-import net.minecraftforge.fml.common.Mod;
 
 import java.awt.*;
 import java.text.DecimalFormat;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT)
 public class FallScreenEvent {
     private static boolean isPaused = false;
     private static Minecraft inst = Minecraft.getInstance();
@@ -51,7 +48,7 @@ public class FallScreenEvent {
     public static void registerFallenScreen(){
         //if (true) return;
 
-        OverlayRegistry.registerOverlayTop("Fallen Screen", (gui, stack, partialTicks, width, height) -> {
+        OverlayRegistry.registerOverlayTop("fallen_screen", (gui, stack, partialTicks, width, height) -> {
             FallenCapability cap = FallenCapability.GetFallCap(inst.player);
             if(!cap.isFallen()) return;
 
@@ -104,83 +101,10 @@ public class FallScreenEvent {
             timerIMG.centerImageY((int) (y - radius), (int) (radius * 2));
             timerIMG.RenderImage(stack);
 
-            //            blit(stack,Math.round(((x - 32)/2F)), (int) ((y - 32)/2F), 0, 0F, 0F, 32, 32, 32, 32);
-
-            //Seconds left text (the 9 here stands for font height)
-
-//            font.draw(stack, timeLeftString, timerIMG.centerOnImageX(font.width(timeLeftString)),
-//                    timerIMG.centerOnImageY(font.lineHeight), -1);
             TextUtil.renderText(stack, timeLeftString, false,timerIMG.x0 + 17, 30, timerIMG.y0 + 17, 30,
                     0, TextUtil.txtAlignment.MIDDLE);
 
         });
-
-
-//        FallenCapability cap = FallenCapability.GetFallCap(inst.player);
-//
-//        if(!cap.isFallen()) return;
-//
-//        if (cap.getOtherPlayer() != null) return;
-//
-//        PoseStack stack = event.getMatrixStack();
-//        int width = event.getWindow().getGuiScaledWidth();
-//        int height = event.getWindow().getGuiScaledHeight();
-//        int startTextHeight = (height/5);
-//        Font font = inst.font;
-//
-//        if(event.getType() == RenderGameOverlayEvent.ElementType.ALL){
-//            Gui.fill(event.getMatrixStack(), 0, 0, width, height, 1615855616);
-//
-//            //Title text
-//            stack.pushPose();
-//            stack.scale(2, 2,2 );
-//            Gui.drawCenteredString(stack, font, titleText, (width/2)/2, (startTextHeight - 10)/2, 16777215);
-//            stack.popPose();
-//
-//            //Wait For text
-//            Gui.drawCenteredString(stack, font, waitText, width/2, (int) (startTextHeight * 1.5f), 16777215);
-//            //Force death text
-//            String editText = forceDeathText.getString();
-//            editText = editText.replace("{attack}", inst.options.keyAttack.getKey().getDisplayName().getString());
-//            editText = editText.replace("{seconds}", df.format(2 - (FallenPlayerActionsEvent.timeHeld/20f)));
-//            Gui.drawCenteredString(stack, font, editText, width/2, (startTextHeight * 2), 16777215);
-//
-//            //Where the timer will be placed.
-//            float x = (width / 2F);
-//            float y = height - (height/3F);
-//            float seconds = cap.GetTimeLeft(true);
-//
-//            //System.out.println(seconds);
-//
-//            //green color: 2616150
-//            float endAngle = seconds <= 0 ? 360 : seconds * 360;
-//            float radius = 36;
-//            CircleRender.drawArc(stack, x, y, radius, 0, endAngle, 2616150);
-//
-//            //Increase seconds by 1 if seconds isn't at 0
-//            seconds = cap.GetTimeLeft(false);
-//            seconds += (seconds == 0 ? 0 : 1);
-//
-//            Component timeLeftString =
-//                    new TextComponent((ReviveMeConfig.timeLeft == 0 || seconds <= 0) ? "INF" : Integer.toString((int) seconds))
-//                    .withStyle(ChatFormatting.RED,ChatFormatting.BOLD);
-//
-//            //This is the timer background
-//            timerIMG.resetScale();
-//            timerIMG.setActualSize(64,64);
-//            timerIMG.moveTo(0,0);
-//            timerIMG.centerImageX(0, width);
-//            timerIMG.centerImageY((int) (y - radius), (int) (radius * 2));
-//            timerIMG.RenderImage(stack);
-////            blit(stack,Math.round(((x - 32)/2F)), (int) ((y - 32)/2F), 0, 0F, 0F, 32, 32, 32, 32);
-//
-//            //Seconds left text (the 9 here stands for font height)
-//
-////            font.draw(stack, timeLeftString, timerIMG.centerOnImageX(font.width(timeLeftString)),
-////                    timerIMG.centerOnImageY(font.lineHeight), -1);
-//            TextUtil.renderText(stack, timeLeftString, false,timerIMG.x0 + 17, 30, timerIMG.y0 + 17, 30,
-//                    0, TextUtil.txtAlignment.MIDDLE);
-//        }
     }
 }
 

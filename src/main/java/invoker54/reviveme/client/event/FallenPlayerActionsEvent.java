@@ -28,6 +28,7 @@ public class FallenPlayerActionsEvent {
     @SubscribeEvent
     public static void onAttack(InputEvent.ClickInputEvent event){
         if (FallenCapability.GetFallCap(inst.player).isFallen()) {
+
             event.setCanceled(true);
             if (event.isAttack()){
                 event.setSwingHand(false);

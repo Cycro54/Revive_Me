@@ -7,7 +7,6 @@ import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -79,52 +78,6 @@ public class InteractionEvents {
 
         NetworkHandler.sendToPlayer(targPlayer, new SyncClientCapMsg(nbt));
         NetworkHandler.sendToPlayer(revplayer, new SyncClientCapMsg(nbt));
-    }
-
-    @SubscribeEvent
-    public static void attackPlayer(LivingAttackEvent event){
-        if (event.isCanceled()) return;
-
-        if (!(event.getEntityLiving() instanceof Player)) return;
-
-        Player player = (Player) event.getEntityLiving();
-        FallenCapability cap = FallenCapability.GetFallCap(player);
-
-
-//        LOGGER.info("START OF ATTACKING");
-//        LOGGER.info("What is the source? : " + event.getSource());
-//        if (event.getSource() != null){
-////            LOGGER.info("Does it go through invulnerability: " + event.getSource().isBypassInvul());
-//            if (event.getSource().getEntity() != null) LOGGER.info("whats the entity? : " + event.getSource().getEntity().getName().getString());
-//
-//        }
-
-        //If it's a source that goes through invulnerability, let it pass
-        if (event.getSource() != null && event.getSource().isBypassInvul()){
-//            LOGGER.info("Damage bypasses invulnerability, let it pass");
-            return;
-        }
-
-        //If they aren't fallen, let it pass.
-        else if (!cap.isFallen()){
-//            LOGGER.info("They have not fallen, let it pass.");
-            return;
-        }
-
-        //If the damage source is a player that's crouching, let it pass
-        else if (event.getSource() != null && (event.getSource().getEntity() instanceof Player) && event.getSource().getEntity().isCrouching()){
-//            LOGGER.info("It's a sneaking player! let it pass.");
-            return;
-        }
-
-        //Else cancel the attack event
-        else {
-//            LOGGER.info("CANCELING THE ATTACK EVENT");
-            event.setCanceled(true);
-//            if (event.getSource() != null && event.getSource().getEntity() instanceof MobEntity){
-//                CancelMobTargetEvent.scrubMobMemories((MobEntity) event.getSource().getEntity(), (Player) event.getEntityLiving());
-//            }
-        }
     }
 
     @SubscribeEvent

@@ -12,11 +12,14 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.UUID;
 
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = ReviveMe.MOD_ID)
 public class RevivePlayerActionsEvent {
+    private static final Logger LOGGER = LogManager.getLogger();
     private static Minecraft inst = Minecraft.getInstance();
 
     @SubscribeEvent
@@ -48,9 +51,10 @@ public class RevivePlayerActionsEvent {
 //            //System.out.println("Someone I'm reviving? : " + (FallenCapability.GetFallCap((Player)inst.crosshairPickEntity).
 //                    compareUUID(myUUID)));
             cancelEvent = !(FallenCapability.GetFallCap((Player) inst.crosshairPickEntity).
-                    compareUUID(myUUID));
+                    isReviver(myUUID));
         }
 
+        //Check if I'm holding the use button down
         if(!cancelEvent) {
             //System.out.println("Am I holding use down?: " + inst.options.keyUse.isDown());
             cancelEvent = !inst.options.keyUse.isDown();

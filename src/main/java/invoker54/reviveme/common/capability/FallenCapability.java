@@ -158,7 +158,7 @@ public class FallenCapability {
         return otherPlayer;
     }
 
-    public boolean compareUUID(UUID targUUID){
+    public boolean isReviver(UUID targUUID){
         if (targUUID == null) return false;
 
         if (getOtherPlayer() == null) return false;
