@@ -47,7 +47,7 @@ public class FallenTimerEvent {
                 nbt.put(event.player.getStringUUID(), cap.writeNBT());
 
                 if (event.side == LogicalSide.SERVER) {
-                    NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY.with(() -> event.player),
+                    NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> event.player),
                             new SyncClientCapMsg(nbt));
                 }
             }
@@ -177,7 +177,7 @@ public class FallenTimerEvent {
         nbt.put(fellPlayer.getStringUUID(), cap.writeNBT());
 
         if (event.side == LogicalSide.SERVER){
-            NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY.with(() -> fellPlayer),
+            NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> fellPlayer),
                     new SyncClientCapMsg(nbt));
         }
     }

@@ -124,12 +124,26 @@ public class FallEvent {
             //stop them from using an item if they are using one
             player.stopUsingItem();
 
-            //System.out.println("Am I fallen?: " + FallenCapability.GetFallCap(player).isFallen());
-
             //Finally send capability code to all players
             CompoundTag nbt = new CompoundTag();
+
+            //System.out.println("Am I fallen?: " + FallenCapability.GetFallCap(player).isFallen());
+            if (instance.getOtherPlayer() != null) {
+
+                Player otherPlayer = player.level.getPlayerByUUID(instance.getOtherPlayer());
+                if (otherPlayer != null) {
+                    FallenCapability otherCap = FallenCapability.GetFallCap(otherPlayer);
+                    otherCap.resumeFallTimer();
+                    otherCap.setOtherPlayer(null);
+
+                    nbt.put(otherPlayer.getStringUUID(), otherCap.writeNBT());
+                }
+                instance.setOtherPlayer(null);
+            }
             nbt.put(player.getStringUUID(), instance.writeNBT());
-            NetworkHandler.INSTANCE.send((PacketDistributor.ALL.noArg()), new SyncClientCapMsg(nbt));
+
+            NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player),
+                    new SyncClientCapMsg(nbt));
 
             return true;
         }

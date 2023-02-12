@@ -12,11 +12,14 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.UUID;
 
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = ReviveMe.MOD_ID)
 public class RevivePlayerActionsEvent {
+    private static final Logger LOGGER = LogManager.getLogger();
     private static Minecraft inst = Minecraft.getInstance();
 
     @SubscribeEvent
@@ -32,6 +35,8 @@ public class RevivePlayerActionsEvent {
 
         if (myCap.getOtherPlayer() == null) return;
 
+        if (myCap.isFallen()) return;
+
         Player targPlayer = inst.level.getPlayerByUUID(myCap.getOtherPlayer());
 
         boolean cancelEvent = false;
@@ -46,7 +51,7 @@ public class RevivePlayerActionsEvent {
 //            //System.out.println("Someone I'm reviving? : " + (FallenCapability.GetFallCap((Player)inst.crosshairPickEntity).
 //                    compareUUID(myUUID)));
             cancelEvent = !(FallenCapability.GetFallCap((Player) inst.crosshairPickEntity).
-                    compareUUID(myUUID));
+                    isReviver(myUUID));
         }
 
         //Check if I'm holding the use button down
@@ -55,13 +60,8 @@ public class RevivePlayerActionsEvent {
             cancelEvent = !inst.options.keyUse.isDown();
         }
 
-        //Check if I am fallen
-        if (!cancelEvent && myCap.isFallen()){
-            cancelEvent = myCap.isFallen();
-            myCap.resumeFallTimer();
-        }
-
         if (cancelEvent){
+
             myCap.setOtherPlayer(null);
 
             if (targPlayer != null) {
