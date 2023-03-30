@@ -1,9 +1,7 @@
 package invoker54.reviveme.common.network;
 
 import invoker54.reviveme.ReviveMe;
-import invoker54.reviveme.common.network.message.InstaKillMsg;
-import invoker54.reviveme.common.network.message.SyncClientCapMsg;
-import invoker54.reviveme.common.network.message.SyncServerCapMsg;
+import invoker54.reviveme.common.network.message.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -15,7 +13,7 @@ public class NetworkHandler {
     //Increment the first number if you add new stuff to NetworkHandler class
     //Increment the middle number each time you make a new Message
     //Increment the last number each time you fix a bug
-    private static final String PROTOCOL_VERSION = "1.3.0";
+    private static final String PROTOCOL_VERSION = "1.5.0";
 
     public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
 
@@ -36,6 +34,8 @@ public class NetworkHandler {
         INSTANCE.registerMessage(0, SyncClientCapMsg.class, SyncClientCapMsg::Encode, SyncClientCapMsg::Decode, SyncClientCapMsg::handle);
         INSTANCE.registerMessage(1, SyncServerCapMsg.class, SyncServerCapMsg::Encode, SyncServerCapMsg::Decode, SyncServerCapMsg::handle);
         INSTANCE.registerMessage(2, InstaKillMsg.class, InstaKillMsg::Encode, InstaKillMsg::Decode, InstaKillMsg::handle);
+        INSTANCE.registerMessage(3, ReviveChanceMsg.class, (message, buf) -> {}, it -> new ReviveChanceMsg(), ReviveChanceMsg::handle);
+        INSTANCE.registerMessage(4, SacrificeItemsMsg.class, (message, buf) -> {}, it -> new SacrificeItemsMsg(), SacrificeItemsMsg::handle);
     }
 
     //Custom method used to send data to players

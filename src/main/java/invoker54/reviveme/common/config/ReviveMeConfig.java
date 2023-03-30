@@ -18,7 +18,10 @@ public final class ReviveMeConfig {
     public static Double revivedFood;
     public static FallenCapability.PENALTYPE penaltyType;
     public static Double penaltyAmount;
+    public static String penaltyItem;
     public static Double reviveInvulnTime;
+    public static Double reviveChance;
+    public static Double sacrificialItemPercent;
 
     static {
         final Pair<CommonConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(CommonConfig::new);
@@ -33,7 +36,10 @@ public final class ReviveMeConfig {
         revivedFood = COMMON.revivedFood.get();
         penaltyType = COMMON.penaltyType.get();
         penaltyAmount = COMMON.penaltyAmount.get();
+        penaltyItem = COMMON.penaltyItem.get();
         reviveInvulnTime = COMMON.reviveInvulnTime.get();
+        reviveChance = COMMON.reviveChance.get();
+        sacrificialItemPercent = COMMON.sacrificialItemPercent.get();
     }
 
     public static class CommonConfig {
@@ -46,7 +52,10 @@ public final class ReviveMeConfig {
         public final ForgeConfigSpec.ConfigValue<Double> revivedFood;
         public final ForgeConfigSpec.EnumValue<FallenCapability.PENALTYPE> penaltyType;
         public final ForgeConfigSpec.ConfigValue<Double> penaltyAmount;
+        public final ForgeConfigSpec.ConfigValue<String> penaltyItem;
         public final ForgeConfigSpec.ConfigValue<Double> reviveInvulnTime;
+        public final ForgeConfigSpec.ConfigValue<Double> reviveChance;
+        public final ForgeConfigSpec.ConfigValue<Double> sacrificialItemPercent;
 
         public CommonConfig(ForgeConfigSpec.Builder builder) {
             //This is what goes on top inside of the config
@@ -65,7 +74,13 @@ public final class ReviveMeConfig {
 
             penaltyAmount = builder.comment("Amount that will be taken from reviver, Numbers below 1 and greater than 0 will turn it into a percentage").define("Penalty Amount", 10D);
 
+            penaltyItem = builder.comment("Item used to revive fallen players (Only if you selected ITEM as penalty type). Usage: MODID:ITEM").define("Revive Item", "minecraft:golden_apple");
+
             reviveInvulnTime = builder.comment("How many seconds of invulnerability you have on revive").defineInRange("Revive_Invuln_Time", 3F, 0F, Float.MAX_VALUE);
+
+            reviveChance = builder.comment("(SinglePlayer only) How high your chance is to revive.").defineInRange("Revive Chance", 0.5F, 0F, 1F);
+
+            sacrificialItemPercent = builder.comment("(SinglePlayer only) Percentage to lose for sacrificial items.").defineInRange("Sacrificial item percentage", 0.5F, 0F, 1F);
 
             builder.pop();
         }

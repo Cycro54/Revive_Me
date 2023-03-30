@@ -13,6 +13,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -22,6 +23,8 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.ArrayList;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class FallEvent {
@@ -107,7 +110,7 @@ public class FallEvent {
             instance.SetTimeLeft((int) player.level.getGameTime(), ReviveMeConfig.timeLeft);
 
             //Set penalty type and amount
-            instance.setPenalty(ReviveMeConfig.penaltyType, ReviveMeConfig.penaltyAmount);
+            instance.setPenalty(ReviveMeConfig.penaltyType, ReviveMeConfig.penaltyAmount, ReviveMeConfig.penaltyItem);
             //System.out.println(ReviveMeConfig.penaltyType);
 
             //Make them invulnerable to all damage (besides void and creative of course.)
@@ -123,6 +126,27 @@ public class FallEvent {
 
             //stop them from using an item if they are using one
             player.stopUsingItem();
+
+            //This will only happen if the player is in a single player world
+            if (player.getServer().getPlayerList().getPlayers().size() == 1 && !instance.usedSacrificedItems()){
+                //Generate a sacrificial item list
+                ArrayList<Item> items = new ArrayList<>();
+                for (ItemStack itemStack : player.getInventory().items){
+                    if (items.contains(itemStack.getItem())) continue;
+                    if (!itemStack.isStackable()) continue;
+                    if (itemStack.isEmpty()) continue;
+                    items.add(itemStack.getItem());
+                }
+//                LOGGER.debug("What are the contents? " + items);
+                //Remove all except 4
+                while (items.size() > 4){
+                    items.remove(player.level.random.nextInt(items.size()));
+                }
+//                LOGGER.debug("What are the contents? " + items);
+
+                //Now add it to the players capability
+                instance.setSacrificialItems(items);
+            }
 
             //Finally send capability code to all players
             CompoundTag nbt = new CompoundTag();

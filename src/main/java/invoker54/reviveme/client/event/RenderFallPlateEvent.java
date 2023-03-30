@@ -20,40 +20,42 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.awt.*;
 import java.text.DecimalFormat;
 
 import static invoker54.invocore.client.ClientUtil.mC;
-import static invoker54.reviveme.client.event.FallScreenEvent.*;
+import static invoker54.reviveme.client.event.FallScreenEvent.timerIMG;
 import static invoker54.reviveme.client.event.ReviveScreenEvent.bgColor;
 import static invoker54.reviveme.client.event.ReviveScreenEvent.progressColor;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID, value = Dist.CLIENT)
 public class RenderFallPlateEvent {
+    private static final Logger LOGGER = LogManager.getLogger();
     private static final Minecraft inst = Minecraft.getInstance();
     private static final DecimalFormat df = new DecimalFormat("0.0");
-    private static final int greenProgCircle = new Color(39, 235, 86, 255).getRGB();
-    private static final int redProgCircle = new Color(173, 17, 17, 255).getRGB();
-    private static final int blackBg = new Color(0, 0, 0, 176).getRGB();
+    public static final int greenProgCircle = new Color(39, 235, 86, 255).getRGB();
+    public static final int redProgCircle = new Color(173, 17, 17, 255).getRGB();
+    public static final int blackBg = new Color(0, 0, 0, 176).getRGB();
 
     @SubscribeEvent
     public static void renderWorldFallTimer(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_TRIPWIRE_BLOCKS) return;
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
 
         for (Entity entity : inst.level.entitiesForRendering()) {
-            if (!(entity instanceof Player)) continue;
+            if (!(entity instanceof Player player)) continue;
             if (entity.equals(mC.player)) continue;
             if (entity.distanceTo(mC.player) > 20) continue;
 
-            Player player = (Player) entity;
             FallenCapability cap = FallenCapability.GetFallCap(player);
             PoseStack stack = event.getPoseStack();
 
-
-            if (!cap.isFallen()) return;
+            if (!cap.isFallen()) continue;
             float f = entity.getBbHeight() * 0.30f;
             stack.pushPose();
+
             RenderSystem.disableCull();
             RenderSystem.enableBlend();
             RenderSystem.defaultBlendFunc();
@@ -71,7 +73,7 @@ public class RenderFallPlateEvent {
                     //Green circular progress
                     int radius = 22;
                     int modSize = 40;
-                    if (ReviveMeConfig.timeLeft == 0 || cap.GetTimeLeft(false) <= 0)
+                    if (ReviveMeConfig.timeLeft == 0 && cap.GetTimeLeft(false) <= 0)
                         CircleRender.drawArc(stack, 0, 0, radius, 0, 360, greenProgCircle);
                     else CircleRender.drawArc(stack, 0, 0, radius, 0, cap.GetTimeLeft(true) * 360, greenProgCircle);
 
@@ -80,44 +82,11 @@ public class RenderFallPlateEvent {
                     timerIMG.moveTo(-(timerIMG.getWidth() / 2), -(timerIMG.getHeight() / 2));
                     timerIMG.RenderImage(stack);
 
-                    //Revive type background
-//        fill(stack, 2, -14, 14, -2, blackBg);
-                    ClientUtil.blitColor(stack, (int) (modSize / 2F), 10, (int) (-modSize / 2F), 9, blackBg);
-                    //Revive type item texture
-                    switch (cap.getPenaltyType()) {
-                        case NONE:
-                            break;
-                        case HEALTH:
-                            heartIMG.moveTo((int) ((modSize / 2F) + 1), (int) (-modSize / 2F));
-                            heartIMG.RenderImage(stack);
-//                        ClientUtil.TEXTURE_MANAGER.bind(HEALTH_TEXTURE);
-//                        ClientUtil.blitImage(stack, , 8, , 8, 0, 64, 0, 64, 64);
-////                ClientUtil.blitImageWorld(stack, pos, 1, 0, 64, 0, 64, 64);
-////                blit(stack, 4, -12, 0, 0F, 0F, 8, 8, 8, 8);
-//                        ClientUtil.TEXTURE_MANAGER.release(HEALTH_TEXTURE);
-                            break;
-                        case EXPERIENCE:
-                            xpIMG.moveTo((int) ((modSize / 2F) + 1), (int) (-modSize / 2F));
-                            xpIMG.setActualSize(8, 8);
-                            xpIMG.RenderImage(stack);
-//                        ClientUtil.TEXTURE_MANAGER.bind(EXPERIENCE_TEXTURE);
-//                        ClientUtil.blitImage(stack, (int) ((modSize / 2F) + 1), 8, (int) (-modSize / 2F), 8, 0, 16, 0, 16, 16);
-////                blit(stack, 4, -12, 0, 0F, 0F, 8, 8, 8, 8);
-//                        ClientUtil.TEXTURE_MANAGER.release(EXPERIENCE_TEXTURE);
-                            break;
-                        case FOOD:
-                            foodIMG.moveTo((int) ((modSize / 2F) + 1), (int) ((-modSize / 2F) + 1));
-                            foodIMG.setActualSize(8, 8);
-                            foodIMG.RenderImage(stack);
-//                        ClientUtil.TEXTURE_MANAGER.bind(FOOD_TEXTURE);
-//                        ClientUtil.blitImage(stack, , 8, (-modSize / 2F) + 1, 8, 0, 18, 0, 18, 18);
-////                blit(stack, 4, -12, 0, 0F, 0F, 8, 8, 8, 8);
-//                        ClientUtil.TEXTURE_MANAGER.release(FOOD_TEXTURE);
-                            break;
-                    }
+//                    //Penalty txt
+                    float seconds = cap.GetTimeLeft(false);
+                    seconds += (seconds == 0 ? 0 : 1);
 
-                    //Penalty txt
-                    MutableComponent penaltyAmount = Component.literal(Integer.toString((int) cap.getPenaltyAmount(player)))
+                    MutableComponent penaltyAmount = Component.literal((ReviveMeConfig.timeLeft == 0 && seconds <= 0) ? "INF" : Integer.toString((int) seconds))
                             .withStyle(ChatFormatting.BOLD)
                             .withStyle(cap.hasEnough(inst.player) ? ChatFormatting.GREEN : ChatFormatting.RED);
 
@@ -129,7 +98,7 @@ public class RenderFallPlateEvent {
                 else if (mC.player.isCrouching() || player.isDeadOrDying()) {
                     //Green circular progress
                     int radius = 22;
-                    if (ReviveMeConfig.timeLeft == 0 || cap.GetTimeLeft(false) <= 0)
+                    if (ReviveMeConfig.timeLeft == 0 && cap.GetTimeLeft(false) <= 0)
                         CircleRender.drawArc(stack, 0, 0, radius, 0, 360, redProgCircle);
                     else CircleRender.drawArc(stack, 0, 0, radius, 0, cap.GetTimeLeft(true) * 360, redProgCircle);
 
@@ -213,4 +182,89 @@ public class RenderFallPlateEvent {
             stack.popPose();
         }
     }
+
+//    public static void renderItem(ItemStack itemStack, int x, int y, RenderPlayerEvent.Post event) {
+//        ItemRenderer renderer = mC.getItemRenderer();
+//        PoseStack blah = event.getPoseStack();
+//        Entity entity = event.getEntity();
+//        Camera camera = mC.getEntityRenderDispatcher().camera;
+//
+//        blah.popPose();
+//        blah.pushPose();
+//        RenderSystem.disableDepthTest();
+//        RenderSystem.disableCull();
+//        RenderSystem.enableBlend();
+//        Lighting.setupForFlatItems();
+//        //First set the rendering space on top of the entity of choosing
+//        float f = entity.getBbHeight() * 0.30f;
+//        Vec3 difference = entity.position().subtract(camera.getPosition());
+////        blah.translate(difference.x, difference.y + f, difference.z);
+//        blah.translate(0, f, 0);
+//
+//        //Set up rotations
+//        blah.mulPose(camera.rotation());
+//        blah.mulPose(Vector3f.YP.rotationDegrees(180.0F));
+//
+//        //Then finally render the revive item
+//        MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
+//        BakedModel bakedModel = renderer.getModel(itemStack, null, null, 0);
+////        renderer.render(itemStack, ItemTransforms.TransformType.NONE, false, blah, bufferSource, 15728880, OverlayTexture.NO_OVERLAY, bakedModel);
+////        renderer.renderStatic(itemStack, ItemTransforms.TransformType.NONE, 15728880, OverlayTexture.NO_OVERLAY, blah, bufferSource, entity.getId());
+//
+//        if (!bakedModel.isCustomRenderer() && (!itemStack.is(Items.TRIDENT))) {
+//            boolean flag1;
+//            if (itemStack.getItem() instanceof BlockItem) {
+//                Block block = ((BlockItem)itemStack.getItem()).getBlock();
+//                flag1 = !(block instanceof HalfTransparentBlock) && !(block instanceof StainedGlassPaneBlock);
+//            } else {
+//                flag1 = true;
+//            }
+//            for (var model : bakedModel.getRenderPasses(itemStack, flag1)) {
+//                for (var rendertype : model.getRenderTypes(itemStack, flag1)) {
+//
+//                    VertexConsumer vertexconsumer;
+//                    if (itemStack.is(ItemTags.COMPASSES) && itemStack.hasFoil()) {
+//                        blah.pushPose();
+//                        PoseStack.Pose posestack$pose = blah.last();
+//                        if (ItemTransforms.TransformType.NONE == ItemTransforms.TransformType.GUI) {
+////                            posestack$pose.pose().multiply(0.5F);
+//                        } else if (ItemTransforms.TransformType.NONE.firstPerson()) {
+//                            posestack$pose.pose().multiply(0.75F);
+//                        }
+//
+//                        if (flag1) {
+//                            vertexconsumer = ItemRenderer.getCompassFoilBufferDirect(bufferSource, rendertype, posestack$pose);
+//                        } else {
+//                            vertexconsumer = ItemRenderer.getCompassFoilBuffer(bufferSource, rendertype, posestack$pose);
+//                        }
+//
+//                        blah.popPose();
+//                    } else if (flag1) {
+//                        vertexconsumer = ItemRenderer.getFoilBufferDirect(bufferSource, rendertype, true, itemStack.hasFoil());
+//                    } else {
+//                        vertexconsumer = ItemRenderer.getFoilBuffer(bufferSource, rendertype, true, itemStack.hasFoil());
+//                    }
+//
+//                    renderer.renderModelLists(model, itemStack, 15728880, OverlayTexture.NO_OVERLAY, blah, vertexconsumer);
+//                }
+//            }
+//        } else {
+//            net.minecraftforge.client.extensions.common.IClientItemExtensions.of(itemStack).getCustomRenderer().renderByItem(itemStack, ItemTransforms.TransformType.NONE, blah, bufferSource, 15728880, OverlayTexture.NO_OVERLAY);
+//        }
+//
+//        //Experimental thingy
+////        bufferSource.endBatch();
+//
+//        Lighting.setupFor3DItems();
+//        blah.popPose();
+//        blah.pushPose();
+//
+////        blah.translate(difference.x, difference.y + f, difference.z);
+////        blah.mulPose(mC.getEntityRenderDispatcher().cameraOrientation());
+////        blah.scale(-0.025F, -0.025F, 0.025F);
+//
+//        blah.translate(0, f,0);
+//        blah.mulPose(mC.getEntityRenderDispatcher().cameraOrientation());
+//        blah.scale(-0.025F, -0.025F, 0.025F);
+//    }
 }

@@ -24,13 +24,13 @@ public class attackFallenEvents {
 
     @SubscribeEvent
     public static void playerAttackFallen(LivingAttackEvent event){
-        LOGGER.info("IS THE EVENT CANCELLED? " + event.isCanceled());
+//        LOGGER.info("IS THE EVENT CANCELLED? " + event.isCanceled());
         if (event.isCanceled()) return;
 
-        LOGGER.info("IS IT CLIENTSIDE? " + event.getEntity().level.isClientSide);
+//        LOGGER.info("IS IT CLIENTSIDE? " + event.getEntity().level.isClientSide);
         if (event.getEntity().level.isClientSide) return;
 
-        LOGGER.info("IS THE ATTACKED ENTITY A PLAYER? " + (event.getEntity() instanceof Player));
+//        LOGGER.info("IS THE ATTACKED ENTITY A PLAYER? " + (event.getEntity() instanceof Player));
         if (!(event.getEntity() instanceof Player)) return;
 
         Player player = (Player) event.getEntity();

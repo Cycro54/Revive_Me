@@ -28,7 +28,6 @@ public class ReviveScreenEvent {
 
     @SubscribeEvent
     public static void registerReviveScreen(RegisterGuiOverlaysEvent event){
-
         event.registerAboveAll("revive_screen", (gui, stack, partialTicks, width, height) -> {
             FallenCapability cap = FallenCapability.GetFallCap(inst.player);
 
@@ -63,7 +62,7 @@ public class ReviveScreenEvent {
             Gui.fill(stack, (int) (xOrigin * 0.5f), yOrigin + 8,
                     (int) (xOrigin * 1.5f), yOrigin - 8, bgColor); //prev color: 2302755
 
-            float progress = cap.getProgress();
+            float progress = Math.min(cap.getProgress(), 1);
 
             //System.out.println(progress);
 
@@ -73,6 +72,4 @@ public class ReviveScreenEvent {
             RenderSystem.enableDepthTest();
         });
     }
-
-    //This will be what the person reviving someone will see
 }
