@@ -13,7 +13,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 apply from: 'https://raw.githubusercontent.com/SizableShrimp/Forge-Class-Remapper/main/classremapper.gradle'
 
-version = '2.1.0'
+version = '2.1.1'
 group = 'invoker54' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'revive-me-1.18.2'
 
