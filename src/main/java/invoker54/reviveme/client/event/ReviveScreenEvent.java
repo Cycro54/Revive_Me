@@ -6,7 +6,6 @@ import invoker54.reviveme.common.capability.FallenCapability;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.network.chat.BaseComponent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.client.gui.OverlayRegistry;
@@ -15,8 +14,8 @@ import java.awt.*;
 
 public class ReviveScreenEvent {
     private static Minecraft inst = Minecraft.getInstance();
-    public static BaseComponent beingRevivedText = new TranslatableComponent("reviveScreen.being_revived");
-    public static BaseComponent revivingText = new TranslatableComponent("reviveScreen.reviving");
+    public static MutableComponent beingRevivedText = new TranslatableComponent("reviveScreen.being_revived");
+    public static MutableComponent revivingText = new TranslatableComponent("reviveScreen.reviving");
 
     public static final int bgColor = new Color(35,35,35,255).getRGB();
     public static final int revColor = new Color(77, 77, 77, 121).getRGB();
@@ -57,7 +56,7 @@ public class ReviveScreenEvent {
             Gui.fill(stack, (int) (xOrigin * 0.5f), yOrigin + 8,
                     (int) (xOrigin * 1.5f), yOrigin - 8, bgColor); //prev color: 2302755
 
-            float progress = cap.getProgress();
+            float progress = Math.min(cap.getProgress(), 1);
 
             //System.out.println(progress);
 
@@ -67,6 +66,4 @@ public class ReviveScreenEvent {
             RenderSystem.enableDepthTest();
         });
     }
-
-    //This will be what the person reviving someone will see
 }

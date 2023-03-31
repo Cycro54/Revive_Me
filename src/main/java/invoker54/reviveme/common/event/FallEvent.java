@@ -14,7 +14,10 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -24,6 +27,8 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.ArrayList;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class FallEvent {
@@ -71,14 +76,14 @@ public class FallEvent {
         event.setCanceled(cancelEvent(player, event.getSource()));
     }
 
-    public static boolean cancelEvent(Player player, DamageSource source){
+    public static boolean cancelEvent(Player player, DamageSource source) {
         FallenCapability instance = FallenCapability.GetFallCap(player);
 
         //If they are in creative mode, don't bother with any of this.
         if (player.isCreative()) return false;
 
         //If they have a totem of undying in their InteractionHand, dont cancel the events
-        for(InteractionHand InteractionHand : InteractionHand.values()) {
+        for (InteractionHand InteractionHand : InteractionHand.values()) {
             ItemStack itemstack1 = player.getItemInHand(InteractionHand);
             if (itemstack1.getItem() == Items.TOTEM_OF_UNDYING) {
                 return false;
@@ -88,7 +93,7 @@ public class FallEvent {
 //        LOGGER.info("Are they fallen? " + instance.isFallen());
         if (!instance.isFallen()) {
 //            LOGGER.info("MAKING THEM FALLEN");
-            for(Player player1 : ((ServerLevel)player.level).getServer().getPlayerList().getPlayers()){
+            for (Player player1 : ((ServerLevel) player.level).getServer().getPlayerList().getPlayers()) {
                 player1.sendMessage(new TextComponent(player.getName().getString())
                         .append(new TranslatableComponent("revive-me.chat.player_fallen")), Util.NIL_UUID);
             }
@@ -109,7 +114,7 @@ public class FallEvent {
             instance.SetTimeLeft((int) player.level.getGameTime(), ReviveMeConfig.timeLeft);
 
             //Set penalty type and amount
-            instance.setPenalty(ReviveMeConfig.penaltyType, ReviveMeConfig.penaltyAmount);
+            instance.setPenalty(ReviveMeConfig.penaltyType, ReviveMeConfig.penaltyAmount, ReviveMeConfig.penaltyItem);
             //System.out.println(ReviveMeConfig.penaltyType);
 
             //Make them invulnerable to all damage (besides void and creative of course.)
@@ -125,6 +130,27 @@ public class FallEvent {
 
             //stop them from using an item if they are using one
             player.stopUsingItem();
+
+            //This will only happen if the player is in a single player world
+            if (player.getServer().getPlayerList().getPlayers().size() == 1 && !instance.usedSacrificedItems()) {
+                //Generate a sacrificial item list
+                ArrayList<Item> items = new ArrayList<>();
+                for (ItemStack itemStack : player.getInventory().items) {
+                    if (items.contains(itemStack.getItem())) continue;
+                    if (!itemStack.isStackable()) continue;
+                    if (itemStack.isEmpty()) continue;
+                    items.add(itemStack.getItem());
+                }
+//                LOGGER.debug("What are the contents? " + items);
+                //Remove all except 4
+                while (items.size() > 4) {
+                    items.remove(player.level.random.nextInt(items.size()));
+                }
+//                LOGGER.debug("What are the contents? " + items);
+
+                //Now add it to the players capability
+                instance.setSacrificialItems(items);
+            }
 
             //Finally send capability code to all players
             CompoundTag nbt = new CompoundTag();
@@ -143,6 +169,14 @@ public class FallEvent {
                 instance.setOtherPlayer(null);
             }
             nbt.put(player.getStringUUID(), instance.writeNBT());
+
+            //Make all angerable enemies nearby forgive the player.
+            for (Entity entity : ((ServerLevel) player.level).getAllEntities()) {
+                if (!(entity instanceof NeutralMob)) continue;
+
+                ((NeutralMob) entity).playerDied(player);
+            }
+
 
             NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player),
                     new SyncClientCapMsg(nbt));

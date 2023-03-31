@@ -3,9 +3,14 @@
   "fallenScreen.fallen_text": "You have fallen",
   "fallenScreen.wait_text": "Wait to be revived OR",
   "fallenScreen.force_death_text": "Hold {attack} for {seconds} seconds to end life.",
+  "fallenScreen.single_player.give_items": "Hold {use} to sacrifice items for revive",
+  "fallenScreen.single_player.give_chance_1": "Hold {attack} for a",
+  "fallenScreen.single_player.give_chance_2": "chance to revive",
   "reviveScreen.being_revived": "Being Revived...",
   "reviveScreen.reviving": "Reviving...",
   "revive-me.chat.player_fallen": " has fallen",
   "revive-me.fall_plate.kill": "{attack} to KILL",
-  "revive-me.fall_plate.revive": "{use} to revive"
+  "revive-me.fall_plate.revive": "{use} to revive",
+  "revive-me.commands.revive_fail": " is either dead or already revived",
+  "revive-me.commands.revive_pass": " has been revived"
 }

@@ -5,6 +5,8 @@ import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.InstaKillMsg;
+import invoker54.reviveme.common.network.message.ReviveChanceMsg;
+import invoker54.reviveme.common.network.message.SacrificeItemsMsg;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -37,25 +39,37 @@ public class FallenPlayerActionsEvent {
     }
 
     @SubscribeEvent
-    public static void forceDeath(TickEvent.PlayerTickEvent event){
-        if(event.side == LogicalSide.SERVER) return;
+    public static void forceDeath(TickEvent.PlayerTickEvent event) {
+        if (event.side == LogicalSide.SERVER) return;
+        FallenCapability cap = FallenCapability.GetFallCap(inst.player);
 
-        if(!FallenCapability.GetFallCap(inst.player).isFallen()) return;
+        if (!cap.isFallen()) return;
 
-        if(event.phase == TickEvent.Phase.END) return;
+        if (event.phase == TickEvent.Phase.END) return;
 
-        if(inst.options.keyAttack.isDown()) {
+        boolean flag = (ClientUtil.mC.hasSingleplayerServer() &&
+                ClientUtil.mC.getSingleplayerServer().getPlayerList().getPlayers().size() == 1);
+
+        //This will be chance
+        if (inst.options.keyAttack.isDown()) {
             timeHeld++;
             if (!ClientUtil.getPlayer().swinging) {
                 ClientUtil.getPlayer().swing(InteractionHand.MAIN_HAND);
             }
 
             if (timeHeld == 40) {
-                NetworkHandler.INSTANCE.sendToServer(new InstaKillMsg(inst.player.getUUID()));
-                //System.out.println("Who's about to die: " + inst.player.getDisplayName());
+                if (flag) NetworkHandler.INSTANCE.sendToServer(new ReviveChanceMsg());
+                else NetworkHandler.INSTANCE.sendToServer(new InstaKillMsg(ClientUtil.getPlayer().getUUID()));
             }
         }
-        else if (timeHeld != 0) timeHeld = 0;
+        //This will use items
+        else if (inst.options.keyUse.isDown() && flag) {
+            timeHeld++;
+
+            if (timeHeld == 40) {
+                NetworkHandler.INSTANCE.sendToServer(new SacrificeItemsMsg());
+            }
+        } else if (timeHeld != 0) timeHeld = 0;
     }
 
     @SubscribeEvent

@@ -1,6 +1,7 @@
 package invoker54.reviveme;
 
 import invoker54.reviveme.client.event.FallScreenEvent;
+import invoker54.reviveme.client.event.ReviveRequirementScreen;
 import invoker54.reviveme.client.event.ReviveScreenEvent;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
@@ -47,5 +48,6 @@ public class ReviveMe
     private void clientSetup(final FMLClientSetupEvent event){
         FallScreenEvent.registerFallenScreen();
         ReviveScreenEvent.registerReviveScreen();
+        ReviveRequirementScreen.registerRequirementScreen();
     }
 }

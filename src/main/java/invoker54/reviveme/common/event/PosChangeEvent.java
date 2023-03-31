@@ -9,7 +9,6 @@ import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class PosChangeEvent {
-
     //This will make it seem like the player is crouching (though visually client-side it won't be.)
     @SubscribeEvent
     public static void onTick (TickEvent.PlayerTickEvent event){
