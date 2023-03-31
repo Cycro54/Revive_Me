@@ -61,15 +61,18 @@ public class ReviveRequirementScreen {
             int penaltyTypeSize = 16;
             int padding = 2;
             padding *= 2;
-            int space = Math.min(eighthHeight, eighthWidth);
+            int space = Math.min(Math.min(eighthHeight, eighthWidth), (penaltyTypeSize * 4) + padding);
             space -= padding;
             
             float scaleFactor = 1;
             stack.pushPose();
             if (space > penaltyTypeSize) scaleFactor = space/(float)penaltyTypeSize;
+            penaltyTypeSize *= scaleFactor;
+            int panelWidth = (space * 2) + (padding * 2);
+            int panelHeight = space + padding;
 
             //This is the background of the requirements
-            ClientUtil.blitColor(stack, x0, quarterWidth, eighthHeight, quarterHeight, blackBg);
+            ClientUtil.blitColor(stack, x0, panelWidth, eighthHeight, panelHeight, blackBg);
 
             //This is the picture
             //Revive type item texture
@@ -77,17 +80,20 @@ public class ReviveRequirementScreen {
                 case NONE:
                     break;
                 case HEALTH:
-                    heartIMG.moveTo(x0 + ((eighthWidth - penaltyTypeSize)/2),y0 + ((quarterHeight - penaltyTypeSize)/2));
+                    heartIMG.centerImageX(x0, panelWidth/2);
+                    heartIMG.centerImageY(eighthHeight, panelHeight);
                     heartIMG.setActualSize(penaltyTypeSize, penaltyTypeSize);
                     heartIMG.RenderImage(stack);
                     break;
                 case EXPERIENCE:
-                    xpIMG.moveTo(x0 + ((eighthWidth - penaltyTypeSize)/2),y0 + ((quarterHeight - penaltyTypeSize)/2));
+                    xpIMG.centerImageX(x0, panelWidth/2);
+                    xpIMG.centerImageY(eighthHeight, panelHeight);
                     xpIMG.setActualSize(penaltyTypeSize, penaltyTypeSize);
                     xpIMG.RenderImage(stack);
                     break;
                 case FOOD:
-                    foodIMG.moveTo(x0 + ((eighthWidth - penaltyTypeSize)/2),y0 + ((quarterHeight - penaltyTypeSize)/2));
+                    foodIMG.centerImageX(x0, panelWidth/2);
+                    foodIMG.centerImageY(eighthHeight, panelHeight);
                     foodIMG.setActualSize(penaltyTypeSize, penaltyTypeSize);
                     foodIMG.RenderImage(stack);
                     break;
@@ -103,8 +109,8 @@ public class ReviveRequirementScreen {
 
                     PoseStack posestack = RenderSystem.getModelViewStack();
                     posestack.pushPose();
-                    posestack.translate((x0 + ((eighthWidth - penaltyTypeSize)/2F)),
-                            (y0 + ((quarterHeight - penaltyTypeSize)/2F)), (double)(100.0F + renderer.blitOffset));
+                    posestack.translate((x0 + (((panelWidth/2F) - (penaltyTypeSize/scaleFactor))/2F)),
+                            (y0 + ((panelHeight - (penaltyTypeSize/scaleFactor))/2F)), (double)(100.0F + renderer.blitOffset));
                     posestack.translate(8.0D, 8.0D, 0.0D);
                     posestack.scale(1.0F, -1.0F, 1.0F);
                     posestack.scale(16.0F, 16.0F, 16.0F);
@@ -131,8 +137,8 @@ public class ReviveRequirementScreen {
                     .withStyle(ChatFormatting.BOLD)
                     .withStyle(cap.hasEnough(mC.player) ? ChatFormatting.GREEN : ChatFormatting.RED);
 
-            TextUtil.renderText(stack, penaltyAmount, false, x0 + eighthWidth,
-                    eighthWidth, eighthHeight, quarterHeight, 4, TextUtil.txtAlignment.MIDDLE);
+            TextUtil.renderText(stack, penaltyAmount, false, x0 + (panelWidth/2F),
+                    (panelWidth/2F), eighthHeight, panelHeight, padding/2, TextUtil.txtAlignment.MIDDLE);
         });
     }
 

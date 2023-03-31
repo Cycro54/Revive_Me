@@ -25,7 +25,7 @@ public class SacrificeItemsMsg {
 
             FallenCapability cap = FallenCapability.GetFallCap(player);
 
-            if (!cap.usedSacrificedItems()) {
+            if (!cap.usedSacrificedItems() && cap.getItemList().size() != 0) {
                 //Take the items.
                 for (Item item : cap.getItemList()) {
                     Inventory playerInv = player.getInventory();

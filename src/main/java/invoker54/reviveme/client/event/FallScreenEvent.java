@@ -101,10 +101,10 @@ public class FallScreenEvent {
 
             //Increase seconds by 1 if seconds isn't at 0
             seconds = cap.GetTimeLeft(false);
-            seconds += (seconds == 0 ? 0 : 1);
+            seconds += (seconds <= 0 ? 0 : 1);
 
             MutableComponent timeLeftString =
-                    Component.literal((ReviveMeConfig.timeLeft == 0 && seconds <= 0) ? "INF" : Integer.toString((int) seconds))
+                    Component.literal((seconds <= 0) ? "INF" : Integer.toString((int) seconds))
                             .withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
 
             //This is the timer background
@@ -233,11 +233,17 @@ public class FallScreenEvent {
             }
             //endregion
 
-            if (cap.usedSacrificedItems()){
+            if (cap.usedSacrificedItems() || cap.getItemList().size() == 0){
                 ClientUtil.blitColor(stack, halfWidth, halfWidth, fifthHeight, height, new Color(0,0,0, 179).getRGB());
+                TextUtil.renderText(stack, Component.literal("X").withStyle(ChatFormatting.DARK_RED), true,
+                        halfWidth, halfWidth, startHeight,
+                        (halfWidth/2F) + 20, 0, TextUtil.txtAlignment.MIDDLE);
             }
             if (cap.usedChance()){
                 ClientUtil.blitColor(stack, 0, halfWidth, fifthHeight, height, new Color(0,0,0, 179).getRGB());
+                TextUtil.renderText(stack, Component.literal("X").withStyle(ChatFormatting.DARK_RED), true,
+                        halfWidth/4, (halfWidth/2F), startHeight,
+                        (halfWidth/2F) + 20, 0, TextUtil.txtAlignment.MIDDLE);
             }
 
             //System.out.println(seconds);
@@ -249,10 +255,10 @@ public class FallScreenEvent {
 
             //Increase seconds by 1 if seconds isn't at 0
             seconds = cap.GetTimeLeft(false);
-            seconds += (seconds == 0 ? 0 : 1);
+            seconds += (seconds <= 0 ? 0 : 1);
 
             MutableComponent timeLeftString =
-                    Component.literal((ReviveMeConfig.timeLeft == 0 || seconds <= 0) ? "INF" : Integer.toString((int) seconds))
+                    Component.literal((seconds <= 0) ? "INF" : Integer.toString((int) seconds))
                             .withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
 
             //This is the timer background
@@ -263,7 +269,7 @@ public class FallScreenEvent {
             timerIMG.centerImageY((int) (thirdHeight - radius), (int) (radius * 2));
             timerIMG.RenderImage(stack);
 
-            TextUtil.renderText(stack, timeLeftString, false, timerIMG.x0 + 17, 30, timerIMG.y0 + 17, 30,
+            TextUtil.renderText(stack, timeLeftString, false,timerIMG.x0 + 17, 30, timerIMG.y0 + 17, 30,
                     0, TextUtil.txtAlignment.MIDDLE);
         });
     }

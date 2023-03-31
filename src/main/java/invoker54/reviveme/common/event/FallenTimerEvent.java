@@ -107,7 +107,7 @@ public class FallenTimerEvent {
 
         revivePlayer(fellPlayer);
     }
-    
+
     public static void takeFromReviver(Player reviver, Player fallen) {
         if (reviver == null) return;
 
@@ -149,7 +149,7 @@ public class FallenTimerEvent {
             }
         }
     }
-    
+
     public static void revivePlayer(Player fallen){
         FallenCapability cap = FallenCapability.GetFallCap(fallen);
 

@@ -58,7 +58,7 @@ public class FallenPlayerActionsEvent {
             }
 
             if (timeHeld == 40) {
-                if (flag && cap.getItemList().size() != 0) NetworkHandler.INSTANCE.sendToServer(new ReviveChanceMsg());
+                if (flag) NetworkHandler.INSTANCE.sendToServer(new ReviveChanceMsg());
                 else NetworkHandler.INSTANCE.sendToServer(new InstaKillMsg(ClientUtil.getPlayer().getUUID()));
             }
         }

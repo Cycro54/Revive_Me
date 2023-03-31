@@ -12,6 +12,8 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -79,7 +81,7 @@ public class FallEvent {
         if (player.isCreative()) return false;
 
         //If they have a totem of undying in their InteractionHand, dont cancel the events
-        for(InteractionHand InteractionHand : InteractionHand.values()) {
+        for (InteractionHand InteractionHand : InteractionHand.values()) {
             ItemStack itemstack1 = player.getItemInHand(InteractionHand);
             if (itemstack1.getItem() == Items.TOTEM_OF_UNDYING) {
                 return false;
@@ -128,10 +130,10 @@ public class FallEvent {
             player.stopUsingItem();
 
             //This will only happen if the player is in a single player world
-            if (player.getServer().getPlayerList().getPlayers().size() == 1 && !instance.usedSacrificedItems()){
+            if (player.getServer().getPlayerList().getPlayers().size() == 1 && !instance.usedSacrificedItems()) {
                 //Generate a sacrificial item list
                 ArrayList<Item> items = new ArrayList<>();
-                for (ItemStack itemStack : player.getInventory().items){
+                for (ItemStack itemStack : player.getInventory().items) {
                     if (items.contains(itemStack.getItem())) continue;
                     if (!itemStack.isStackable()) continue;
                     if (itemStack.isEmpty()) continue;
@@ -139,7 +141,7 @@ public class FallEvent {
                 }
 //                LOGGER.debug("What are the contents? " + items);
                 //Remove all except 4
-                while (items.size() > 4){
+                while (items.size() > 4) {
                     items.remove(player.level.random.nextInt(items.size()));
                 }
 //                LOGGER.debug("What are the contents? " + items);
@@ -165,6 +167,14 @@ public class FallEvent {
                 instance.setOtherPlayer(null);
             }
             nbt.put(player.getStringUUID(), instance.writeNBT());
+
+            //Make all angerable enemies nearby forgive the player.
+            for (Entity entity : ((ServerLevel) player.level).getAllEntities()) {
+                if (!(entity instanceof NeutralMob)) continue;
+
+                ((NeutralMob) entity).playerDied(player);
+            }
+
 
             NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player),
                     new SyncClientCapMsg(nbt));

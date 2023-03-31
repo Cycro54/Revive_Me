@@ -76,7 +76,7 @@ public final class ReviveMeConfig {
 
             penaltyItem = builder.comment("Item used to revive fallen players (Only if you selected ITEM as penalty type). Usage: MODID:ITEM").define("Revive Item", "minecraft:golden_apple");
 
-            reviveInvulnTime = builder.comment("How many seconds of invulnerability you have on revive").defineInRange("Revive_Invuln_Time", 3F, 0F, Float.MAX_VALUE);
+            reviveInvulnTime = builder.comment("How many seconds of invulnerability you have on revive").defineInRange("Revive_Invuln_Time", 5F, 0F, Float.MAX_VALUE);
 
             reviveChance = builder.comment("(SinglePlayer only) How high your chance is to revive.").defineInRange("Revive Chance", 0.5F, 0F, 1F);
 
