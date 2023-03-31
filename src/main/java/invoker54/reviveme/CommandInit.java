@@ -1,6 +1,7 @@
 package invoker54.reviveme;
 
 import com.mojang.brigadier.CommandDispatcher;
+import invoker54.reviveme.commands.FixCommand;
 import invoker54.reviveme.commands.ReviveCommand;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -16,5 +17,6 @@ public class CommandInit {
         CommandDispatcher<CommandSourceStack> commandDispatcher = event.getDispatcher();
 
         ReviveCommand.register(commandDispatcher);
+        FixCommand.register(commandDispatcher);
     }
 }
