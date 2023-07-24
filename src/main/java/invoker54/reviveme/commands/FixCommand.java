@@ -55,7 +55,7 @@ public class FixCommand {
         //This should fix the player if they are downed
         if (cap.isFallen()){
             caller.server.getPlayerList().broadcastSystemMessage(
-                    caller.getDisplayName().copy().append(Component.translatable("revive-me.commands.fix").getString()), false);
+                    caller.getDisplayName().copy().append(Component.translatable("revive-me.commands.fix")), false);
 
             //Set last damage source for later
             if (cap.getDamageSource() == null)
@@ -87,9 +87,8 @@ public class FixCommand {
             //stop them from using an item if they are using one
             caller.stopUsingItem();
 
-            //This will only happen if the caller is in a single caller world
-            if (caller.getServer().getPlayerList().getPlayers().size() == 1 && !cap.usedSacrificedItems()
-            && cap.getItemList().size() == 0){
+            //regenerates sacrificial item list (if you don't already have one)
+            if (!cap.usedSacrificedItems() && cap.getItemList().size() == 0){
                 //Generate a sacrificial item list
                 ArrayList<Item> items = new ArrayList<>();
                 for (ItemStack itemStack : caller.getInventory().items) {
@@ -137,7 +136,7 @@ public class FixCommand {
             FallenTimerEvent.revivePlayer(caller);
 
             caller.server.getPlayerList().broadcastSystemMessage(
-                    caller.getDisplayName().copy().append(Component.translatable("revive-me.commands.fix").getString()), false);
+                    caller.getDisplayName().copy().append(Component.translatable("revive-me.commands.fix")), false);
         }
         
         return 1;

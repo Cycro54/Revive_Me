@@ -11,6 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
+import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -28,7 +29,7 @@ public class ReviveScreenEvent {
 
     @SubscribeEvent
     public static void registerReviveScreen(RegisterGuiOverlaysEvent event){
-        event.registerAboveAll("revive_screen", (gui, stack, partialTicks, width, height) -> {
+        event.registerBelow(VanillaGuiOverlay.CHAT_PANEL.id(),"revive_screen", (gui, stack, partialTicks, width, height) -> {
             FallenCapability cap = FallenCapability.GetFallCap(inst.player);
 
             //MAKE SURE this only happens if you are being revived, or reviving someone

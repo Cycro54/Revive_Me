@@ -60,7 +60,7 @@ public class FallenCapability {
     protected List<Item> sacrificialItems = new ArrayList<>();
     protected boolean sacrificedItemsUsed = false;
     protected boolean reviveChanceUsed = false;
-    public enum PENALTYPE {
+    public enum PENALTYPE  {
         NONE,
         HEALTH,
         EXPERIENCE,

@@ -86,6 +86,11 @@ public class FallEvent {
             }
         }
 
+        //If they used both self-revive options, and they are not on a server, they should die immediately
+        if (instance.usedChance() &&
+                (instance.usedSacrificedItems() || player.getInventory().isEmpty()) &&
+                player.getServer() != null && player.getServer().isSingleplayer()) return false;
+
 //        LOGGER.info("Are they fallen? " + instance.isFallen());
         if (!instance.isFallen()) {
 //            LOGGER.info("MAKING THEM FALLEN");
