@@ -23,4 +23,5 @@ public class SyncConfigEvent {
             ReviveMeConfig.markDirty(false);
         }
     }
+
 }

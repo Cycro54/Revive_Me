@@ -340,7 +340,7 @@ public class FallScreenEvent {
             float halfWidth = (width / 2F);
             float thirdHeight = (height / 3F);
             //This is for the green circle that is around the Timer img
-            float radius = 36;
+            float radius = (height/5F)/2;
             //This is the top of the timer picture
             int timerOrigY = (int) (thirdHeight + (radius/2)) + 2;
             int mouseOrigY = (int) (timerOrigY + (timerIMG.getHeight()/2F) + radius) + 2;
@@ -351,22 +351,37 @@ public class FallScreenEvent {
             //Title text
             stack.pushPose();
             stack.scale(2, 2, 2);
-            Gui.drawCenteredString(stack, font, titleText, (width / 2) / 2, (int) thirdHeight/2, 16777215);
+            Gui.drawCenteredString(stack, font, titleText, (width / 2) / 2, (int) (timerOrigY - radius)/2, 16777215);
             stack.popPose();
 
             //Other revive items top
             float startHeight = mouseOrigY + 2;
             //How much room the text has width
-            float txtRoomWidth = (width/3F)/2F;
+            float txtRoomWidth = (width/2.25F)/2F;
             //How much room half of the mouse takes
             float halfMouseSizeX = (mouse_idle_IMG.getWidth()/2F);
             //Text room height
-            float txtRoomHeight = (int)(mouse_idle_IMG.getHeight() * 1.5f);
+            float txtRoomHeight = (int)(mouse_idle_IMG.getHeight() * 1.25f);
             MutableComponent stringToRender;
 
             //Background
-            ClientUtil.blitColor(stack, halfWidth - txtRoomWidth, (width/3F), mouse_idle_IMG.y0,
+            ClientUtil.blitColor(stack, halfWidth - txtRoomWidth, (width/2.25F), mouse_idle_IMG.y0,
                     txtRoomHeight, new Color(0,0,0, 182).getRGB());
+
+            //region This will be if the player is holding a button
+
+            //This will be chance
+            if (inst.options.keyAttack.isDown()) {
+                ClientUtil.blitColor(stack, halfWidth - txtRoomWidth - 1, txtRoomWidth + 1, mouse_idle_IMG.y0 - 1,
+                        txtRoomHeight + 2, new Color(255, 255, 255, 255).getRGB());
+            }
+
+            //This will be for items
+            else if (inst.options.keyUse.isDown()) {
+                ClientUtil.blitColor(stack, halfWidth, txtRoomWidth + 1, mouse_idle_IMG.y0 - 1,
+                        txtRoomHeight + 2, new Color(255, 255, 255, 255).getRGB());
+            }
+            //endregion
 
             //region Left mouse to give chance
             if (!cap.usedChance()) {
@@ -377,7 +392,7 @@ public class FallScreenEvent {
                 //Top portion
                 stringToRender = Component.translatable("fallenScreen.self_revive.give_chance_1");
             stringToRender = Component.literal(stringToRender.getString().replace("{attack}",inst.options.keyAttack.getKey().getDisplayName().getString()));
-                TextUtil.renderText(stack, stringToRender.withStyle(ChatFormatting.BOLD), true, halfWidth - txtRoomWidth, txtRoomWidth - halfMouseSizeX,
+                TextUtil.renderText(stack, stringToRender.withStyle(ChatFormatting.BOLD), 2, true, halfWidth - txtRoomWidth, txtRoomWidth - halfMouseSizeX - 5,
                         mouse_idle_IMG.y0, (txtRoomHeight/4), 2, TextUtil.txtAlignment.MIDDLE);
 
                 //Middle potion
@@ -390,7 +405,7 @@ public class FallScreenEvent {
 
                 //Bottom portion
                 stringToRender = Component.translatable("fallenScreen.self_revive.give_chance_2");
-                TextUtil.renderText(stack, stringToRender.withStyle(ChatFormatting.BOLD), true, halfWidth - txtRoomWidth, txtRoomWidth - halfMouseSizeX,
+                TextUtil.renderText(stack, stringToRender.withStyle(ChatFormatting.BOLD), 2, true, halfWidth - txtRoomWidth, txtRoomWidth - halfMouseSizeX - 5,
                         mouse_idle_IMG.y0 + ((txtRoomHeight/4) * 3), (txtRoomHeight/4), 2, TextUtil.txtAlignment.MIDDLE);
             }
             //endregion
@@ -401,26 +416,34 @@ public class FallScreenEvent {
             if (!cap.usedSacrificedItems() && cap.getItemList().size() != 0) {
                 ClientUtil.blitColor(stack, halfWidth + halfMouseSizeX + 5, txtRoomWidth - halfMouseSizeX - 5,
                         mouse_idle_IMG.y0, (txtRoomHeight / 4), new Color(0, 0, 0, 255).getRGB());
-                TextUtil.renderText(stack, stringToRender.withStyle(ChatFormatting.BOLD), true, halfWidth + halfMouseSizeX + 5,
+                TextUtil.renderText(stack, stringToRender.withStyle(ChatFormatting.BOLD), 2, true, halfWidth + halfMouseSizeX + 5,
                         txtRoomWidth - halfMouseSizeX - 5, mouse_idle_IMG.y0, (txtRoomHeight / 4), 1, TextUtil.txtAlignment.MIDDLE);
             }
 
             //region this will be for sacrificial items
             float offset = 0;
-            int padding = 1;
-            int itemSize = 16;
+            int padding = 0;
+            float itemSize = ((((txtRoomHeight/4) * 3)/4F) - (padding * 2));
 
             if (cap.getItemList().size() != 0){
             ArrayList<Item> itemArrayList = cap.getItemList();
             for (Item item : itemArrayList) {
+                float backgroundX = halfWidth + halfMouseSizeX + 5;
+                float backgroundW = txtRoomWidth - halfMouseSizeX - 5;
+                float backgroundY = mouse_idle_IMG.y0 + (txtRoomHeight/4) + offset;
+                float backgroundH = itemSize + (padding * 2);
 
                 //Draw the background
-                ClientUtil.blitColor(stack, halfWidth + halfMouseSizeX + 5, txtRoomWidth - halfMouseSizeX - 5, mouse_idle_IMG.y0 + (txtRoomHeight/3) + offset,
-                        itemSize + (padding * 2), new Color(0, 0, 0, 255).getRGB());
+                ClientUtil.blitColor(stack, backgroundX, backgroundW, backgroundY,
+                        backgroundH, new Color(0, 0, 0, 255).getRGB());
+
+                float smallestSize = Math.min((backgroundW/3),backgroundH);
 
                 //Draw the item
-                mC.getItemRenderer().renderAndDecorateItem(new ItemStack(item),
-                        (int) (halfWidth + halfMouseSizeX + 5 + padding), (int) (mouse_idle_IMG.y0 + (txtRoomHeight/3) + offset + padding));
+                ClientUtil.blitItem(stack, backgroundX + (((backgroundW/4F) - smallestSize))/2F, smallestSize,
+                        backgroundY + padding, smallestSize, new ItemStack(item));
+//                mC.getItemRenderer().renderAndDecorateItem(new ItemStack(item),
+//                        (int) (halfWidth + halfMouseSizeX + 5 + padding), (int) (mouse_idle_IMG.y0 + (txtRoomHeight/4) + offset + padding));
 
                 //Draw the amount they have, then the amount they will have after reduction
                 int count = inst.player.getInventory().countItem(item);
@@ -430,14 +453,14 @@ public class FallScreenEvent {
                         Component.literal("" + (count - (Math.round(Math.max(1, ReviveMeConfig.sacrificialItemPercent * count)))))
                                 .withStyle(ChatFormatting.BOLD).withStyle(ChatFormatting.RED);
 
-                float startX = halfWidth + halfMouseSizeX + 5 + (padding + itemSize + padding);
-                float spacePortion = (txtRoomWidth - halfMouseSizeX - 5 - (itemSize + (padding * 3)))/3F;
-                float startY = mouse_idle_IMG.y0 + (txtRoomHeight/3) + offset + padding;
+                float startX = backgroundX + (backgroundW/4F);
+                float spacePortion = backgroundW/4F;
+                float startY = mouse_idle_IMG.y0 + (txtRoomHeight/4) + offset + padding;
                 TextUtil.renderText(stack, countComp, true, (int) startX, spacePortion, startY, itemSize, 1, TextUtil.txtAlignment.MIDDLE);
-                TextUtil.renderText(stack, arrowComp, true, (int) startX + spacePortion, spacePortion, startY-5, itemSize + (padding * 2), 1, TextUtil.txtAlignment.MIDDLE);
+                TextUtil.renderText(stack, arrowComp, 1, true, (int) startX + spacePortion, spacePortion, startY-1, itemSize + (padding * 2), 0, TextUtil.txtAlignment.MIDDLE);
                 TextUtil.renderText(stack, newCountComp, true, (int) startX + (spacePortion*2), spacePortion, startY, itemSize, 1, TextUtil.txtAlignment.MIDDLE);
 
-                offset += itemSize + (padding * 3);
+                offset += backgroundH;
             }
             }
             //endregion
@@ -468,7 +491,7 @@ public class FallScreenEvent {
 
             //This is for item sacrifice
             if (cap.usedSacrificedItems() || cap.getItemList().size() == 0){
-                ClientUtil.blitColor(stack, halfWidth, txtRoomWidth, mouse_idle_IMG.y0, txtRoomHeight, new Color(0,0,0, 204).getRGB());
+                ClientUtil.blitColor(stack, halfWidth, txtRoomWidth, mouse_idle_IMG.y0, txtRoomHeight, new Color(0,0,0, 255).getRGB());
 
                 MutableComponent item_text = Component.translatable(cap.usedSacrificedItems() ? "fallenScreen.self_revive.used" : "fallenScreen.self_revive.no_items");
                 item_text = item_text.withStyle(ChatFormatting.DARK_RED);
@@ -479,14 +502,13 @@ public class FallScreenEvent {
             }
             //This is for chance
             if (cap.usedChance()){
-                ClientUtil.blitColor(stack, halfWidth - txtRoomWidth, txtRoomWidth, mouse_idle_IMG.y0, txtRoomHeight, new Color(0,0,0, 204).getRGB());
+                ClientUtil.blitColor(stack, halfWidth - txtRoomWidth, txtRoomWidth, mouse_idle_IMG.y0, txtRoomHeight, new Color(0,0,0, 255).getRGB());
                 TextUtil.renderText(stack, Component.translatable("fallenScreen.self_revive.used").withStyle(ChatFormatting.DARK_RED), true,
                         halfWidth - txtRoomWidth, txtRoomWidth - halfMouseSizeX, mouse_idle_IMG.y0, txtRoomHeight,  4, TextUtil.txtAlignment.MIDDLE);
             }
             //endregion
 
             //System.out.println(seconds);
-
 
 
             //region The timer stuff
@@ -504,20 +526,21 @@ public class FallScreenEvent {
 
             //This is the timer background
             timerIMG.resetScale();
-            timerIMG.setActualSize(64, 64);
+            timerIMG.setActualSize((int) (radius * 1.75F), (int) (radius * 1.75F));
             timerIMG.centerImageX(0, width);
             timerIMG.moveTo(timerIMG.x0, timerOrigY);
             CircleRender.drawArc(stack, halfWidth, timerIMG.y0 + (timerIMG.getHeight()/2F), radius, 0, endAngle, greenColor);
             timerIMG.RenderImage(stack);
 
-            TextUtil.renderText(stack, timeLeftString, false,timerIMG.x0 + 17, 30, timerIMG.y0 + 17, 30,
-                    0, TextUtil.txtAlignment.MIDDLE);
+            float timeSizeDiff = 64F/timerIMG.getHeight();
+            TextUtil.renderText(stack, timeLeftString, false,(timerIMG.x0 + 17/timeSizeDiff), (30/timeSizeDiff),
+                    (timerIMG.y0 + 17/timeSizeDiff), (30)/timeSizeDiff,0, TextUtil.txtAlignment.MIDDLE);
             //endregion
 
 
             //This will render the mouse
             chosenMouse.resetScale();
-            chosenMouse.setActualSize(chosenMouse.getWidth() * 2, chosenMouse.getHeight() * 2);
+            chosenMouse.setActualSize((int) (chosenMouse.getWidth() * ((height/5F)/chosenMouse.getHeight())), height/5);
             chosenMouse.centerImageX(0, width);
             chosenMouse.moveTo(chosenMouse.x0, mouseOrigY);
             chosenMouse.RenderImage(stack);
