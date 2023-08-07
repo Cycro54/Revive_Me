@@ -36,6 +36,7 @@ public class NetworkHandler {
         INSTANCE.registerMessage(2, InstaKillMsg.class, InstaKillMsg::Encode, InstaKillMsg::Decode, InstaKillMsg::handle);
         INSTANCE.registerMessage(3, ReviveChanceMsg.class, (message, buf) -> {}, it -> new ReviveChanceMsg(), ReviveChanceMsg::handle);
         INSTANCE.registerMessage(4, SacrificeItemsMsg.class, (message, buf) -> {}, it -> new SacrificeItemsMsg(), SacrificeItemsMsg::handle);
+        INSTANCE.registerMessage(5, SyncConfigMsg.class, SyncConfigMsg::Encode, SyncConfigMsg::Decode, SyncConfigMsg::handle);
     }
 
     //Custom method used to send data to players

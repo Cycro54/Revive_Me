@@ -46,6 +46,7 @@ public class SyncClientCapMsg {
 
                 FallenCapability.GetFallCap(player).readNBT(nbt.get(key));
             }
+
         });
         context.setPacketHandled(true);
     }

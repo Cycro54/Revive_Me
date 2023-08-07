@@ -3,6 +3,7 @@ package invoker54.reviveme.client.event;
 import invoker54.invocore.client.ClientUtil;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.InstaKillMsg;
 import invoker54.reviveme.common.network.message.ReviveChanceMsg;
@@ -47,8 +48,8 @@ public class FallenPlayerActionsEvent {
 
         if (event.phase == TickEvent.Phase.END) return;
 
-        boolean flag = (ClientUtil.mC.hasSingleplayerServer() &&
-                ClientUtil.mC.getSingleplayerServer().getPlayerList().getPlayers().size() == 1);
+        boolean flag = (ReviveMeConfig.selfReviveMultiplayer || (ClientUtil.mC.hasSingleplayerServer() &&
+                ClientUtil.mC.getSingleplayerServer().getPlayerList().getPlayers().size() == 1));
 
         //This will be chance
         if (inst.options.keyAttack.isDown()) {
@@ -63,7 +64,7 @@ public class FallenPlayerActionsEvent {
             }
         }
         //This will use items
-        else if (inst.options.keyUse.isDown() && flag) {
+        else if (inst.options.keyUse.isDown() && flag && (!cap.usedChance() || !cap.getItemList().isEmpty())) {
             timeHeld++;
 
             if (timeHeld == 40) {

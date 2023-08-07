@@ -92,34 +92,8 @@ public class ReviveRequirementScreen {
                     foodIMG.RenderImage(stack);
                     break;
                 case ITEM:
-                    stack.scale(scaleFactor, scaleFactor, 1);
-
-                    Lighting.setupForFlatItems();
-                    MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-                    ItemRenderer renderer = mC.getItemRenderer();
-                    ItemStack itemStack = cap.getPenaltyItem();
-                    BakedModel bakedModel = renderer.getModel(itemStack, null, null, 0);
-                    RenderSystem.disableDepthTest();
-
-                    PoseStack posestack = RenderSystem.getModelViewStack();
-                    posestack.pushPose();
-                    posestack.translate((x0 + (((panelWidth/2F) - (penaltyTypeSize/scaleFactor))/2F)),
-                            (y0 + ((panelHeight - (penaltyTypeSize/scaleFactor))/2F)), (double)(100.0F + renderer.blitOffset));
-                    posestack.translate(8.0D, 8.0D, 0.0D);
-                    posestack.scale(1.0F, -1.0F, 1.0F);
-                    posestack.scale(16.0F, 16.0F, 16.0F);
-                    RenderSystem.applyModelViewMatrix();
-                    boolean flag = !bakedModel.usesBlockLight();
-                    if (flag) {
-                        Lighting.setupForFlatItems();
-                    }
-                    renderer.render(itemStack, ItemTransforms.TransformType.GUI, false, stack, bufferSource, 15728880, OverlayTexture.NO_OVERLAY, bakedModel);
-                    bufferSource.endBatch();
-                    if (flag) {
-                        Lighting.setupFor3DItems();
-                    }
-                    posestack.popPose();
-                    RenderSystem.applyModelViewMatrix();
+                    ClientUtil.blitItem(stack, x0 + (((panelWidth/2F) - penaltyTypeSize)/2F), penaltyTypeSize,
+                            (y0 + ((panelHeight - penaltyTypeSize)/2F)), penaltyTypeSize, cap.getPenaltyItem());
                     break;
             }
             

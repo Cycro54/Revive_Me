@@ -3,15 +3,21 @@
   "fallenScreen.fallen_text": "You have fallen",
   "fallenScreen.wait_text": "Wait to be revived OR",
   "fallenScreen.force_death_text": "Hold {attack} for {seconds} seconds to end life.",
-  "fallenScreen.single_player.give_items": "Hold {use} to sacrifice items for revive",
-  "fallenScreen.single_player.give_chance_1": "Hold {attack} for a",
-  "fallenScreen.single_player.give_chance_2": "chance to revive",
+  "fallenScreen.self_revive.give_items": "Hold {use} to sacrifice items",
+  "fallenScreen.self_revive.give_chance_1": "Hold {attack} for",
+  "fallenScreen.self_revive.give_chance_2": "chance to revive",
+  "fallenScreen.self_revive.used": "USED",
+  "fallenScreen.self_revive.no_items": "NO ITEMS",
   "reviveScreen.being_revived": "Being Revived...",
   "reviveScreen.reviving": "Reviving...",
   "revive-me.chat.player_fallen": " has fallen",
+  "revive-me.chat.blocked_command": "(Revive Me) You can't use that command while fallen!",
   "revive-me.fall_plate.kill": "{attack} to KILL",
   "revive-me.fall_plate.revive": "{use} to revive",
   "revive-me.commands.revive_fail": " is either dead or already revived",
   "revive-me.commands.revive_pass": " has been revived",
-  "revive-me.commands.fix": " should be fixed"
+  "revive-me.commands.fix": " should be fixed",
+
+  "__comment": "This is for mob effect names",
+  "effect.reviveme.fallen_effect": "Fallen Penalty"
 }

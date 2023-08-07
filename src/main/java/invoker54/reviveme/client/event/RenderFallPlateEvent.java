@@ -91,7 +91,7 @@ public class RenderFallPlateEvent {
                             .withStyle(cap.hasEnough(inst.player) ? ChatFormatting.GREEN : ChatFormatting.RED);
 
                     float scaleFactor = (timerIMG.getWidth() / 64F);
-                    TextUtil.renderText(stack, penaltyAmount, false, timerIMG.x0 + (17 * scaleFactor), 30 * scaleFactor,
+                    TextUtil.renderText(stack, penaltyAmount, 1,false, timerIMG.x0 + (17 * scaleFactor), 30 * scaleFactor,
                             timerIMG.y0 + (17 * scaleFactor), 30 * scaleFactor, 0, TextUtil.txtAlignment.MIDDLE);
                 }
                 //This txt is for showing if the player wishes to kill the fallen player

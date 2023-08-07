@@ -3,8 +3,10 @@ package invoker54.reviveme.common.event;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.api.FallenProvider;
 import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
+import invoker54.reviveme.common.network.message.SyncConfigMsg;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -45,6 +47,7 @@ public class CapabilityEvents {
         nbt.put(playerUUID.toString(), cap.writeNBT());
 
         NetworkHandler.sendToPlayer(event.getPlayer(), new SyncClientCapMsg(nbt));
+        NetworkHandler.sendToPlayer(event.getPlayer(), new SyncConfigMsg(ReviveMeConfig.serialize()));
     }
 
     @SubscribeEvent

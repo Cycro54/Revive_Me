@@ -3,9 +3,16 @@ package invoker54.reviveme.common.config;
 
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public final class ReviveMeConfig {
@@ -22,6 +29,14 @@ public final class ReviveMeConfig {
     public static Double reviveInvulnTime;
     public static Double reviveChance;
     public static Double sacrificialItemPercent;
+    public static Double fallenPenaltyTimer;
+    public static boolean selfReviveMultiplayer;
+    public static List<String> blockedCommands;
+    //Client settings
+    public static Boolean compactReviveUI;
+
+
+    private static boolean isDirty = false;
 
     static {
         final Pair<CommonConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(CommonConfig::new);
@@ -40,6 +55,49 @@ public final class ReviveMeConfig {
         reviveInvulnTime = COMMON.reviveInvulnTime.get();
         reviveChance = COMMON.reviveChance.get();
         sacrificialItemPercent = COMMON.sacrificialItemPercent.get();
+        fallenPenaltyTimer = COMMON.fallenPenaltyTimer.get();
+        selfReviveMultiplayer = COMMON.selfReviveMultiplayer.get();
+        blockedCommands = (List<String>) COMMON.blockedCommands.get();
+        compactReviveUI = COMMON.compactReviveUI.get();
+    }
+
+    public static CompoundTag serialize(){
+        CompoundTag mainTag = new CompoundTag();
+        //Self Revive Multiplayer
+        mainTag.putBoolean("selfReviveMultiplayer", selfReviveMultiplayer);
+        //Blocked Commands
+        String allBlockedCommands = "";
+        for (String string: blockedCommands){
+            allBlockedCommands = allBlockedCommands.concat(string+",");
+        }
+        mainTag.putString("blockedCommands", allBlockedCommands);
+        return mainTag;
+    }
+
+    public static void deserialize(CompoundTag mainTag){
+        //Self Revive Multiplayer
+        selfReviveMultiplayer = mainTag.getBoolean("selfReviveMultiplayer");
+        //Blocked Commands
+        blockedCommands = Arrays.asList(mainTag.getString("blockedCommands").split(","));
+    }
+
+    @SubscribeEvent
+    public static void onConfigChanged(final ModConfigEvent eventConfig){
+        //System.out.println("What's the config type? " + eventConfig.getConfig().getType());
+
+        if(eventConfig.getConfig().getSpec() == ReviveMeConfig.COMMON_SPEC){
+            //System.out.println("SYNCING CONFIG SHTUFF");
+            bakeConfig();
+            markDirty(true);
+        }
+    }
+
+    public static void markDirty(boolean dirty){
+        isDirty = dirty;
+    }
+
+    public static boolean isDirty(){
+        return isDirty;
     }
 
     public static class CommonConfig {
@@ -56,6 +114,10 @@ public final class ReviveMeConfig {
         public final ForgeConfigSpec.ConfigValue<Double> reviveInvulnTime;
         public final ForgeConfigSpec.ConfigValue<Double> reviveChance;
         public final ForgeConfigSpec.ConfigValue<Double> sacrificialItemPercent;
+        public final ForgeConfigSpec.ConfigValue<Double> fallenPenaltyTimer;
+        public final ForgeConfigSpec.ConfigValue<Boolean> selfReviveMultiplayer;
+        public final ForgeConfigSpec.ConfigValue<List<? extends String>> blockedCommands;
+        public final ForgeConfigSpec.ConfigValue<Boolean> compactReviveUI;
 
         public CommonConfig(ForgeConfigSpec.Builder builder) {
             //This is what goes on top inside of the config
@@ -82,6 +144,15 @@ public final class ReviveMeConfig {
 
             sacrificialItemPercent = builder.comment("(SinglePlayer only) Percentage to lose for sacrificial items.").defineInRange("Sacrificial item percentage", 0.5F, 0F, 1F);
 
+            fallenPenaltyTimer = builder.comment("how long the self-revive penalty will last in SECONDS until you can use both options again").defineInRange("Self_Revive_Penalty_Timer", 45, 0F, Double.MAX_VALUE);
+
+            selfReviveMultiplayer = builder.comment("If you can use self-revive methods in multiplayer").define("Self_Revive_Multiplayer", false);
+
+            blockedCommands = builder.comment("Commands the player isn't allowed to use while fallen").define("Blocked_Commands", new ArrayList<>());
+            builder.pop();
+
+            builder.push("Client Settings");
+            compactReviveUI = builder.comment("Makes self-revive UI smaller, more compact").define("Compact_UI", false);
             builder.pop();
         }
 

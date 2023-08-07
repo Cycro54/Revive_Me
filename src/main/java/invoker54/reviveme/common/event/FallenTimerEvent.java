@@ -5,6 +5,7 @@ import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
+import invoker54.reviveme.init.MobEffectInit;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -190,6 +191,11 @@ public class FallenTimerEvent {
 
         //Remove all potion effects
         fallen.removeAllEffects();
+
+        //Add the fallen potion effect if one of the two self revives were used
+        if (cap.usedChance() || cap.usedSacrificedItems()){
+            fallen.addEffect(new MobEffectInstance(MobEffectInit.FALLEN_EFFECT, (int) (ReviveMeConfig.fallenPenaltyTimer * 20)));
+        }
 
         //Make it so they aren't invulnerable anymore
         fallen.setInvulnerable(false);

@@ -90,6 +90,11 @@ public class FallEvent {
             }
         }
 
+        //If they used both self-revive options, and they are not on a server, they should die immediately
+        if (instance.usedChance() &&
+                (instance.usedSacrificedItems() || player.getInventory().isEmpty()) &&
+                (player.getServer() != null && player.getServer().getPlayerCount() < 2)) return false;
+
 //        LOGGER.info("Are they fallen? " + instance.isFallen());
         if (!instance.isFallen()) {
 //            LOGGER.info("MAKING THEM FALLEN");
@@ -131,8 +136,8 @@ public class FallEvent {
             //stop them from using an item if they are using one
             player.stopUsingItem();
 
-            //This will only happen if the player is in a single player world
-            if (player.getServer().getPlayerList().getPlayers().size() == 1 && !instance.usedSacrificedItems()) {
+            //Choose random stackable items to sacrifice
+            if (!instance.usedSacrificedItems()) {
                 //Generate a sacrificial item list
                 ArrayList<Item> items = new ArrayList<>();
                 for (ItemStack itemStack : player.getInventory().items) {
