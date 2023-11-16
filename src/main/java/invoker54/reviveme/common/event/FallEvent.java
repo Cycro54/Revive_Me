@@ -5,6 +5,10 @@ import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.IAngerable;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -85,9 +89,9 @@ public class FallEvent {
             }
         }
 
-        LOGGER.info("Are they fallen? " + instance.isFallen());
+//        LOGGER.info("Are they fallen? " + instance.isFallen());
         if (!instance.isFallen()) {
-            LOGGER.info("MAKING THEM FALLEN");
+//            LOGGER.info("MAKING THEM FALLEN");
             for(PlayerEntity player1 : ((ServerWorld)player.level).getServer().getPlayerList().getPlayers()){
                 player1.sendMessage(new StringTextComponent(player.getName().getString())
                         .append(new TranslationTextComponent("revive-me.chat.player_fallen")), Util.NIL_UUID);
@@ -113,7 +117,8 @@ public class FallEvent {
             //System.out.println(ReviveMeConfig.penaltyType);
 
             //Make them invulnerable to all damage (besides void and creative of course.)
-//                    player.setInvulnerable(true);
+            player.setInvulnerable(true);
+
             player.removeAllEffects();
 
             //Make it so they can't move very fast.
@@ -125,12 +130,41 @@ public class FallEvent {
             //stop them from using an item if they are using one
             player.stopUsingItem();
 
-            //System.out.println("Am I fallen?: " + FallenCapability.GetFallCap(player).isFallen());
 
             //Finally send capability code to all players
             CompoundNBT nbt = new CompoundNBT();
+
+            //System.out.println("Am I fallen?: " + FallenCapability.GetFallCap(player).isFallen());
+            if (instance.getOtherPlayer() != null) {
+
+                PlayerEntity otherPlayer = player.level.getPlayerByUUID(instance.getOtherPlayer());
+                if (otherPlayer != null) {
+                    FallenCapability otherCap = FallenCapability.GetFallCap(otherPlayer);
+                    otherCap.resumeFallTimer();
+                    otherCap.setOtherPlayer(null);
+
+                    nbt.put(otherPlayer.getStringUUID(), otherCap.writeNBT());
+                }
+                instance.setOtherPlayer(null);
+            }
             nbt.put(player.getStringUUID(), instance.writeNBT());
-            NetworkHandler.INSTANCE.send((PacketDistributor.ALL.noArg()), new SyncClientCapMsg(nbt));
+
+            //Make all angerable enemies nearby forgive the player.
+            for (Entity entity : ((ServerWorld) player.level).getAllEntities()) {
+                if (entity instanceof IAngerable) {
+                    ((IAngerable) entity).playerDied(player);
+                }
+                if (!(entity instanceof MobEntity)) continue;
+                LivingEntity target = ((MobEntity) entity).getTarget();
+
+                if (target == null) continue;
+                if (target.getId() == player.getId()) {
+                    ((MobEntity) entity).setTarget(null);
+                }
+            }
+
+            NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player),
+                    new SyncClientCapMsg(nbt));
 
             return true;
         }

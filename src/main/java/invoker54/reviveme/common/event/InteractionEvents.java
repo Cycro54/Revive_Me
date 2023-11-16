@@ -1,17 +1,22 @@
 package invoker54.reviveme.common.event;
 
+import invoker54.invocore.client.ClientUtil;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
+import net.minecraft.client.GameSettings;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -81,52 +86,6 @@ public class InteractionEvents {
     }
 
     @SubscribeEvent
-    public static void attackPlayer(LivingAttackEvent event){
-        if (event.isCanceled()) return;
-
-        if (!(event.getEntityLiving() instanceof PlayerEntity)) return;
-
-        PlayerEntity player = (PlayerEntity) event.getEntityLiving();
-        FallenCapability cap = FallenCapability.GetFallCap(player);
-
-
-        LOGGER.info("START OF ATTACKING");
-        LOGGER.info("What is the source? : " + event.getSource());
-        if (event.getSource() != null){
-            LOGGER.info("Does it go through invulnerability: " + event.getSource().isBypassInvul());
-            if (event.getSource().getEntity() != null) LOGGER.info("whats the entity? : " + event.getSource().getEntity().getName().getString());
-
-        }
-
-        //If it's a source that goes through invulnerability, let it pass
-        if (event.getSource() != null && event.getSource().isBypassInvul()){
-            LOGGER.info("Damage bypasses invulnerability, let it pass");
-            return;
-        }
-
-        //If they aren't fallen, let it pass.
-        else if (!cap.isFallen()){
-            LOGGER.info("They have not fallen, let it pass.");
-            return;
-        }
-
-        //If the damage source is a player that's crouching, let it pass
-        else if (event.getSource() != null && (event.getSource().getEntity() instanceof PlayerEntity) && event.getSource().getEntity().isCrouching()){
-            LOGGER.info("It's a sneaking player! let it pass.");
-            return;
-        }
-
-        //Else cancel the attack event
-        else {
-            LOGGER.info("CANCELING THE ATTACK EVENT");
-            event.setCanceled(true);
-//            if (event.getSource() != null && event.getSource().getEntity() instanceof MobEntity){
-//                CancelMobTargetEvent.scrubMobMemories((MobEntity) event.getSource().getEntity(), (PlayerEntity) event.getEntityLiving());
-//            }
-        }
-    }
-
-    @SubscribeEvent
     public static void cancelItemUse(TickEvent.PlayerTickEvent event){
         if (event.phase == TickEvent.Phase.END) return;
 
@@ -136,6 +95,18 @@ public class InteractionEvents {
 
         //Cancel item use if they are using an item
         if (event.player.isUsingItem()) event.player.stopUsingItem();
+    }
+
+    @SubscribeEvent
+    public static void stopItemUse(LivingEntityUseItemEvent.Start event){
+        if (!(event.getEntity() instanceof PlayerEntity)) return;
+        FallenCapability cap = FallenCapability.GetFallCap(event.getEntityLiving());
+        if (cap.isFallen()) return;
+        if (cap.getOtherPlayer() == null) return;
+
+        //Cancel item use if they are using an item
+        event.setCanceled(true);
+        event.setDuration(0);
     }
 
 //    @SubscribeEvent

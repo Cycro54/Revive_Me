@@ -5,6 +5,7 @@ import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
+import invoker54.reviveme.mixin.FoodMixin;
 import net.minecraft.entity.Pose;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
@@ -36,10 +37,27 @@ public class FallenTimerEvent {
         if (event.player.isCreative()){
             cap.setFallen(false);
             event.player.setPose(Pose.STANDING);
-            //Remove all potion effects
-            event.player.removeAllEffects();
-            event.player.setHealth(event.player.getMaxHealth());
+            event.player.setInvulnerable(false);
+
+            if (event.side.isServer()) {
+                //Remove all potion effects
+                event.player.removeAllEffects();
+                event.player.setHealth(event.player.getMaxHealth());
+
+                CompoundNBT nbt = new CompoundNBT();
+                nbt.put(event.player.getStringUUID(), cap.writeNBT());
+
+                if (event.side == LogicalSide.SERVER) {
+                    NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> event.player),
+                            new SyncClientCapMsg(nbt));
+                }
+            }
             return;
+        }
+
+        //Make sure they are still invulnerable
+        if (!event.player.isInvulnerable()){
+            event.player.setInvulnerable(true);
         }
 
         //Make sure they aren't sprinting.
@@ -52,17 +70,12 @@ public class FallenTimerEvent {
 
         //Make sure they have no food either
         event.player.getFoodData().setFoodLevel(0);
-//
-//        //Make sure they aren't invulnerable either.
-//        if (event.player.isInvulnerable()){
-//            event.player.setInvulnerable(false);
-//        }
 
         if (!cap.shouldDie()) return;
 
         if (event.side == LogicalSide.CLIENT) return;
 
-//        event.player.setInvulnerable(false);
+        event.player.setInvulnerable(false);
         event.player.hurt(cap.getDamageSource().bypassInvul().bypassArmor(), Float.MAX_VALUE);
         //System.out.println("Who's about to die: " + event.player.getDisplayName());
     }
@@ -85,80 +98,101 @@ public class FallenTimerEvent {
 
         PlayerEntity fellPlayer = event.player;
 
-        if(event.side == LogicalSide.SERVER){
-            PlayerEntity revPlayer = fellPlayer.getServer().getPlayerList().getPlayer(cap.getOtherPlayer());
+        if (event.side == LogicalSide.SERVER) {
+            PlayerEntity reviver = fellPlayer.getServer().getPlayerList().getPlayer(cap.getOtherPlayer());
+            takeFromReviver(reviver, fellPlayer);
+        }
 
-            //Take penalty amount from reviver
+        revivePlayer(fellPlayer);
+    }
+
+    public static void takeFromReviver(PlayerEntity reviver, PlayerEntity fallen) {
+        if (reviver == null) return;
+
+        FallenCapability cap = FallenCapability.GetFallCap(fallen);
+
+        //Take penalty amount from reviver
+        if (!reviver.isCreative()) {
             switch (cap.getPenaltyType()) {
                 case NONE:
                     break;
                 case HEALTH:
-                    revPlayer.setHealth(Math.max(1, revPlayer.getHealth() - cap.getPenaltyAmount(revPlayer)));
+                    reviver.setHealth(Math.max(1, reviver.getHealth() - cap.getPenaltyAmount(reviver)));
                     break;
                 case EXPERIENCE:
-                    revPlayer.totalExperience -= cap.getPenaltyAmount(revPlayer);
+                    reviver.giveExperienceLevels(-Math.round(cap.getPenaltyAmount(reviver)));
                     break;
                 case FOOD:
-                    FoodStats food = revPlayer.getFoodData();
-                    float amountNeeded = cap.getPenaltyAmount(revPlayer);
+                    FoodStats food = reviver.getFoodData();
+                    float amountNeeded = cap.getPenaltyAmount(reviver);
                     float saturation = food.getSaturationLevel();
-                    food.setSaturation(food.getSaturationLevel() - amountNeeded);
-                    amountNeeded = Math.max(0,amountNeeded - saturation);
+                    if (saturation > 0) food.setSaturation(Math.max(0, food.getSaturationLevel() - amountNeeded));
+                    amountNeeded = Math.max(0, amountNeeded - saturation);
                     food.setFoodLevel((int) (food.getFoodLevel() - amountNeeded));
                     break;
             }
+        }
+    }
 
-            //Set the revived players health
-            float healAmount;
-            if (ReviveMeConfig.revivedHealth == 0){
-                healAmount = fellPlayer.getMaxHealth();
-            }
-            //Percentage
-            else if (ReviveMeConfig.revivedHealth > 0 && ReviveMeConfig.revivedHealth < 1){
-                healAmount = (float) (fellPlayer.getMaxHealth() * ReviveMeConfig.revivedHealth);
-            }
-            //Flat value
-            else {
-                healAmount = ReviveMeConfig.revivedHealth.floatValue();
-            }
-            fellPlayer.setHealth(healAmount);
+    public static void revivePlayer(PlayerEntity fallen){
+        FallenCapability cap = FallenCapability.GetFallCap(fallen);
 
-            //Set the revived players Food
-            float foodAmount;
-            if (ReviveMeConfig.revivedFood == 0){
-                foodAmount = 40;
-            }
-            //Percentage
-            else if (ReviveMeConfig.revivedFood > 0 && ReviveMeConfig.revivedFood < 1){
-                foodAmount = (float) (40 * ReviveMeConfig.revivedFood);
-            }
-            //Flat value
-            else {
-                foodAmount = ReviveMeConfig.revivedFood.floatValue();
-            }
-            //Now set their food level
-            fellPlayer.getFoodData().eat((int) Math.min(20, foodAmount), 0);
-            //Then their saturation
-            fellPlayer.getFoodData().eat(1, Math.max(0, foodAmount - 20)/2);
+        //region Set the revived players health
+        float healAmount;
+        if (ReviveMeConfig.revivedHealth == 0) {
+            healAmount = fallen.getMaxHealth();
+        }
+        //Percentage
+        else if (ReviveMeConfig.revivedHealth > 0 && ReviveMeConfig.revivedHealth < 1) {
+            healAmount = (float) (fallen.getMaxHealth() * ReviveMeConfig.revivedHealth);
+        }
+        //Flat value
+        else {
+            healAmount = ReviveMeConfig.revivedHealth.floatValue();
+        }
+        fallen.setHealth(healAmount);
+        //endregion
 
-            //Remove all potion effects
-            fellPlayer.removeAllEffects();
+        //region Set the revived players Food
+        float foodAmount;
+        if (ReviveMeConfig.revivedFood == 0) {
+            foodAmount = 40;
+        }
+        //Percentage
+        else if (ReviveMeConfig.revivedFood > 0 && ReviveMeConfig.revivedFood < 1) {
+            foodAmount = (float) (40 * ReviveMeConfig.revivedFood);
+        }
+        //Flat value
+        else {
+            foodAmount = ReviveMeConfig.revivedFood.floatValue();
+        }
+        //Now set their food level
+        fallen.getFoodData().setFoodLevel((int) Math.min(20, foodAmount));
+        //Then their saturation
+        ((FoodMixin) fallen.getFoodData()).setSaturationLevel(Math.max(0, foodAmount - 20));
+//        fallen.getFoodData().setSaturation(Math.max(0, foodAmount - 20));
+        //endregion
 
-            //Add invulnerability if it isn't 0
-            if (ReviveMeConfig.reviveInvulnTime != 0) {
-                fellPlayer.addEffect(new EffectInstance(Effects.DAMAGE_RESISTANCE, (int) (ReviveMeConfig.reviveInvulnTime * 20), 5));
-                fellPlayer.addEffect(new EffectInstance(Effects.FIRE_RESISTANCE, (int) (ReviveMeConfig.reviveInvulnTime * 20), 5));
-            }
+        //Remove all potion effects
+        fallen.removeAllEffects();
+
+        //Make it so they aren't invulnerable anymore
+        fallen.setInvulnerable(false);
+
+        //Add invulnerability if it isn't 0
+        if (ReviveMeConfig.reviveInvulnTime != 0) {
+            fallen.addEffect(new EffectInstance(Effects.DAMAGE_RESISTANCE, (int) (ReviveMeConfig.reviveInvulnTime * 20), 5));
+            fallen.addEffect(new EffectInstance(Effects.FIRE_RESISTANCE, (int) (ReviveMeConfig.reviveInvulnTime * 20), 5));
         }
 
         cap.setFallen(false);
-        fellPlayer.setPose(Pose.STANDING);
+        fallen.setPose(Pose.STANDING);
 
         CompoundNBT nbt = new CompoundNBT();
-        nbt.put(fellPlayer.getStringUUID(), cap.writeNBT());
+        nbt.put(fallen.getStringUUID(), cap.writeNBT());
 
-        if (event.side == LogicalSide.SERVER){
-            NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY.with(() -> fellPlayer),
+        if (!fallen.level.isClientSide) {
+            NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> fallen),
                     new SyncClientCapMsg(nbt));
         }
     }

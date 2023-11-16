@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "invoker54.reviveme.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "reviveme.refmap.json",
+  "mixins": [
+    "FoodMixin"
+  ],
+  "client": [
+    "KeyInputMixin",
+    "MouseInputMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -49,7 +49,7 @@ public final class ReviveMeConfig {
         public final ForgeConfigSpec.ConfigValue<Double> reviveInvulnTime;
 
         public CommonConfig(ForgeConfigSpec.Builder builder) {
-            //This is what goes on top inside of the config
+            //This is what goes on top inside the config
             builder.push("Revive Me! Config");
             //This is how you place a variable in the config file
             //exampleInt = BUILDER.comment("This is an integer. Default value is 3.").define("Example Integer", 54);

@@ -7,5 +7,8 @@
   "reviveScreen.reviving": "Reviving...",
   "revive-me.chat.player_fallen": " has fallen",
   "revive-me.fall_plate.kill": "{attack} to KILL",
-  "revive-me.fall_plate.revive": "{use} to revive"
+  "revive-me.fall_plate.revive": "{use} to revive",
+  "revive-me.commands.revive_fail": " is either dead or already revived",
+  "revive-me.commands.revive_pass": " has been revived",
+  "revive-me.commands.fix": " should be fixed"
 }
