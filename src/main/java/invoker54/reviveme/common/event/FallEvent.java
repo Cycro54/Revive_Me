@@ -15,6 +15,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -177,9 +178,13 @@ public class FallEvent {
 
             //Make all angerable enemies nearby forgive the player.
             for (Entity entity : ((ServerLevel) player.level).getAllEntities()) {
-                if (!(entity instanceof NeutralMob)) continue;
+                if (!(entity instanceof Mob mob)) continue;
 
-                ((NeutralMob) entity).playerDied(player);
+                if (mob instanceof NeutralMob neutralMob){
+                    neutralMob.playerDied(player);
+                }
+                if (mob.getTarget() == null) continue;
+                if (mob.getTarget().getId() == player.getId()) mob.setTarget(null);
             }
 
 

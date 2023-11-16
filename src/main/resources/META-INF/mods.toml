@@ -61,6 +61,6 @@ Allows you to revive others at a cost... or not, up to you!
 modId="invocore"
 mandatory=true
 # This version range declares a minimum of the current assets version up to but not including the next major version
-versionRange="[2.0.2,)"
+versionRange="[2.1.0,)"
 ordering="NONE"
 side="BOTH"
