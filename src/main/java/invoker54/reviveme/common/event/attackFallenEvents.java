@@ -76,9 +76,12 @@ public class attackFallenEvents {
         if (!(event.getNewTarget() instanceof Player player)) return;
 
         FallenCapability cap = FallenCapability.GetFallCap(player);
-        if (cap.isFallen() && mob instanceof NeutralMob) {
-            //Trick the target selector for the mob by making it so the player appears to be dead
-            ((NeutralMob)mob).playerDied(player);
+        if (cap.isFallen()) {
+            if (mob instanceof NeutralMob) {
+                //Trick the target selector for the mob by making it so the player appears to be dead
+                ((NeutralMob) mob).playerDied(player);
+            }
+            ((Mob)event.getEntity()).setTarget(null);
         }
     }
 

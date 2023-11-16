@@ -28,6 +28,7 @@ public class FixCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
                 Commands.literal("revivemefix")
+                        .requires((commandSource -> commandSource.hasPermission(2)))
                         .executes(FixCommand::fixPlayer)
                         .then(Commands.argument("player", EntityArgument.player())
                                 .executes(FixCommand::fixPlayer)
