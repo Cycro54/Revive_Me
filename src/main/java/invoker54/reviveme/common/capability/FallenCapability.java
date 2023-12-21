@@ -139,10 +139,6 @@ public class FallenCapability {
         if (divideByMax)
             return 1 - ((level.getGameTime() - fellStart)/ fellEnd);
 
-        LOGGER.debug("Start time: " + fellStart);
-        LOGGER.debug("Max seconds: " + (fellEnd));
-        LOGGER.debug("End timer: " + (fellStart + fellEnd));
-        LOGGER.debug("Current time: " + (level.getGameTime()));
         return ((fellStart + fellEnd) - level.getGameTime())/20f;
     }
 
