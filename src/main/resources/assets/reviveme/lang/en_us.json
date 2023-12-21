@@ -3,6 +3,7 @@
   "fallenScreen.fallen_text": "You have fallen",
   "fallenScreen.wait_text": "Wait to be revived OR",
   "fallenScreen.force_death_text": "Hold {attack} for {seconds} seconds to end life.",
+  "fallenScreen.cant_force_death_text": "wait to die. Your choice.",
   "fallenScreen.self_revive.give_items": "Hold {use} to sacrifice items",
   "fallenScreen.self_revive.give_chance_1": "Hold {attack} for",
   "fallenScreen.self_revive.give_chance_2": "chance to revive",

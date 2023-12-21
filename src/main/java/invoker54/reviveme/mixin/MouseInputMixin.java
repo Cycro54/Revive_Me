@@ -2,7 +2,6 @@ package invoker54.reviveme.mixin;
 
 import invoker54.invocore.client.ClientUtil;
 import invoker54.reviveme.common.capability.FallenCapability;
-import net.minecraft.world.food.FoodData;
 import net.minecraftforge.client.ForgeHooksClient;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

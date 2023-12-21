@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 
 public class SyncClientCapMsg {
     //The data
-    private Tag nbtData;
+    private final Tag nbtData;
 
     public SyncClientCapMsg(Tag nbtData){
         this.nbtData = nbtData;

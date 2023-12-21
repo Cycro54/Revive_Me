@@ -20,7 +20,7 @@ import java.util.UUID;
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = ReviveMe.MOD_ID)
 public class RevivePlayerActionsEvent {
     private static final Logger LOGGER = LogManager.getLogger();
-    private static Minecraft inst = Minecraft.getInstance();
+    private static final Minecraft inst = Minecraft.getInstance();
 
     @SubscribeEvent
     public static void reviveCheck(TickEvent.PlayerTickEvent event){

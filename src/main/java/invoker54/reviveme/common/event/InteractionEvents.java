@@ -34,10 +34,9 @@ public class InteractionEvents {
         if (revplayer.isDiscrete()) return;
 
         //Make sure target is a player
-        if (!(event.getTarget() instanceof Player)) return;
+        if (!(event.getTarget() instanceof Player targPlayer)) return;
 
         //Grab that target entity (player)
-        Player targPlayer = (Player) event.getTarget();
         //Grab the targets cap too
         FallenCapability targCap = FallenCapability.GetFallCap(targPlayer);
 

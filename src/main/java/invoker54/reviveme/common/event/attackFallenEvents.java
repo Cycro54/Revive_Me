@@ -31,9 +31,8 @@ public class attackFallenEvents {
         if (event.getEntity().level.isClientSide) return;
 
 //        LOGGER.info("IS THE ATTACKED ENTITY A PLAYER? " + (event.getEntity() instanceof Player));
-        if (!(event.getEntity() instanceof Player)) return;
+        if (!(event.getEntity() instanceof Player player)) return;
 
-        Player player = (Player) event.getEntity();
         FallenCapability cap = FallenCapability.GetFallCap(player);
 
         //If it's a source that goes through invulnerability, let it pass

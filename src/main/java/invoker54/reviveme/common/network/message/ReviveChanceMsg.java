@@ -19,15 +19,17 @@ public class ReviveChanceMsg {
             if (!player.isAlive()) return;
 
             FallenCapability cap = FallenCapability.GetFallCap(player);
+            boolean willDie = player.level.random.nextFloat() > ReviveMeConfig.reviveChance;
 
-            if (player.level.random.nextFloat() > ReviveMeConfig.reviveChance || cap.usedChance()) {
+
+            if ((cap.usedChance() && ReviveMeConfig.canGiveUp) || (!cap.usedChance() && willDie)) {
                 //Make them vulnerable
                 player.setInvulnerable(false);
 
                 //Then make them take damage from the saved damage source
                 player.hurt(cap.getDamageSource().bypassArmor().bypassInvul(), Float.MAX_VALUE);
             }
-            else {
+            else if (!cap.usedChance() && !willDie){
                 //And set the revive chance as used
                 cap.setReviveChanceUsed(true);
                 //Revive the player.

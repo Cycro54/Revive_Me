@@ -57,11 +57,10 @@ public class CapabilityEvents {
 
     @SubscribeEvent
     public static void onStartTrack(PlayerEvent.StartTracking event){
-        if (!(event.getTarget() instanceof Player)) return;
+        if (!(event.getTarget() instanceof Player targPlayer)) return;
         //System.out.println("Start tracking: " + event.getTarget().getDisplayName());
 
         //Get the target player
-        Player targPlayer = (Player) event.getTarget();
 
         //Grab their cap data
         FallenCapability cap = FallenCapability.GetFallCap(targPlayer);
@@ -80,11 +79,10 @@ public class CapabilityEvents {
 
     @SubscribeEvent
     public static void onStopTrack(PlayerEvent.StopTracking event){
-        if (!(event.getTarget() instanceof Player)) return;
+        if (!(event.getTarget() instanceof Player targPlayer)) return;
         //System.out.println("Stop tracking: " + event.getTarget().getDisplayName());
 
         //Get the target player
-        Player targPlayer = (Player) event.getTarget();
 
         if (playerTracking.get(targPlayer.getUUID()) == null) return;
 
@@ -95,9 +93,8 @@ public class CapabilityEvents {
     @SubscribeEvent
     public static void onWorldJoin(EntityJoinWorldEvent event){
         if (event.getWorld().isClientSide) return;
-        if (!(event.getEntity() instanceof Player)) return;
+        if (!(event.getEntity() instanceof Player player)) return;
 
-        Player player = (Player) event.getEntity();
         FallenCapability cap = FallenCapability.GetFallCap(player);
 
         CompoundTag nbt = new CompoundTag();

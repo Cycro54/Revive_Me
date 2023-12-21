@@ -19,7 +19,7 @@ import java.util.function.Supplier;
 
 public class SyncServerCapMsg {
     //The data
-    private Tag nbtData;
+    private final Tag nbtData;
 
     public SyncServerCapMsg(Tag nbtData){
         this.nbtData = nbtData;

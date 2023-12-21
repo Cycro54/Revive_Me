@@ -60,7 +60,7 @@ public class FallenPlayerActionsEvent {
 
             if (timeHeld == 40) {
                 if (flag) NetworkHandler.INSTANCE.sendToServer(new ReviveChanceMsg());
-                else NetworkHandler.INSTANCE.sendToServer(new InstaKillMsg(ClientUtil.getPlayer().getUUID()));
+                else if (ReviveMeConfig.canGiveUp) NetworkHandler.INSTANCE.sendToServer(new InstaKillMsg(ClientUtil.getPlayer().getUUID()));
             }
         }
         //This will use items
@@ -76,7 +76,9 @@ public class FallenPlayerActionsEvent {
     @SubscribeEvent
     public static void modifyFOV(FOVModifierEvent event){
         Player player = event.getEntity();
-        if (!FallenCapability.GetFallCap(player).isFallen()) return;
+        FallenCapability cap = FallenCapability.GetFallCap(player);
+        if (!cap.isFallen()) return;
+        if (!ReviveMeConfig.canGiveUp) return;
 
         float f = 1.0F;
         if (player.getAbilities().flying) {

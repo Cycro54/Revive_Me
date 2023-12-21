@@ -137,7 +137,7 @@ public class FallenCapability {
 //        if (ReviveMeConfig.timeLeft == 0) return 1;
 
         if (divideByMax)
-            return 1 - ((level.getGameTime() - fellStart)/(float) fellEnd);
+            return 1 - ((level.getGameTime() - fellStart)/ fellEnd);
 
         return ((fellStart + fellEnd) - level.getGameTime())/20f;
     }

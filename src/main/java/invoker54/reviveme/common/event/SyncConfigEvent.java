@@ -7,7 +7,6 @@ import invoker54.reviveme.common.network.message.SyncConfigMsg;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.network.PacketDistributor;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)

@@ -2,6 +2,7 @@ package invoker54.reviveme.mixin;
 
 import invoker54.invocore.client.ClientUtil;
 import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraftforge.client.ForgeHooksClient;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,6 +23,14 @@ public class KeyInputMixin {
         if (ClientUtil.getWorld() != null) {
             FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
             if (cap.isFallen()) {
+                if (!ReviveMeConfig.canMove){
+                    ClientUtil.mC.options.keyShift.setDown(false);
+                    ClientUtil.mC.options.keyLeft.setDown(false);
+                    ClientUtil.mC.options.keyUp.setDown(false);
+                    ClientUtil.mC.options.keyRight.setDown(false);
+                    ClientUtil.mC.options.keyDown.setDown(false);
+                }
+
 //                ReviveMe.LOGGER.error("keys disabled");
                 ci.cancel();
             }

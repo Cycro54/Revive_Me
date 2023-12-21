@@ -13,7 +13,7 @@ import net.minecraftforge.client.gui.OverlayRegistry;
 import java.awt.*;
 
 public class ReviveScreenEvent {
-    private static Minecraft inst = Minecraft.getInstance();
+    private static final Minecraft inst = Minecraft.getInstance();
     public static MutableComponent beingRevivedText = new TranslatableComponent("reviveScreen.being_revived");
     public static MutableComponent revivingText = new TranslatableComponent("reviveScreen.reviving");
 
