@@ -48,7 +48,7 @@ public class SacrificeItemsMsg {
                 //Revive the player.
                 FallenTimerEvent.revivePlayer(player);
             }
-            else {
+            else if (ReviveMeConfig.canGiveUp){
                 //Make them vulnerable
                 player.setInvulnerable(false);
 

@@ -2,10 +2,7 @@ package invoker54.reviveme.mixin;
 
 import invoker54.invocore.client.ClientUtil;
 import invoker54.reviveme.common.capability.FallenCapability;
-import net.minecraft.client.KeyMapping;
-import net.minecraft.world.InteractionHand;
 import net.minecraftforge.client.ForgeHooksClient;
-import net.minecraftforge.client.event.InputEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

@@ -7,11 +7,12 @@ import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.NeutralMob;
@@ -19,11 +20,17 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.LiquidBlock;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,43 +40,23 @@ import java.util.ArrayList;
 public class FallEvent {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    //First, stop the death event.
-//    @SubscribeEvent(priority = EventPriority.LOWEST)
-//    public static void InterruptDeath(LivingDamageEvent event) {
-//        if (event.isCanceled()) return;
-//        if (!(event.getEntityLiving() instanceof Player)) return;
-//
-//        Player player = (Player) event.getEntityLiving();
-//
-//        LOGGER.info("Is it enough damage? " + (player.getHealth() - event.getAmount() <= 0));
-//
-//        if (player.getHealth() - event.getAmount() <= 0) {
-//            //Cancel the event so the player doesn't end up being killed probs
-//            event.setCanceled(beginFallenPhase(player, event.getSource()));
-//        }
-//
-//    }
-
-//    @SubscribeEvent
-//    public static void playerTick(TickEvent.PlayerTickEvent event){
-//        if (event.side == LogicalSide.CLIENT) return;
-//        if (event.phase == TickEvent.Phase.END) return;
-//        if (event.player.getHealth() > 0) return;
-//
-//        FallenCapability cap = FallenCapability.GetFallCap(event.player);
-//        if (cap.isFallen()) return;
-//
-//        beginFallenPhase(event.player, event.player.getLastDamageSource());
-//    }
-
-    @SubscribeEvent(priority = EventPriority.LOWEST)
+    @SubscribeEvent(priority = EventPriority.HIGH)
     public static void StopDeath(LivingDeathEvent event){
 //        LOGGER.info("WAS IT CANCELLED? " + event.isCanceled());
         if (event.isCanceled()) return;
 //        LOGGER.info("IS IT A PLAYER? " + (event.getEntityLiving() instanceof Player));
-        if (!(event.getEntity() instanceof Player)) return;
+        if (!(event.getEntity() instanceof Player player)) return;
 
-        Player player = (Player) event.getEntity();
+        //If they are in creative mode, don't bother with any of this.
+        if (player.isCreative()) return;
+
+        //If they have a totem of undying in their InteractionHand, don't cancel the events
+        for(net.minecraft.world.InteractionHand InteractionHand : InteractionHand.values()) {
+            ItemStack itemstack1 = player.getItemInHand(InteractionHand);
+            if (itemstack1.getItem() == Items.TOTEM_OF_UNDYING) {
+                return;
+            }
+        }
 
         //They are probs not allowed to die.
         event.setCanceled(cancelEvent(player, event.getSource()));
@@ -77,17 +64,6 @@ public class FallEvent {
 
     public static boolean cancelEvent(Player player, DamageSource source){
         FallenCapability instance = FallenCapability.GetFallCap(player);
-
-        //If they are in creative mode, don't bother with any of this.
-        if (player.isCreative()) return false;
-
-        //If they have a totem of undying in their InteractionHand, dont cancel the events
-        for(InteractionHand InteractionHand : InteractionHand.values()) {
-            ItemStack itemstack1 = player.getItemInHand(InteractionHand);
-            if (itemstack1.getItem() == Items.TOTEM_OF_UNDYING) {
-                return false;
-            }
-        }
 
         //If they used both self-revive options, and they are not on a server, they should die immediately
         if (instance.usedChance() &&
@@ -126,8 +102,8 @@ public class FallEvent {
 
             player.removeAllEffects();
 
-            //Make it so they can't move very fast.
-            player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 99999, 3, false, false, false));
+            //Give them all the downed effects.
+            applyDownedEffects(player);
 
             //Dismount the player if riding something
             player.stopRiding();
@@ -193,5 +169,53 @@ public class FallEvent {
         }
 
         return false;
+    }
+
+
+    @SubscribeEvent
+    public static void onJump(LivingEvent.LivingJumpEvent event){
+        if (!(event.getEntity() instanceof Player player)) return;
+        FallenCapability cap = FallenCapability.GetFallCap(player);
+        if (!cap.isFallen()) return;
+        if (ReviveMeConfig.canJump == ReviveMeConfig.JUMP.YES) return;
+        Vec3 delta = player.getDeltaMovement();
+        player.setDeltaMovement(delta.x, Math.min(delta.y, 0), delta.z);
+    }
+
+    @SubscribeEvent
+    public static void onSwim(TickEvent.PlayerTickEvent event){
+        FallenCapability cap = FallenCapability.GetFallCap(event.player);
+        if (!cap.isFallen()) return;
+        if (ReviveMeConfig.canJump != ReviveMeConfig.JUMP.NO) return;
+        Level level = event.player.getLevel();
+        if (!(level.getBlockState(event.player.blockPosition()).getBlock() instanceof LiquidBlock)) return;
+
+        Vec3 delta = event.player.getDeltaMovement();
+        event.player.setDeltaMovement(delta.x, Math.min(delta.y, 0), delta.z);
+    }
+
+    public static void applyDownedEffects(Player player){
+        for (String string : ReviveMeConfig.downedEffects){
+            try {
+                String[] array = string.split(":");
+//                LOGGER.info("The effect split into pieces: " + Arrays.toString(array));
+                ResourceLocation effectLocation = new ResourceLocation(array[0],array[1]);
+                int tier = Integer.parseInt(array[2]);
+//                LOGGER.info("The tier: " + tier);
+                MobEffect effect = ForgeRegistries.MOB_EFFECTS.getValue(effectLocation);
+                if (effect == null){
+                    LOGGER.error("Incorrect MOD ID or Potion Effect: " + string);
+                    continue;
+                }
+
+                MobEffectInstance effectInstance = player.getEffect(effect);
+                if (effectInstance == null || effectInstance.getAmplifier() < tier) {
+                    player.addEffect(new MobEffectInstance(effect, Integer.MAX_VALUE, tier));
+                }
+            }
+            catch (Exception e){
+                LOGGER.error("This string couldn't be parsed: " + string);
+            }
+        }
     }
 }

@@ -163,7 +163,7 @@ public class RenderFallPlateEvent {
                 int yOrigin = -10;
 
                 //progress bar background
-                Gui.fill(event.getPoseStack(), xOrigin - padding, 0 + padding,
+                Gui.fill(event.getPoseStack(), xOrigin - padding, padding,
                         Math.abs(xOrigin - padding), yOrigin - padding, bgColor); //prev color: 2302755
 
                 float progress = cap.getProgress();

@@ -34,8 +34,7 @@ import static invoker54.invocore.client.ClientUtil.mC;
 public class FallScreenEvent {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private static boolean isPaused = false;
-    private static Minecraft inst = Minecraft.getInstance();
+    private static final Minecraft inst = Minecraft.getInstance();
 
     public static final ResourceLocation Timer_TEXTURE = new
             ResourceLocation(ReviveMe.MOD_ID,"textures/screens/timer_background.png");
@@ -60,6 +59,7 @@ public class FallScreenEvent {
     private static final MutableComponent titleText = Component.translatable("fallenScreen.fallen_text");
     private static final MutableComponent waitText = Component.translatable("fallenScreen.wait_text");
     private static final MutableComponent forceDeathText = Component.translatable("fallenScreen.force_death_text");
+    private static final MutableComponent cantForceDeathText = Component.translatable("fallenScreen.cant_force_death_text");
     private static final DecimalFormat df = new DecimalFormat("0.0");
     private static final int greenColor = new Color(39, 235, 86, 255).getRGB();
 
@@ -93,7 +93,7 @@ public class FallScreenEvent {
             //Wait For text
             Gui.drawCenteredString(stack, font, waitText, width / 2, (int) (startTextHeight * 1.5f), 16777215);
             //Force death text
-            String editText = forceDeathText.getString();
+            String editText = ReviveMeConfig.canGiveUp ? forceDeathText.getString() : cantForceDeathText.getString();
             editText = editText.replace("{attack}", inst.options.keyAttack.getKey().getDisplayName().getString());
             editText = editText.replace("{seconds}", df.format(2 - (FallenPlayerActionsEvent.timeHeld / 20f)));
             Gui.drawCenteredString(stack, font, editText, width / 2, (startTextHeight * 2), 16777215);
@@ -175,7 +175,7 @@ public class FallScreenEvent {
                 //Middle potion
                 ClientUtil.blitColor(stack, halfWidth / 4F, (halfWidth / 2F), startHeight + 40,
                         (halfWidth / 2F) - 60, new Color(0, 0, 0, 255).getRGB());
-                stringToRender = Component.literal("" + Math.round(ReviveMeConfig.reviveChance * 100) + "%");
+                stringToRender = Component.literal(Math.round(ReviveMeConfig.reviveChance * 100) + "%");
                 TextUtil.renderText(stack, stringToRender.withStyle(ChatFormatting.BOLD).withStyle(ChatFormatting.GOLD),
                         true, halfWidth / 4, (halfWidth / 2F), startHeight,
                         (halfWidth / 2F) + 20, 2, TextUtil.txtAlignment.MIDDLE);
@@ -398,7 +398,7 @@ public class FallScreenEvent {
                 //Middle potion
 //                ClientUtil.blitColor(stack, halfWidth - txtRoomWidth + 2, txtRoomWidth - halfMouseSizeX - 4, mouse_idle_IMG.y0 + (txtRoomHeight/4),
 //                        (txtRoomHeight/2), new Color(0,0,0, 255).getRGB());
-                stringToRender = Component.literal("" + Math.round(ReviveMeConfig.reviveChance * 100) + "%");
+                stringToRender = Component.literal(Math.round(ReviveMeConfig.reviveChance * 100) + "%");
                 TextUtil.renderText(stack, stringToRender.withStyle(ChatFormatting.BOLD).withStyle(ChatFormatting.GOLD),
                         true, halfWidth - txtRoomWidth, txtRoomWidth - halfMouseSizeX - 5,
                         mouse_idle_IMG.y0 + (txtRoomHeight/4), (txtRoomHeight/2), 2, TextUtil.txtAlignment.MIDDLE);

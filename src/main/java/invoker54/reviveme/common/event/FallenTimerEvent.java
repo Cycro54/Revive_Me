@@ -74,6 +74,9 @@ public class FallenTimerEvent {
         //Make sure they have no food either
         event.player.getFoodData().setFoodLevel(0);
 
+        //Finally make sure they have all the required effects.
+        FallEvent.applyDownedEffects(event.player);
+
         if (!cap.shouldDie()) return;
 
         if (event.side == LogicalSide.CLIENT) return;

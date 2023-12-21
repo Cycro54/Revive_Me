@@ -19,7 +19,7 @@ import java.awt.*;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ReviveScreenEvent {
-    private static Minecraft inst = Minecraft.getInstance();
+    private static final Minecraft inst = Minecraft.getInstance();
     public static MutableComponent beingRevivedText = Component.translatable("reviveScreen.being_revived");
     public static MutableComponent revivingText = Component.translatable("reviveScreen.reviving");
 
