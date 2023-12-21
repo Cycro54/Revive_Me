@@ -33,36 +33,7 @@ import org.apache.logging.log4j.Logger;
 public class FallEvent {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    //First, stop the death event.
-//    @SubscribeEvent(priority = EventPriority.LOWEST)
-//    public static void InterruptDeath(LivingDamageEvent event) {
-//        if (event.isCanceled()) return;
-//        if (!(event.getEntityLiving() instanceof PlayerEntity)) return;
-//
-//        PlayerEntity player = (PlayerEntity) event.getEntityLiving();
-//
-//        LOGGER.info("Is it enough damage? " + (player.getHealth() - event.getAmount() <= 0));
-//
-//        if (player.getHealth() - event.getAmount() <= 0) {
-//            //Cancel the event so the player doesn't end up being killed probs
-//            event.setCanceled(beginFallenPhase(player, event.getSource()));
-//        }
-//
-//    }
-
-//    @SubscribeEvent
-//    public static void playerTick(TickEvent.PlayerTickEvent event){
-//        if (event.side == LogicalSide.CLIENT) return;
-//        if (event.phase == TickEvent.Phase.END) return;
-//        if (event.player.getHealth() > 0) return;
-//
-//        FallenCapability cap = FallenCapability.GetFallCap(event.player);
-//        if (cap.isFallen()) return;
-//
-//        beginFallenPhase(event.player, event.player.getLastDamageSource());
-//    }
-
-    @SubscribeEvent(priority = EventPriority.LOWEST)
+    @SubscribeEvent(priority = EventPriority.HIGH)
     public static void StopDeath(LivingDeathEvent event){
 //        LOGGER.info("WAS IT CANCELLED? " + event.isCanceled());
         if (event.isCanceled()) return;
