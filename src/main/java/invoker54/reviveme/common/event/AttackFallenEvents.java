@@ -24,27 +24,20 @@ public class AttackFallenEvents {
 
     @SubscribeEvent
     public static void playerAttackFallen(LivingAttackEvent event){
-//        LOGGER.info("IS THE EVENT CANCELLED? " + event.isCanceled());
         if (event.isCanceled()) return;
 
-//        LOGGER.info("IS IT CLIENTSIDE? " + event.getEntity().level.isClientSide);
         if (event.getEntity().level.isClientSide) return;
-
-//        LOGGER.info("IS THE ATTACKED ENTITY A PLAYER? " + (event.getEntity() instanceof Player));
-        if (!(event.getEntity() instanceof PlayerEntity)) return;
 
         PlayerEntity player = (PlayerEntity) event.getEntity();
         FallenCapability cap = FallenCapability.GetFallCap(player);
 
         //If it's a source that goes through invulnerability, let it pass
         if (event.getSource() != null && event.getSource().isBypassInvul()){
-//            LOGGER.info("Damage bypasses invulnerability, let it pass");
             return;
         }
 
         //If they aren't fallen, let it pass.
         else if (!cap.isFallen()){
-//            LOGGER.info("They have not fallen, let it pass.");
             return;
         }
 

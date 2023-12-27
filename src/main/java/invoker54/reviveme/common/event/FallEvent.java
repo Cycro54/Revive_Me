@@ -101,6 +101,8 @@ public class FallEvent {
             //stop them from using an item if they are using one
             player.stopUsingItem();
 
+            //Close any containers they have open as well.
+            player.closeContainer();
 
             //Finally send capability code to all players
             CompoundNBT nbt = new CompoundNBT();

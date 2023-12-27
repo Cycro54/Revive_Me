@@ -38,10 +38,11 @@ public class FallenPlayerActionsEvent {
     @SubscribeEvent
     public static void forceDeath(TickEvent.PlayerTickEvent event){
         if(event.side == LogicalSide.SERVER) return;
+        if (event.type != TickEvent.Type.PLAYER) return;
+        if (event.phase == TickEvent.Phase.END) return;
+        if (event.player != ClientUtil.getPlayer()) return;
 
         if(!FallenCapability.GetFallCap(inst.player).isFallen()) return;
-
-        if(event.phase == TickEvent.Phase.END) return;
 
         if(inst.options.keyAttack.isDown()) {
             timeHeld++;
