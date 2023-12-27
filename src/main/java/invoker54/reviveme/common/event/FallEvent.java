@@ -37,7 +37,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class FallEvent {
@@ -114,6 +113,9 @@ public class FallEvent {
 
             //stop them from using an item if they are using one
             player.stopUsingItem();
+
+            //Close any containers they have open as well.
+            player.closeContainer();
 
             //Choose random stackable items to sacrifice
             if (!instance.usedSacrificedItems()) {

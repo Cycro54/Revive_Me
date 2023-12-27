@@ -5,11 +5,11 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "reviveme.refmap.json",
   "mixins": [
-    "FoodMixin"
+    "FoodMixin",
+    "SlotMixin"
   ],
   "client": [
-    "KeyInputMixin",
-    "MouseInputMixin"
+    "IForgeKeyMixin"
   ],
   "injectors": {
     "defaultRequire": 1

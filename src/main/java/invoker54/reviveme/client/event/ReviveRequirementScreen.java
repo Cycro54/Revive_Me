@@ -27,6 +27,8 @@ public class ReviveRequirementScreen {
             FallenCapability cap = FallenCapability.GetFallCap((LivingEntity) mC.crosshairPickEntity);
             if (!cap.isFallen()) return;
             if (cap.getOtherPlayer() != null) return;
+            if (cap.getPenaltyType() == FallenCapability.PENALTYPE.NONE) return;
+
             //50%
             int halfWidth = fullWidth/2;
             int halfHeight = fullHeight/2;

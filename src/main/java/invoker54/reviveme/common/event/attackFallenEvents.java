@@ -1,5 +1,6 @@
 package invoker54.reviveme.common.event;
 
+import invoker54.invocore.client.ClientUtil;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.network.NetworkHandler;
@@ -24,26 +25,19 @@ public class attackFallenEvents {
 
     @SubscribeEvent
     public static void playerAttackFallen(LivingAttackEvent event){
-//        LOGGER.info("IS THE EVENT CANCELLED? " + event.isCanceled());
         if (event.isCanceled()) return;
 
-//        LOGGER.info("IS IT CLIENTSIDE? " + event.getEntity().level.isClientSide);
-        if (event.getEntity().level.isClientSide) return;
-
-//        LOGGER.info("IS THE ATTACKED ENTITY A PLAYER? " + (event.getEntity() instanceof Player));
         if (!(event.getEntity() instanceof Player player)) return;
 
         FallenCapability cap = FallenCapability.GetFallCap(player);
 
         //If it's a source that goes through invulnerability, let it pass
         if (event.getSource() != null && event.getSource().isBypassInvul()){
-//            LOGGER.info("Damage bypasses invulnerability, let it pass");
             return;
         }
 
         //If they aren't fallen, let it pass.
         else if (!cap.isFallen()){
-//            LOGGER.info("They have not fallen, let it pass.");
             return;
         }
 
