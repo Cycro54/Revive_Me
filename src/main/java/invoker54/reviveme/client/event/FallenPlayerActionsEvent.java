@@ -2,6 +2,7 @@ package invoker54.reviveme.client.event;
 
 import invoker54.invocore.client.ClientUtil;
 import invoker54.reviveme.ReviveMe;
+import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
@@ -42,11 +43,13 @@ public class FallenPlayerActionsEvent {
     @SubscribeEvent
     public static void forceDeath(TickEvent.PlayerTickEvent event) {
         if (event.side == LogicalSide.SERVER) return;
+        if (event.type != TickEvent.Type.PLAYER) return;
+        if (event.phase == TickEvent.Phase.END) return;
+        if (event.player != ClientUtil.getPlayer()) return;
+
         FallenCapability cap = FallenCapability.GetFallCap(inst.player);
 
         if (!cap.isFallen()) return;
-
-        if (event.phase == TickEvent.Phase.END) return;
 
         boolean flag = (ReviveMeConfig.selfReviveMultiplayer || (ClientUtil.mC.hasSingleplayerServer() &&
                 ClientUtil.mC.getSingleplayerServer().getPlayerList().getPlayers().size() == 1));
@@ -64,7 +67,7 @@ public class FallenPlayerActionsEvent {
             }
         }
         //This will use items
-        else if (inst.options.keyUse.isDown() && flag && (!cap.usedChance() || !cap.getItemList().isEmpty())) {
+        else if (VanillaKeybindHandler.useKeyDown && flag && (!cap.usedChance() || !cap.getItemList().isEmpty())) {
             timeHeld++;
 
             if (timeHeld == 40) {
@@ -78,7 +81,10 @@ public class FallenPlayerActionsEvent {
         Player player = event.getPlayer();
         FallenCapability cap = FallenCapability.GetFallCap(player);
         if (!cap.isFallen()) return;
-        if (!ReviveMeConfig.canGiveUp) return;
+        boolean isSinglePlayer = (ClientUtil.mC.hasSingleplayerServer() &&
+                ClientUtil.mC.getSingleplayerServer().getPlayerList().getPlayers().size() == 1);
+        if (!ReviveMeConfig.canGiveUp && !isSinglePlayer &&
+                (!ReviveMeConfig.selfReviveMultiplayer || cap.usedSacrificedItems() && cap.usedChance())) return;
 
         float f = 1.0F;
         if (player.getAbilities().flying) {

@@ -7,7 +7,6 @@ import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -45,22 +44,6 @@ public class InteractionEvents {
 
         //Make sure the player reviving has enough of whatever is required
         if (!targCap.hasEnough(revplayer)) return;
-//        switch (targCap.getPenaltyType()) {
-//            case NONE:
-//                break;
-//            case HEALTH:
-//                if (revplayer.getHealth() < targCap.getPenaltyAmount(targPlayer))
-//                    return;
-//                break;
-//            case EXPERIENCE:
-//                if (revplayer.totalExperience < targCap.getPenaltyAmount(targPlayer))
-//                    return;
-//                break;
-//            case FOOD:
-//                if ((revplayer.getFoodData().getFoodLevel() + revplayer.getFoodData().getSaturationLevel()) < targCap.getPenaltyAmount(targPlayer))
-//                    return;
-//                break;
-//        }
 
         //Now add the player to the targets fallencapability and vice versa.
         targCap.setProgress((int) revplayer.level.getGameTime(), ReviveMeConfig.reviveTime);
@@ -78,40 +61,4 @@ public class InteractionEvents {
         NetworkHandler.sendToPlayer(targPlayer, new SyncClientCapMsg(nbt));
         NetworkHandler.sendToPlayer(revplayer, new SyncClientCapMsg(nbt));
     }
-
-    @SubscribeEvent
-    public static void cancelItemUse(LivingEntityUseItemEvent.Tick event){
-        if (!(event.getEntity() instanceof Player)) return;
-        FallenCapability cap = FallenCapability.GetFallCap(event.getEntity());
-        if (cap.isFallen()) return;
-        if (cap.getOtherPlayer() == null) return;
-
-        //Cancel item use if they are using an item
-        event.setCanceled(true);
-        event.setDuration(0);
-    }
-
-    @SubscribeEvent
-    public static void stopItemUse(LivingEntityUseItemEvent.Start event){
-        if (!(event.getEntity() instanceof Player)) return;
-        FallenCapability cap = FallenCapability.GetFallCap(event.getEntity());
-        if (cap.isFallen()) return;
-        if (cap.getOtherPlayer() == null) return;
-
-        //Cancel item use if they are using an item
-        event.setCanceled(true);
-        event.setDuration(0);
-    }
-
-//    @SubscribeEvent
-//    public static void stopItemUse(LivingEntityUseItemEvent event){
-//        if (event.isCanceled()) return;
-//        if (!(event.getEntity() instanceof Player)) return;
-//        Player player = (Player) event.getEntity();
-//        FallenCapability cap = FallenCapability.GetFallCap(player);
-//
-//        if (cap.isFallen()) player.stopUsingItem();
-//        if (cap.getOtherPlayer() != null) player.stopUsingItem();
-//
-//    }
 }

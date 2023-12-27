@@ -11,8 +11,6 @@ import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID, value = Dist.CLIENT)
 public class PlayerRenderEvent {
-
-
     //This will make the player look like they are crouching (on client side ONLY)
     @SubscribeEvent
     public static void onRender(RenderPlayerEvent.Pre event){

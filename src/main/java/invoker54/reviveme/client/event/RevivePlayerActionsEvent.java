@@ -1,6 +1,7 @@
 package invoker54.reviveme.client.event;
 
 import invoker54.reviveme.ReviveMe;
+import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncServerCapMsg;
@@ -49,9 +50,7 @@ public class RevivePlayerActionsEvent {
         //Check if that player is being revived by them
         if (!cancelEvent) {
 //            //System.out.println("Someone I'm reviving? : " + (FallenCapability.GetFallCap((Player)inst.crosshairPickEntity).
-//                    compareUUID(myUUID)));
-            cancelEvent = !(FallenCapability.GetFallCap((Player) inst.crosshairPickEntity).
-                    isReviver(myUUID));
+            cancelEvent = !VanillaKeybindHandler.useKeyDown;
         }
 
         //Check if I'm holding the use button down

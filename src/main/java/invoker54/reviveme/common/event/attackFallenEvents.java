@@ -6,7 +6,6 @@ import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.InstaKillMsg;
 import invoker54.reviveme.common.network.message.SyncServerCapMsg;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.player.Player;
@@ -24,25 +23,20 @@ public class attackFallenEvents {
 
     @SubscribeEvent
     public static void playerAttackFallen(LivingAttackEvent event){
-//        LOGGER.info("IS THE EVENT CANCELLED? " + event.isCanceled());
         if (event.isCanceled()) return;
 
-//        LOGGER.info("IS IT CLIENTSIDE? " + event.getEntity().level.isClientSide);
-        if (event.getEntity().level.isClientSide) return;
-
-//        LOGGER.info("IS THE ATTACKED ENTITY A PLAYER? " + (event.getEntity() instanceof Player));
         if (!(event.getEntity() instanceof Player player)) return;
 
         FallenCapability cap = FallenCapability.GetFallCap(player);
 
         //If it's a source that goes through invulnerability, let it pass
         if (event.getSource() != null && event.getSource().isBypassInvul()){
-//            LOGGER.info("Damage bypasses invulnerability, let it pass");
+            return;
         }
 
         //If they aren't fallen, let it pass.
         else if (!cap.isFallen()){
-//            LOGGER.info("They have not fallen, let it pass.");
+            return;
         }
 
         //If the damage source is a player that's crouching, let it pass
@@ -57,6 +51,7 @@ public class attackFallenEvents {
                 //Send a kill message
                 NetworkHandler.INSTANCE.sendToServer(new InstaKillMsg(event.getEntity().getUUID()));
                 event.setCanceled(true);
+                return;
             }
         }
 

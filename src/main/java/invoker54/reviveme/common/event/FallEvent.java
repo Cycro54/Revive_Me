@@ -111,6 +111,9 @@ public class FallEvent {
             //stop them from using an item if they are using one
             player.stopUsingItem();
 
+            //Close any containers they have open as well.
+            player.closeContainer();
+
             //This will only happen if the player is in a single player world
             if (player.getServer().getPlayerList().getPlayers().size() == 1 && !instance.usedSacrificedItems()){
                 //Generate a sacrificial item list
