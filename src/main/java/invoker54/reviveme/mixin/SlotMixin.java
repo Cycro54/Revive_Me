@@ -1,6 +1,5 @@
 package invoker54.reviveme.mixin;
 
-import invoker54.invocore.client.ClientUtil;
 import invoker54.reviveme.common.capability.FallenCapability;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.container.Slot;
@@ -19,11 +18,10 @@ public class SlotMixin {
             },
             cancellable = true)
     private void mayPickupMix(PlayerEntity player, CallbackInfoReturnable<Boolean> cir) {
-        if (ClientUtil.getWorld() != null) {
-            FallenCapability cap = FallenCapability.GetFallCap(player);
-            if (cap.isFallen()) {
-                cir.setReturnValue(false);
-            }
+        if (player.level == null) return;
+        FallenCapability cap = FallenCapability.GetFallCap(player);
+        if (cap.isFallen()) {
+            cir.setReturnValue(false);
         }
     }
 }

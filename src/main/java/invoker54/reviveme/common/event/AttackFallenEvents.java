@@ -26,7 +26,7 @@ public class AttackFallenEvents {
     public static void playerAttackFallen(LivingAttackEvent event){
         if (event.isCanceled()) return;
 
-        if (event.getEntity().level.isClientSide) return;
+        if (!(event.getEntity() instanceof PlayerEntity)) return;
 
         PlayerEntity player = (PlayerEntity) event.getEntity();
         FallenCapability cap = FallenCapability.GetFallCap(player);
