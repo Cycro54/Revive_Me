@@ -24,11 +24,9 @@ public class SlotMixin {
             },
             cancellable = true)
     private void mayPickupMix(Player player, CallbackInfoReturnable<Boolean> cir) {
-        if (ClientUtil.getWorld() != null) {
-            FallenCapability cap = FallenCapability.GetFallCap(player);
-            if (cap.isFallen()) {
-                cir.setReturnValue(false);
-            }
+        FallenCapability cap = FallenCapability.GetFallCap(player);
+        if (cap.isFallen()) {
+            cir.setReturnValue(false);
         }
     }
 }
