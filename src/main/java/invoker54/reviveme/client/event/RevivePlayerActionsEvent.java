@@ -62,20 +62,19 @@ public class RevivePlayerActionsEvent {
         }
 
         if (cancelEvent){
-
+            CompoundTag nbt = new CompoundTag();
             myCap.setOtherPlayer(null);
+            nbt.put(inst.player.getStringUUID(), myCap.writeNBT());
 
             if (targPlayer != null) {
                 FallenCapability targCap = FallenCapability.GetFallCap(targPlayer);
                 targCap.setOtherPlayer(null);
                 targCap.resumeFallTimer();
 
-                CompoundTag nbt = new CompoundTag();
                 nbt.put(targPlayer.getStringUUID(), targCap.writeNBT());
-                nbt.put(inst.player.getStringUUID(), myCap.writeNBT());
-
-                NetworkHandler.INSTANCE.sendToServer(new SyncServerCapMsg(nbt));
             }
+
+            NetworkHandler.INSTANCE.sendToServer(new SyncServerCapMsg(nbt));
         }
     }
 }
