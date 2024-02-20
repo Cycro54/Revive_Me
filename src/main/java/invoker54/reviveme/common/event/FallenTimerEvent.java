@@ -152,6 +152,15 @@ public class FallenTimerEvent {
                     break;
             }
         }
+
+
+        cap = FallenCapability.GetFallCap(reviver);
+        cap.setOtherPlayer(null);
+        CompoundTag nbt = new CompoundTag();
+        nbt.put(reviver.getStringUUID(), cap.writeNBT());
+
+        NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> reviver),
+                new SyncClientCapMsg(nbt));
     }
 
     public static void revivePlayer(Player fallen){

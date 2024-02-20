@@ -50,30 +50,31 @@ public class RevivePlayerActionsEvent {
         //Check if that player is being revived by them
         if (!cancelEvent) {
 //            //System.out.println("Someone I'm reviving? : " + (FallenCapability.GetFallCap((Player)inst.crosshairPickEntity).
-            cancelEvent = !VanillaKeybindHandler.useKeyDown;
+//                    compareUUID(myUUID)));
+            cancelEvent = !(FallenCapability.GetFallCap((Player) inst.crosshairPickEntity).
+                    isReviver(myUUID));
         }
 
         //Check if I'm holding the use button down
         if(!cancelEvent) {
             //System.out.println("Am I holding use down?: " + inst.options.keyUse.isDown());
-            cancelEvent = !inst.options.keyUse.isDown();
+            cancelEvent = !VanillaKeybindHandler.useKeyDown;
         }
 
         if (cancelEvent){
-
+            CompoundTag nbt = new CompoundTag();
             myCap.setOtherPlayer(null);
+            nbt.put(inst.player.getStringUUID(), myCap.writeNBT());
 
             if (targPlayer != null) {
                 FallenCapability targCap = FallenCapability.GetFallCap(targPlayer);
                 targCap.setOtherPlayer(null);
                 targCap.resumeFallTimer();
 
-                CompoundTag nbt = new CompoundTag();
                 nbt.put(targPlayer.getStringUUID(), targCap.writeNBT());
-                nbt.put(inst.player.getStringUUID(), myCap.writeNBT());
-
-                NetworkHandler.INSTANCE.sendToServer(new SyncServerCapMsg(nbt));
             }
+
+            NetworkHandler.INSTANCE.sendToServer(new SyncServerCapMsg(nbt));
         }
     }
 }
