@@ -21,12 +21,12 @@ public class RevivePlayerActionsEvent {
     private static Minecraft inst = Minecraft.getInstance();
 
     @SubscribeEvent
-    public static void reviveCheck(TickEvent.PlayerTickEvent event){
+    public static void reviveCheck(TickEvent.PlayerTickEvent event) {
         if (event.side == LogicalSide.SERVER) return;
 
-        if(event.phase == TickEvent.Phase.END) return;
+        if (event.phase == TickEvent.Phase.END) return;
 
-        if(event.player != inst.player) return;
+        if (event.player != inst.player) return;
 
         FallenCapability myCap = FallenCapability.GetFallCap(inst.player);
         UUID myUUID = inst.player.getUUID();
@@ -46,30 +46,32 @@ public class RevivePlayerActionsEvent {
 
         //Check if that player is being revived by them
         if (!cancelEvent) {
-//            //System.out.println("Someone I'm reviving? : " + (FallenCapability.GetFallCap((PlayerEntity)inst.crosshairPickEntity).
+//            //System.out.println("Someone I'm reviving? : " + (FallenCapability.GetFallCap((Player)inst.crosshairPickEntity).
+//                    compareUUID(myUUID)));
+            cancelEvent = !(FallenCapability.GetFallCap((PlayerEntity) inst.crosshairPickEntity).
+                    isReviver(myUUID));
+        }
+
+        //Check if I'm holding the use button down
+        if (!cancelEvent) {
+            //System.out.println("Am I holding use down?: " + inst.options.keyUse.isDown());
             cancelEvent = !VanillaKeybindHandler.useKeyDown;
         }
 
-        if(!cancelEvent) {
-            //System.out.println("Am I holding use down?: " + inst.options.keyUse.isDown());
-            cancelEvent = !inst.options.keyUse.isDown();
-        }
-
-        if (cancelEvent){
-
+        if (cancelEvent) {
+            CompoundNBT nbt = new CompoundNBT();
             myCap.setOtherPlayer(null);
+            nbt.put(inst.player.getStringUUID(), myCap.writeNBT());
 
             if (targPlayer != null) {
                 FallenCapability targCap = FallenCapability.GetFallCap(targPlayer);
                 targCap.setOtherPlayer(null);
                 targCap.resumeFallTimer();
 
-                CompoundNBT nbt = new CompoundNBT();
                 nbt.put(targPlayer.getStringUUID(), targCap.writeNBT());
-                nbt.put(inst.player.getStringUUID(), myCap.writeNBT());
-
-                NetworkHandler.INSTANCE.sendToServer(new SyncServerCapMsg(nbt));
             }
+
+            NetworkHandler.INSTANCE.sendToServer(new SyncServerCapMsg(nbt));
         }
     }
 }

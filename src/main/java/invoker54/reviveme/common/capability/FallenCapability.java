@@ -155,6 +155,14 @@ public class FallenCapability {
         return otherPlayer;
     }
 
+    public boolean isReviver(UUID targUUID){
+        if (targUUID == null) return false;
+
+        if (getOtherPlayer() == null) return false;
+
+        return getOtherPlayer().equals(targUUID);
+    }
+
     public boolean compareUUID(UUID targUUID){
         if (targUUID == null) return false;
 
