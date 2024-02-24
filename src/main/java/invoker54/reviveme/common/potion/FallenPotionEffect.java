@@ -52,6 +52,7 @@ public class FallenPotionEffect extends MobEffect {
 
             cap.setSacrificedItemsUsed(false);
             cap.setReviveChanceUsed(false);
+            cap.setPenaltyMultiplier(0);
         }
 
     }

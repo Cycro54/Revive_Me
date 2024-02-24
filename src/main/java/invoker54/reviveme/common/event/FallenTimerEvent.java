@@ -205,9 +205,7 @@ public class FallenTimerEvent {
         fallen.removeAllEffects();
 
         //Add the fallen potion effect if one of the two self revives were used
-        if (cap.usedChance() || cap.usedSacrificedItems()){
-            fallen.addEffect(new MobEffectInstance(MobEffectInit.FALLEN_EFFECT, (int) (ReviveMeConfig.fallenPenaltyTimer * 20)));
-        }
+        fallen.addEffect(new MobEffectInstance(MobEffectInit.FALLEN_EFFECT, (int) (ReviveMeConfig.fallenPenaltyTimer * 20), cap.getPenaltyMultiplier()));
 
         //Make it so they aren't invulnerable anymore
         fallen.setInvulnerable(false);

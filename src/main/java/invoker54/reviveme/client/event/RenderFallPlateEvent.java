@@ -106,7 +106,7 @@ public class RenderFallPlateEvent {
                     timerIMG.moveTo(-(timerIMG.getWidth() / 2), -(timerIMG.getHeight() / 2));
                     timerIMG.RenderImage(stack);
 
-                    MutableComponent killTxt = Component.literal("0").withStyle(ChatFormatting.BOLD, ChatFormatting.RED);
+                    MutableComponent killTxt = Component.literal("" + cap.getKillTime()).withStyle(ChatFormatting.BOLD, ChatFormatting.RED);
 
                     float scaleFactor = (timerIMG.getWidth() / 64F);
                     TextUtil.renderText(stack, killTxt, false, timerIMG.x0 + (17 * scaleFactor), 30 * scaleFactor,
@@ -117,7 +117,7 @@ public class RenderFallPlateEvent {
                     int radius = 30;
 
                     MutableComponent message = null;
-                    if (mC.player.isCrouching()) {
+                    if (mC.player.isCrouching() && cap.getKillTime() == 0) {
                         message = Component.translatable("revive-me.fall_plate.kill");
                         message = Component.literal(message.getString()
                                 .replace("{attack}", inst.options.keyAttack.getKey().getDisplayName().getString()));
