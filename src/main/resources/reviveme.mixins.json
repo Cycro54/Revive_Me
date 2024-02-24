@@ -6,6 +6,8 @@
   "refmap": "reviveme.refmap.json",
   "mixins": [
     "FoodMixin",
+    "ForgeHooksMixin",
+    "PlayerMixin",
     "SlotMixin"
   ],
   "client": [

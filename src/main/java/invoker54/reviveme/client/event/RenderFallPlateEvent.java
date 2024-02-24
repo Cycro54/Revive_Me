@@ -10,6 +10,7 @@ import invoker54.reviveme.common.capability.FallenCapability;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -107,7 +108,7 @@ public class RenderFallPlateEvent {
                     timerIMG.moveTo(-(timerIMG.getWidth() / 2), -(timerIMG.getHeight() / 2));
                     timerIMG.RenderImage(stack);
 
-                    MutableComponent killTxt = new TextComponent("0").withStyle(ChatFormatting.BOLD, ChatFormatting.RED);
+                    MutableComponent killTxt = new TextComponent("" + cap.getKillTime()).withStyle(ChatFormatting.BOLD, ChatFormatting.RED);
 
                     float scaleFactor = (timerIMG.getWidth() / 64F);
                     TextUtil.renderText(stack, killTxt, false, timerIMG.x0 + (17 * scaleFactor), 30 * scaleFactor,
@@ -118,7 +119,7 @@ public class RenderFallPlateEvent {
                     int radius = 30;
 
                     MutableComponent message = null;
-                    if (mC.player.isCrouching()) {
+                    if (mC.player.isCrouching() && cap.getKillTime() == 0) {
                         message = new TranslatableComponent("revive-me.fall_plate.kill");
                         message = new TextComponent(message.getString()
                                 .replace("{attack}", inst.options.keyAttack.getKey().getDisplayName().getString()));

@@ -42,7 +42,8 @@ public class attackFallenEvents {
         }
 
         //If the damage source is a player that's crouching, let it pass
-        else if (event.getSource() != null && (event.getSource().getEntity() instanceof Player) && event.getSource().getEntity().isCrouching()){
+        else if (event.getSource() != null && (event.getSource().getEntity() instanceof Player)
+                && event.getSource().getEntity().isCrouching() && cap.getKillTime() == 0){
             if (event.getEntityLiving().level.isClientSide) {
                 //Update the damage source
                 cap.setDamageSource(event.getSource());

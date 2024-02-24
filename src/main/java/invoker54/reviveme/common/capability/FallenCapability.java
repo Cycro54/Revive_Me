@@ -36,6 +36,7 @@ public class FallenCapability {
     public static final String SACRIFICEITEMS_STRING = "sacrificeItemStringREVIVE";
     public static final String SACRIFICEITEMS_BOOL = "sacrificeItemsBoolREVIVE";
     public static final String REVIVECHANCE_BOOL = "reviveChanceBoolREVIVE";
+    public static final String PENALTY_MULTIPLIER_INT = "penaltyMultiplierIntREVIVE";
     //endregion
 
     public FallenCapability(Level level){
@@ -60,6 +61,7 @@ public class FallenCapability {
     protected List<Item> sacrificialItems = new ArrayList<>();
     protected boolean sacrificedItemsUsed = false;
     protected boolean reviveChanceUsed = false;
+    protected int penaltyMultiplier = 0;
     public enum PENALTYPE  {
         NONE,
         HEALTH,
@@ -134,22 +136,31 @@ public class FallenCapability {
     }
 
     public float GetTimeLeft(boolean divideByMax) {
-//        if (ReviveMeConfig.timeLeft == 0) return 1;
+        float maxSeconds = getPenaltyTicks(fellEnd);
+        if (ReviveMeConfig.timeLeft == 0) maxSeconds = 0;
+        getKillTime();
 
         if (divideByMax)
-            return 1 - ((level.getGameTime() - fellStart)/ fellEnd);
+            return 1 - ((level.getGameTime() - fellStart)/ maxSeconds);
 
-        return ((fellStart + fellEnd) - level.getGameTime())/20f;
+        return ((fellStart + maxSeconds) - level.getGameTime())/20f;
+    }
+
+    public int getKillTime(){
+        if (ReviveMeConfig.pvpTimer == -1) return -1;
+        float maxSeconds = getPenaltyTicks(ReviveMeConfig.pvpTimer * 20);
+
+        return (int) Math.max (0, ((fellStart + maxSeconds) - level.getGameTime())/20f);
     }
 
     public boolean shouldDie(){
-        return level.getGameTime() > (fellEnd + fellStart) && ReviveMeConfig.timeLeft != 0;
+        return ReviveMeConfig.timeLeft != 0 && GetTimeLeft(false) <= 0;
     }
 
     public void SetTimeLeft(int timeStart, float maxSeconds) {
-            this.fellStart = timeStart;
-            this.fellEnd = maxSeconds * 20;
-            //System.out.println("Time left is!: " + (a/20f));
+        this.fellStart = timeStart;
+        this.fellEnd = maxSeconds * 20;
+        //System.out.println("Time left is!: " + (a/20f));
     }
 
     public void resumeFallTimer(){
@@ -219,6 +230,19 @@ public class FallenCapability {
     public void setReviveChanceUsed(boolean flag){
         this.reviveChanceUsed= flag;
     }
+    public int getPenaltyMultiplier(){
+        return this.penaltyMultiplier;
+    }
+    public int getPenaltyTicks(float ticks){
+        float multiplier = (float) (getPenaltyMultiplier() * ReviveMeConfig.timeReductionPenalty);
+        if (ReviveMeConfig.timeReductionPenalty < 1) multiplier *= ticks;
+        else if (ReviveMeConfig.timeReductionPenalty >= 1) multiplier *= 20F;
+
+        return Math.max(0, (int) (ticks - multiplier));
+    }
+    public void setPenaltyMultiplier(int newMultiplier){
+        this.penaltyMultiplier = newMultiplier;
+    }
 
     public Tag writeNBT(){
         CompoundTag cNBT = new CompoundTag();
@@ -241,6 +265,8 @@ public class FallenCapability {
         cNBT.putBoolean(SACRIFICEITEMS_BOOL, this.sacrificedItemsUsed);
         //If the player used the chance
         cNBT.putBoolean(REVIVECHANCE_BOOL, this.reviveChanceUsed);
+        //How many times the player fell with penalty timer active
+        cNBT.putInt(PENALTY_MULTIPLIER_INT, this.penaltyMultiplier);
 
         if(this.otherPlayer != null)
             cNBT.putUUID(OTHERPLAYER_UUID, this.otherPlayer);
@@ -262,6 +288,7 @@ public class FallenCapability {
         }
         this.sacrificedItemsUsed = cNBT.getBoolean(SACRIFICEITEMS_BOOL);
         this.reviveChanceUsed = cNBT.getBoolean(REVIVECHANCE_BOOL);
+        this.penaltyMultiplier = cNBT.getInt(PENALTY_MULTIPLIER_INT);
 
         if(cNBT.hasUUID(OTHERPLAYER_UUID)) {
             this.setOtherPlayer(cNBT.getUUID(OTHERPLAYER_UUID));

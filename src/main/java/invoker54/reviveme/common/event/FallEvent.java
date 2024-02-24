@@ -5,6 +5,7 @@ import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
+import invoker54.reviveme.init.MobEffectInit;
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.TextComponent;
@@ -67,9 +68,22 @@ public class FallEvent {
     public static boolean cancelEvent(Player player, DamageSource source) {
         FallenCapability instance = FallenCapability.GetFallCap(player);
 
+        //Generate a sacrificial item list
+        ArrayList<Item> playerItems = new ArrayList<>();
+        for (ItemStack itemStack : player.getInventory().items) {
+            if (playerItems.contains(itemStack.getItem())) continue;
+            if (!itemStack.isStackable()) continue;
+            if (itemStack.isEmpty()) continue;
+            playerItems.add(itemStack.getItem());
+        }
+        //Remove all except 4
+        while (playerItems.size() > 4) {
+            playerItems.remove(player.level.random.nextInt(playerItems.size()));
+        }
+
         //If they used both self-revive options, and they are not on a server, they should die immediately
         if (instance.usedChance() &&
-                (instance.usedSacrificedItems() || player.getInventory().isEmpty()) &&
+                (instance.usedSacrificedItems() || playerItems.isEmpty()) &&
                 (player.getServer() != null && player.getServer().getPlayerCount() < 2)) return false;
 
 //        LOGGER.info("Are they fallen? " + instance.isFallen());
@@ -102,11 +116,15 @@ public class FallEvent {
             //Make them invulnerable to all damage (besides void and creative of course.)
             player.setInvulnerable(true);
 
+            //grab the FALLEN EFFECT amplifier for later use
+            if (player.hasEffect(MobEffectInit.FALLEN_EFFECT)){
+                instance.setPenaltyMultiplier(player.getEffect(MobEffectInit.FALLEN_EFFECT).getAmplifier() + 1);
+            }
+
             player.removeAllEffects();
 
             //Give them all the downed effects.
             applyDownedEffects(player);
-
 
             //Dismount the player if riding something
             player.stopRiding();
@@ -117,25 +135,16 @@ public class FallEvent {
             //Close any containers they have open as well.
             player.closeContainer();
 
-            //Choose random stackable items to sacrifice
-            if (!instance.usedSacrificedItems()) {
-                //Generate a sacrificial item list
-                ArrayList<Item> items = new ArrayList<>();
-                for (ItemStack itemStack : player.getInventory().items) {
-                    if (items.contains(itemStack.getItem())) continue;
-                    if (!itemStack.isStackable()) continue;
-                    if (itemStack.isEmpty()) continue;
-                    items.add(itemStack.getItem());
-                }
-//                LOGGER.debug("What are the contents? " + items);
-                //Remove all except 4
-                while (items.size() > 4) {
-                    items.remove(player.level.random.nextInt(items.size()));
-                }
-//                LOGGER.debug("What are the contents? " + items);
+            //Take away xp levels
+            if (ReviveMeConfig.fallenXpPenalty > 0){
+                double xpToRemove = ReviveMeConfig.fallenXpPenalty;
+                if (xpToRemove < 1) xpToRemove = Math.round(player.experienceLevel * xpToRemove);
+                player.giveExperienceLevels((int) -xpToRemove);
+            }
 
-                //Now add it to the players capability
-                instance.setSacrificialItems(items);
+            //This will only happen if the player is in a single player world
+            if (!instance.usedSacrificedItems()) {
+                instance.setSacrificialItems(playerItems);
             }
 
             //Finally send capability code to all players
