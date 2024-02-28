@@ -34,8 +34,14 @@ public abstract class IForgeKeyMixin implements IForgeKeyMapping {
             FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
             KeyMapping keyMapping = ALL.get(this.name);
 
-            if (cap.isFallen() && !VanillaKeybindHandler.isVanillaKeybind(keyMapping)) return false;
-            if (!ReviveMeConfig.openInventoryWhileDowned && keyMapping.same(ClientUtil.mC.options.keyInventory) && ClientUtil.mC.screen == null) return false;
+            if (cap.isFallen()) {
+                if (!VanillaKeybindHandler.isVanillaKeybind(keyMapping)) {
+                    return false;
+                }
+                if (!ReviveMeConfig.openInventoryWhileDowned && keyMapping.same(ClientUtil.mC.options.keyInventory) && ClientUtil.mC.screen == null) {
+                    return false;
+                }
+            }
         }
         return IForgeKeyMapping.super.isActiveAndMatches(keyCode);
     }
