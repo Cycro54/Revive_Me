@@ -11,7 +11,8 @@
     "SlotMixin"
   ],
   "client": [
-    "IForgeKeyMixin"
+    "IForgeKeyMixin",
+    "ForgeHooksClientMixin"
   ],
   "injectors": {
     "defaultRequire": 1
