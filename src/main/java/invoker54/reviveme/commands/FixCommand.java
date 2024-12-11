@@ -56,9 +56,7 @@ public class FixCommand {
 
             //If they are out of time, smite them.
             if (cap.shouldDie()){
-                caller.setInvulnerable(false);
-                caller.hurt(cap.getDamageSource().bypassInvul().bypassArmor(), Float.MAX_VALUE);
-
+                cap.kill(caller);
                 return 1;
             }
 

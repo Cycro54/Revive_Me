@@ -2,10 +2,6 @@ package invoker54.reviveme.common.event;
 
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
-import invoker54.reviveme.common.network.NetworkHandler;
-import invoker54.reviveme.common.network.message.InstaKillMsg;
-import invoker54.reviveme.common.network.message.SyncServerCapMsg;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.player.Player;
@@ -22,38 +18,29 @@ public class attackFallenEvents {
     private static final Logger LOGGER = LogManager.getLogger();
 
     @SubscribeEvent
-    public static void playerAttackFallen(LivingAttackEvent event){
+    public static void playerAttackFallen(LivingAttackEvent event) {
         if (event.isCanceled()) return;
 
         if (!(event.getEntity() instanceof Player player)) return;
 
+        if (event.getEntity().level.isClientSide) return;
+
         FallenCapability cap = FallenCapability.GetFallCap(player);
 
         //If it's a source that goes through invulnerability, let it pass
-        if (event.getSource() != null && event.getSource().isBypassInvul()){
+        if (event.getSource() != null && event.getSource().isBypassInvul()) {
             return;
         }
 
         //If they aren't fallen, let it pass.
-        else if (!cap.isFallen()){
+        else if (!cap.isFallen()) {
             return;
         }
 
         //If the damage source is a player that's crouching, let it pass
         else if (event.getSource() != null && (event.getSource().getEntity() instanceof Player)
-                && event.getSource().getEntity().isCrouching() && cap.getKillTime() == 0){
-            if (event.getEntity().level.isClientSide) {
-                //Update the damage source
-                cap.setDamageSource(event.getSource());
-                CompoundTag tag = new CompoundTag();
-                tag.put(player.getStringUUID(), cap.writeNBT());
-                NetworkHandler.INSTANCE.sendToServer(new SyncServerCapMsg(tag));
-
-                //Send a kill message
-                NetworkHandler.INSTANCE.sendToServer(new InstaKillMsg(event.getEntity().getUUID()));
-                event.setCanceled(true);
-                return;
-            }
+                && event.getSource().getEntity().isCrouching() && cap.getKillTime() == 0) {
+            player.setInvulnerable(false);
         }
 
         //Else cancel the attack event
@@ -63,7 +50,7 @@ public class attackFallenEvents {
     }
 
     @SubscribeEvent
-    public static void CancelMobTarget(LivingChangeTargetEvent event){
+    public static void CancelMobTarget(LivingChangeTargetEvent event) {
         if (!(event.getEntity() instanceof Mob mob)) return;
         if (!(event.getNewTarget() instanceof Player player)) return;
 
@@ -73,12 +60,12 @@ public class attackFallenEvents {
                 //Trick the target selector for the mob by making it so the player appears to be dead
                 ((NeutralMob) mob).playerDied(player);
             }
-            ((Mob)event.getEntity()).setTarget(null);
+            ((Mob) event.getEntity()).setTarget(null);
         }
     }
 
     @SubscribeEvent
-    public static void fallenInvisible(LivingEvent.LivingVisibilityEvent event){
+    public static void fallenInvisible(LivingEvent.LivingVisibilityEvent event) {
         if (!(event.getEntity() instanceof Player)) return;
         if (!(FallenCapability.GetFallCap(event.getEntity()).isFallen())) return;
 

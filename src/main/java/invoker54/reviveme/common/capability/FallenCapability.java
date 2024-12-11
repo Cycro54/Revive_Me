@@ -114,6 +114,12 @@ public class FallenCapability {
         return penaltyType;
     }
 
+    public void kill(Player player){
+        player.setInvulnerable(false);
+        player.die(this.damageSource);
+        player.setHealth(0);
+    }
+
     public boolean hasEnough(Player player){
         if (player.isCreative()) return true;
 
@@ -128,7 +134,7 @@ public class FallenCapability {
     }
 
     public void setDamageSource(DamageSource damageSource){
-        this.damageSource = damageSource;
+        this.damageSource = damageSource.bypassMagic().bypassInvul().bypassArmor().bypassEnchantments();
     }
 
     public DamageSource getDamageSource(){

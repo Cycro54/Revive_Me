@@ -52,7 +52,7 @@ public class RenderFallPlateEvent {
             PoseStack stack = event.getPoseStack();
 
             if (!cap.isFallen()) continue;
-            float f = entity.getBbHeight() * 0.30f;
+            float f = entity.getBbHeight() * 0.40f;
             stack.pushPose();
 
             RenderSystem.disableCull();
@@ -65,6 +65,7 @@ public class RenderFallPlateEvent {
             stack.translate(difference.x, difference.y + f, difference.z);
             stack.mulPose(mC.getEntityRenderDispatcher().cameraOrientation());
             stack.scale(-0.025F, -0.025F, 0.025F);
+            stack.scale(0.5F, 0.5F, 0.5F);
 
             if (cap.getOtherPlayer() == null) {
                 //This txt is for showing how the long the player has left to die
@@ -117,11 +118,17 @@ public class RenderFallPlateEvent {
                     int radius = 30;
 
                     MutableComponent message = null;
-                    if (mC.player.isCrouching() && cap.getKillTime() == 0) {
-                        message = Component.translatable("revive-me.fall_plate.kill");
-                        message = Component.literal(message.getString()
-                                .replace("{attack}", inst.options.keyAttack.getKey().getDisplayName().getString()));
-                    } else if (cap.hasEnough(mC.player)) {
+                    if (mC.player.isCrouching()){
+                        if (cap.getKillTime() > 0){
+                            message = Component.translatable("revive-me.fall_plate.cant_kill");
+                        }
+                        else {
+                            message = Component.translatable("revive-me.fall_plate.kill");
+                            message = Component.literal(message.getString()
+                                    .replace("{attack}", inst.options.keyAttack.getKey().getDisplayName().getString()));
+                        }
+                    }
+                    else if (cap.hasEnough(mC.player)) {
                         message = Component.translatable("revive-me.fall_plate.revive");
                         message = Component.literal(message.getString()
                                 .replace("{use}", inst.options.keyUse.getKey().getDisplayName().getString()));

@@ -36,25 +36,25 @@ public class FallenTimerEvent {
 
         if (!cap.isFallen() || cap.getOtherPlayer() != null) return;
 
-        //If they are in creative mode, cancel the event
-        if (event.player.isCreative()){
+        //If they are in creative or spectator mode, cancel the event
+        if (event.player.isCreative() || event.player.isSpectator()) {
+            if (event.side.isClient()) return;
+
             cap.setFallen(false);
             event.player.setPose(Pose.STANDING);
             event.player.setInvulnerable(false);
+            //Remove all potion effects
+            event.player.removeAllEffects();
+            event.player.setHealth(event.player.getMaxHealth());
 
-            if (event.side.isServer()) {
-                //Remove all potion effects
-                event.player.removeAllEffects();
-                event.player.setHealth(event.player.getMaxHealth());
+            CompoundTag nbt = new CompoundTag();
+            nbt.put(event.player.getStringUUID(), cap.writeNBT());
 
-                CompoundTag nbt = new CompoundTag();
-                nbt.put(event.player.getStringUUID(), cap.writeNBT());
-
-                if (event.side == LogicalSide.SERVER) {
-                    NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> event.player),
-                            new SyncClientCapMsg(nbt));
-                }
+            if (event.side == LogicalSide.SERVER) {
+                NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> event.player),
+                        new SyncClientCapMsg(nbt));
             }
+
             return;
         }
 
@@ -81,34 +81,31 @@ public class FallenTimerEvent {
 
         if (event.side == LogicalSide.CLIENT) return;
 
-        event.player.setInvulnerable(false);
-        event.player.hurt(cap.getDamageSource().bypassInvul().bypassArmor(), Float.MAX_VALUE);
+        cap.kill(event.player);
         //System.out.println("Who's about to die: " + event.player.getDisplayName());
     }
 
     //Make sure this only runs for the person being revived
     @SubscribeEvent
-    public static void TickProgress(TickEvent.PlayerTickEvent event){
+    public static void TickProgress(TickEvent.PlayerTickEvent event) {
         if (event.phase == TickEvent.Phase.END) return;
+        if (event.side != LogicalSide.SERVER) return;
 
         FallenCapability cap = FallenCapability.GetFallCap(event.player);
 
         //make sure other player isn't null
-        if(cap.getOtherPlayer() == null) return;
+        if (cap.getOtherPlayer() == null) return;
 
         //If tick progress finishes, revive the fallen player and take whatever you need to take from the reviver
-        if(cap.getProgress() < 1) return;
+        if (cap.getProgress() < 1) return;
 
         //Make sure this person is fallen.
-        if(!cap.isFallen()) return;
+        if (!cap.isFallen()) return;
 
         Player fellPlayer = event.player;
 
-        if (event.side == LogicalSide.SERVER) {
-            Player reviver = fellPlayer.getServer().getPlayerList().getPlayer(cap.getOtherPlayer());
-            takeFromReviver(reviver, fellPlayer);
-        }
-
+        Player reviver = fellPlayer.getServer().getPlayerList().getPlayer(cap.getOtherPlayer());
+        takeFromReviver(reviver, fellPlayer);
         revivePlayer(fellPlayer);
     }
 

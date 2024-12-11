@@ -14,6 +14,7 @@
   "revive-me.chat.player_fallen": " has fallen",
   "revive-me.chat.blocked_command": "(Revive Me) You can't use that command while fallen!",
   "revive-me.fall_plate.kill": "{attack} to KILL",
+  "revive-me.fall_plate.cant_kill": "Can't kill yet...",
   "revive-me.fall_plate.revive": "{use} to revive",
   "revive-me.commands.revive_fail": " is either dead or already revived",
   "revive-me.commands.revive_pass": " has been revived",

@@ -24,9 +24,7 @@ public abstract class PlayerMixin {
             cancellable = true)
     private void canEat(boolean p_36392_, CallbackInfoReturnable<Boolean> cir){
         FallenCapability cap = FallenCapability.GetFallCap(this.inventory.player);
-        if (cap == null) return;
         if (!cap.isFallen()) return;
-
         cir.setReturnValue(false);
     }
 }

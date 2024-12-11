@@ -49,11 +49,7 @@ public class SacrificeItemsMsg {
                 FallenTimerEvent.revivePlayer(player);
             }
             else if (ReviveMeConfig.canGiveUp){
-                //Make them vulnerable
-                player.setInvulnerable(false);
-
-                //Then make them take damage from the saved damage source
-                player.hurt(cap.getDamageSource().bypassArmor().bypassInvul(), Float.MAX_VALUE);
+               cap.kill(player);
             }
         });
 

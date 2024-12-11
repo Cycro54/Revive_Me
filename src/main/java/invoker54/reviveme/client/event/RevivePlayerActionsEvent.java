@@ -4,9 +4,8 @@ import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.network.NetworkHandler;
-import invoker54.reviveme.common.network.message.SyncServerCapMsg;
+import invoker54.reviveme.common.network.message.RestartDeathTimerMsg;
 import net.minecraft.client.Minecraft;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
@@ -40,7 +39,7 @@ public class RevivePlayerActionsEvent {
 
         Player targPlayer = inst.level.getPlayerByUUID(myCap.getOtherPlayer());
 
-        boolean cancelEvent = false;
+        boolean cancelEvent;
 
         //Check if it's a player
         //System.out.println("Player entity instance? : " + (inst.crosshairPickEntity instanceof Player));
@@ -62,19 +61,17 @@ public class RevivePlayerActionsEvent {
         }
 
         if (cancelEvent){
-            CompoundTag nbt = new CompoundTag();
+            String targPlayerUUID = null;
             myCap.setOtherPlayer(null);
-            nbt.put(inst.player.getStringUUID(), myCap.writeNBT());
 
             if (targPlayer != null) {
                 FallenCapability targCap = FallenCapability.GetFallCap(targPlayer);
                 targCap.setOtherPlayer(null);
-                targCap.resumeFallTimer();
 
-                nbt.put(targPlayer.getStringUUID(), targCap.writeNBT());
+                targPlayerUUID = targPlayer.getStringUUID();
             }
 
-            NetworkHandler.INSTANCE.sendToServer(new SyncServerCapMsg(nbt));
+            NetworkHandler.INSTANCE.sendToServer(new RestartDeathTimerMsg(targPlayerUUID, inst.player.getStringUUID()));
         }
     }
 }

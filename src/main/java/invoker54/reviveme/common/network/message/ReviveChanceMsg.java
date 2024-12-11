@@ -23,11 +23,7 @@ public class ReviveChanceMsg {
 
 
             if ((cap.usedChance() && ReviveMeConfig.canGiveUp) || (!cap.usedChance() && willDie)) {
-                //Make them vulnerable
-                player.setInvulnerable(false);
-
-                //Then make them take damage from the saved damage source
-                player.hurt(cap.getDamageSource().bypassArmor().bypassInvul(), Float.MAX_VALUE);
+                cap.kill(player);
             }
             else if (!cap.usedChance() && !willDie){
                 //And set the revive chance as used

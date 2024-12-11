@@ -32,6 +32,12 @@ public final class ReviveMeConfig {
     public static Double fallenPenaltyTimer;
     public static boolean selfReviveMultiplayer;
     public static boolean canGiveUp;
+    public enum FALLEN_POSE{
+        CROUCH,
+        PRONE,
+        SLEEP
+    }
+    public static FALLEN_POSE fallenPose;
     public enum JUMP{
         YES,
         LIQUID_ONLY,
@@ -71,6 +77,7 @@ public final class ReviveMeConfig {
         fallenPenaltyTimer = COMMON.fallenPenaltyTimer.get();
         selfReviveMultiplayer = COMMON.selfReviveMultiplayer.get();
         canGiveUp = COMMON.canGiveUp.get();
+        fallenPose = COMMON.fallenPose.get();
         canJump = COMMON.canJump.get();
         canMove = COMMON.canMove.get();
         openInventoryWhileDowned = COMMON.openInventoryWhileDowned.get();
@@ -88,6 +95,8 @@ public final class ReviveMeConfig {
         mainTag.putBoolean("selfReviveMultiplayer", selfReviveMultiplayer);
         //is Give Up Disabled
         mainTag.putBoolean("canGiveUp", canGiveUp);
+        //Fallen pose
+        mainTag.putString("fallenPose", fallenPose.toString());
         //can jump
         mainTag.putString("canJump", canJump.toString());
         //can move
@@ -112,6 +121,8 @@ public final class ReviveMeConfig {
         selfReviveMultiplayer = mainTag.getBoolean("selfReviveMultiplayer");
         //Is Give Up Disabled
         canGiveUp = mainTag.getBoolean("canGiveUp");
+        //Fallen Pose
+        fallenPose = FALLEN_POSE.valueOf(mainTag.getString("fallenPose"));
         //Can Jump
         canJump = JUMP.valueOf(mainTag.getString("canJump"));
         //can Move
@@ -162,6 +173,7 @@ public final class ReviveMeConfig {
         public final ForgeConfigSpec.ConfigValue<Double> fallenPenaltyTimer;
         public final ForgeConfigSpec.ConfigValue<Boolean> selfReviveMultiplayer;
         public final ForgeConfigSpec.ConfigValue<Boolean> canGiveUp;
+        public final ForgeConfigSpec.ConfigValue<FALLEN_POSE> fallenPose;
         public final ForgeConfigSpec.ConfigValue<JUMP> canJump;
         public final ForgeConfigSpec.ConfigValue<Boolean> canMove;
         public final ForgeConfigSpec.ConfigValue<Boolean> openInventoryWhileDowned;
@@ -186,6 +198,8 @@ public final class ReviveMeConfig {
             selfReviveMultiplayer = builder.comment("If you can use self-revive methods in multiplayer").define("Self_Revive_Multiplayer", false);
 
             canGiveUp = builder.comment("If you can give up and die").define("Can_Give_Up", true);
+
+            fallenPose = builder.comment("What pose you have whilst fallen").defineEnum("Fallen_Pose", FALLEN_POSE.CROUCH);
 
             canJump = builder.comment("If the player may jump while fallen").defineEnum("Can_Jump", JUMP.YES);
 
