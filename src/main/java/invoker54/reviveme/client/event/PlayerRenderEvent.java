@@ -2,6 +2,7 @@ package invoker54.reviveme.client.event;
 
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.client.entity.player.AbstractClientPlayerEntity;
 import net.minecraft.client.renderer.entity.model.PlayerModel;
 import net.minecraftforge.api.distmarker.Dist;
@@ -18,7 +19,7 @@ public class PlayerRenderEvent {
     public static void onRender(RenderPlayerEvent.Pre event){
         if (FallenCapability.GetFallCap(event.getPlayer()).isFallen()){
             PlayerModel<AbstractClientPlayerEntity> player = event.getRenderer().getModel();
-            player.crouching = true;
+            if (ReviveMeConfig.fallenPose == ReviveMeConfig.FALLEN_POSE.CROUCH) player.crouching = true;
         }
     }
 }

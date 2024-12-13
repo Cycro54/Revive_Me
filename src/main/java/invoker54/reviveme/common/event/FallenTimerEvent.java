@@ -5,25 +5,33 @@ import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
-import invoker54.reviveme.mixin.FoodMixin;
+import invoker54.reviveme.init.EffectInit;
 import net.minecraft.entity.Pose;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.util.FoodStats;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.network.PacketDistributor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class FallenTimerEvent {
+    private static final Logger LOGGER = LogManager.getLogger();
 
     @SubscribeEvent
     public static void TickDownTimer(TickEvent.PlayerTickEvent event) {
         //System.out.println("Game time is: " + event.player.level.getGameTime());
+        if (event.side == LogicalSide.CLIENT) return;
 
         if (event.phase == TickEvent.Phase.END) return;
 
@@ -33,31 +41,10 @@ public class FallenTimerEvent {
 
         if (!cap.isFallen() || cap.getOtherPlayer() != null) return;
 
-        //If they are in creative mode, cancel the event
-        if (event.player.isCreative()){
-            cap.setFallen(false);
-            event.player.setPose(Pose.STANDING);
-            event.player.setInvulnerable(false);
-
-            if (event.side.isServer()) {
-                //Remove all potion effects
-                event.player.removeAllEffects();
-                event.player.setHealth(event.player.getMaxHealth());
-
-                CompoundNBT nbt = new CompoundNBT();
-                nbt.put(event.player.getStringUUID(), cap.writeNBT());
-
-                if (event.side == LogicalSide.SERVER) {
-                    NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> event.player),
-                            new SyncClientCapMsg(nbt));
-                }
-            }
+        //If they are in creative or spectator mode, cancel the event
+        if (event.player.isCreative() || event.player.isSpectator()) {
+            revivePlayer(event.player);
             return;
-        }
-
-        //Make sure they are still invulnerable
-        if (!event.player.isInvulnerable()){
-            event.player.setInvulnerable(true);
         }
 
         //Make sure they aren't sprinting.
@@ -71,38 +58,36 @@ public class FallenTimerEvent {
         //Make sure they have no food either
         event.player.getFoodData().setFoodLevel(0);
 
+        //Finally make sure they have all the required effects.
+        FallEvent.applyDownedEffects(event.player);
+
         if (!cap.shouldDie()) return;
 
-        if (event.side == LogicalSide.CLIENT) return;
-
-        event.player.setInvulnerable(false);
-        event.player.hurt(cap.getDamageSource().bypassInvul().bypassArmor(), Float.MAX_VALUE);
+        cap.kill(event.player);
         //System.out.println("Who's about to die: " + event.player.getDisplayName());
     }
 
     //Make sure this only runs for the person being revived
     @SubscribeEvent
-    public static void TickProgress(TickEvent.PlayerTickEvent event){
+    public static void TickProgress(TickEvent.PlayerTickEvent event) {
         if (event.phase == TickEvent.Phase.END) return;
+        if (event.side != LogicalSide.SERVER) return;
 
         FallenCapability cap = FallenCapability.GetFallCap(event.player);
 
         //make sure other player isn't null
-        if(cap.getOtherPlayer() == null) return;
+        if (cap.getOtherPlayer() == null) return;
 
         //If tick progress finishes, revive the fallen player and take whatever you need to take from the reviver
-        if(cap.getProgress() < 1) return;
+        if (cap.getProgress() < 1) return;
 
         //Make sure this person is fallen.
-        if(!cap.isFallen()) return;
+        if (!cap.isFallen()) return;
 
         PlayerEntity fellPlayer = event.player;
 
-        if (event.side == LogicalSide.SERVER) {
-            PlayerEntity reviver = fellPlayer.getServer().getPlayerList().getPlayer(cap.getOtherPlayer());
-            takeFromReviver(reviver, fellPlayer);
-        }
-
+        PlayerEntity reviver = fellPlayer.getServer().getPlayerList().getPlayer(cap.getOtherPlayer());
+        takeFromReviver(reviver, fellPlayer);
         revivePlayer(fellPlayer);
     }
 
@@ -130,8 +115,23 @@ public class FallenTimerEvent {
                     amountNeeded = Math.max(0, amountNeeded - saturation);
                     food.setFoodLevel((int) (food.getFoodLevel() - amountNeeded));
                     break;
+                case ITEM:
+                    int itemAmount = (int) cap.getPenaltyAmount(reviver);
+                    Item penaltyItem = cap.getPenaltyItem().getItem();
+                    PlayerInventory playerInv = reviver.inventory;
+                    for (int a = 0; a < playerInv.getContainerSize(); a++) {
+                        ItemStack currStack = playerInv.getItem(a);
+                        if (currStack.getItem() == penaltyItem) {
+                            int takeAway = (Math.min(itemAmount, currStack.getCount()));
+                            itemAmount -= takeAway;
+                            currStack.setCount(currStack.getCount() - takeAway);
+                        }
+                        if (itemAmount == 0) break;
+                    }
+                    break;
             }
         }
+
 
         cap = FallenCapability.GetFallCap(reviver);
         cap.setOtherPlayer(null);
@@ -175,17 +175,16 @@ public class FallenTimerEvent {
             foodAmount = ReviveMeConfig.revivedFood.floatValue();
         }
         //Now set their food level
-        fallen.getFoodData().setFoodLevel((int) Math.min(20, foodAmount));
+        fallen.getFoodData().eat((int) Math.min(20, foodAmount), 0);
         //Then their saturation
-        ((FoodMixin) fallen.getFoodData()).setSaturationLevel(Math.max(0, foodAmount - 20));
-//        fallen.getFoodData().setSaturation(Math.max(0, foodAmount - 20));
+        fallen.getFoodData().eat(1, Math.max(0, foodAmount - 20) / 2);
         //endregion
 
         //Remove all potion effects
         fallen.removeAllEffects();
 
-        //Make it so they aren't invulnerable anymore
-        fallen.setInvulnerable(false);
+        //Add the fallen potion effect if one of the two self revives were used
+        fallen.addEffect(new EffectInstance(EffectInit.FALLEN_EFFECT, (int) (ReviveMeConfig.fallenPenaltyTimer * 20), cap.getPenaltyMultiplier()));
 
         //Add invulnerability if it isn't 0
         if (ReviveMeConfig.reviveInvulnTime != 0) {

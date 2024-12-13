@@ -5,13 +5,17 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "reviveme.refmap.json",
   "mixins": [
+    "EntityMixin",
     "FoodMixin",
     "ForgeHooksMixin",
     "PlayerMixin",
     "SlotMixin"
   ],
   "client": [
-    "IForgeKeyMixin"
+    "ForgeHooksClientMixin",
+    "IForgeKeyMixin",
+    "LocalPlayerMixin",
+    "PlayerRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -16,7 +16,7 @@ public abstract class PlayerMixin {
     @Shadow @Final public PlayerInventory inventory;
 
     @Inject(
-            remap = true,
+            
             method = "canEat(Z)Z",
             at = {
                     @At(value = "HEAD")

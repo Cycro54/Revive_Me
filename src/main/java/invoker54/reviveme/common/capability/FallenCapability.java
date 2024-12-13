@@ -4,17 +4,27 @@ import invoker54.reviveme.common.api.FallenProvider;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Direction;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.registries.ForgeRegistries;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class FallenCapability {
+    private static final Logger LOGGER = LogManager.getLogger();
 
     public static final String FALLEN_BOOL = "isFallenREVIVE";
     public static final String FELL_START_INT = "fellStartREVIVE";
@@ -23,7 +33,12 @@ public class FallenCapability {
     public static final String REVIVE_END_INT = "revEndREVIVE";
     public static final String PENALTY_ENUM = "penaltyTypeREVIVE";
     public static final String PENALTY_DOUBLE = "penaltyDoubleREVIVE";
+    public static final String PENALTY_ITEM = "penaltyItemREVIVE";
     public static final String OTHERPLAYER_UUID = "otherPlayerREVIVE";
+    public static final String SACRIFICEITEMS_STRING = "sacrificeItemStringREVIVE";
+    public static final String SACRIFICEITEMS_BOOL = "sacrificeItemsBoolREVIVE";
+    public static final String REVIVECHANCE_BOOL = "reviveChanceBoolREVIVE";
+    public static final String PENALTY_MULTIPLIER_INT = "penaltyMultiplierIntREVIVE";
     //endregion
 
     public FallenCapability(World level){
@@ -42,18 +57,30 @@ public class FallenCapability {
     protected boolean isFallen = false;
     protected UUID otherPlayer = null;
     protected Double penaltyAmount = 0D;
+    protected ItemStack penaltyItem = ItemStack.EMPTY;
     protected PENALTYPE penaltyType = PENALTYPE.HEALTH;
-    public enum PENALTYPE {
+
+    protected List<Item> sacrificialItems = new ArrayList<>();
+    protected boolean sacrificedItemsUsed = false;
+    protected boolean reviveChanceUsed = false;
+    protected int penaltyMultiplier = 0;
+
+    public enum PENALTYPE  {
         NONE,
         HEALTH,
         EXPERIENCE,
-        FOOD
+        FOOD,
+        ITEM
     }
 
     public static FallenCapability GetFallCap(LivingEntity player){
         return player.getCapability(FallenProvider.FALLENDATA).orElseGet(FallenCapability::new);
     }
 
+    public void setPenalty(PENALTYPE type, Double amount, String penaltyItem){
+        this.penaltyItem = new ItemStack(ForgeRegistries.ITEMS.getValue(new net.minecraft.util.ResourceLocation(penaltyItem)));
+        this.setPenalty(type, amount);
+    }
     public void setPenalty(PENALTYPE type, Double amount){
         this.penaltyAmount = amount;
         this.penaltyType = type;
@@ -71,35 +98,43 @@ public class FallenCapability {
                 break;
             case EXPERIENCE:
                 if (actualAmount > 0 && actualAmount < 1){
-                    actualAmount *= ((PlayerEntity)player).totalExperience;
+                    actualAmount *= ((PlayerEntity)player).experienceLevel;
                 }
                 break;
             case FOOD:
                 if (actualAmount > 0 && actualAmount < 1){
-                    actualAmount *= 40;
+                    actualAmount *= ((PlayerEntity)player).getFoodData().getFoodLevel() +
+                            ((PlayerEntity)player).getFoodData().getSaturationLevel();
                 }
+                break;
+            case ITEM:
         }
+        if ((player instanceof PlayerEntity) && ((PlayerEntity)player).isCreative()) actualAmount = 0D;
 
         return Math.round(actualAmount);
     }
-
+    public ItemStack getPenaltyItem() {return this.penaltyItem;}
     public PENALTYPE getPenaltyType(){
         return penaltyType;
     }
 
+    public void kill(PlayerEntity player){
+        player.setHealth(0);
+        player.getCombatTracker().recordDamage(this.damageSource,1,1);
+        player.die(this.damageSource);
+    }
+
     public boolean hasEnough(PlayerEntity player){
+        if (player.isCreative()) return true;
+
         switch (penaltyType) {
-            case NONE:
-                return true;
-            case HEALTH:
-                return player.getHealth() > this.penaltyAmount;
-            case EXPERIENCE:
-                return player.experienceLevel > this.penaltyAmount;
-            case FOOD:
-                return (player.getFoodData().getFoodLevel() + player.getFoodData().getSaturationLevel()) > this.penaltyAmount;
-            default:
-                return false;
+            case NONE: return true;
+            case HEALTH: return player.getHealth() > this.penaltyAmount;
+            case EXPERIENCE: return player.experienceLevel > this.penaltyAmount;
+            case FOOD: return (player.getFoodData().getFoodLevel() + Math.max(player.getFoodData().getSaturationLevel(), 0)) > this.penaltyAmount;
+            case ITEM: return player.inventory.countItem(this.penaltyItem.getItem()) > this.penaltyAmount;
         }
+        return false;
     }
 
     public void setDamageSource(DamageSource damageSource){
@@ -111,22 +146,31 @@ public class FallenCapability {
     }
 
     public float GetTimeLeft(boolean divideByMax) {
-        if (ReviveMeConfig.timeLeft == 0) return 1;
+        float maxSeconds = getPenaltyTicks(fellEnd);
+        if (ReviveMeConfig.timeLeft == 0) maxSeconds = 0;
+        getKillTime();
 
         if (divideByMax)
-            return 1 - ((level.getGameTime() - fellStart)/(float) fellEnd);
+            return 1 - ((level.getGameTime() - fellStart)/ maxSeconds);
 
-        return ((fellStart + fellEnd) - level.getGameTime())/20f;
+        return ((fellStart + maxSeconds) - level.getGameTime())/20f;
+    }
+
+    public int getKillTime(){
+        if (ReviveMeConfig.pvpTimer == -1) return -1;
+        float maxSeconds = getPenaltyTicks(ReviveMeConfig.pvpTimer * 20);
+
+        return (int) Math.max (0, ((fellStart + maxSeconds) - level.getGameTime())/20f);
     }
 
     public boolean shouldDie(){
-        return level.getGameTime() > (fellEnd + fellStart) && ReviveMeConfig.timeLeft != 0;
+        return ReviveMeConfig.timeLeft != 0 && GetTimeLeft(false) <= 0;
     }
 
     public void SetTimeLeft(int timeStart, float maxSeconds) {
-            this.fellStart = timeStart;
-            this.fellEnd = maxSeconds * 20;
-            //System.out.println("Time left is!: " + (a/20f));
+        this.fellStart = timeStart;
+        this.fellEnd = maxSeconds * 20;
+        //System.out.println("Time left is!: " + (a/20f));
     }
 
     public void resumeFallTimer(){
@@ -163,14 +207,6 @@ public class FallenCapability {
         return getOtherPlayer().equals(targUUID);
     }
 
-    public boolean compareUUID(UUID targUUID){
-        if (targUUID == null) return false;
-
-        if (getOtherPlayer() == null) return false;
-
-        return getOtherPlayer().equals(targUUID);
-    }
-
     public void setOtherPlayer(UUID playerID){
         otherPlayer = playerID;
     }
@@ -184,6 +220,39 @@ public class FallenCapability {
         return (level.getGameTime() - revStart) /(float)revEnd;
     }
 
+    public void setSacrificialItems(@Nonnull ArrayList<Item> itemList){
+        this.sacrificialItems = itemList;
+    }
+
+    public ArrayList<Item> getItemList(){
+        return new ArrayList<>(this.sacrificialItems);
+    }
+
+    public boolean usedSacrificedItems(){
+        return this.sacrificedItemsUsed;
+    }
+    public void setSacrificedItemsUsed(boolean flag){
+        this.sacrificedItemsUsed = flag;
+    }
+    public boolean usedChance(){
+        return this.reviveChanceUsed;
+    }
+    public void setReviveChanceUsed(boolean flag){
+        this.reviveChanceUsed= flag;
+    }
+    public int getPenaltyMultiplier(){
+        return this.penaltyMultiplier;
+    }
+    public int getPenaltyTicks(float ticks){
+        float multiplier = (float) (getPenaltyMultiplier() * ReviveMeConfig.timeReductionPenalty);
+        if (ReviveMeConfig.timeReductionPenalty < 1) multiplier *= ticks;
+        else if (ReviveMeConfig.timeReductionPenalty >= 1) multiplier *= 20F;
+
+        return Math.max(0, (int) (ticks - multiplier));
+    }
+    public void setPenaltyMultiplier(int newMultiplier){
+        this.penaltyMultiplier = newMultiplier;
+    }
 
     public INBT writeNBT(){
         CompoundNBT cNBT = new CompoundNBT();
@@ -194,9 +263,23 @@ public class FallenCapability {
         cNBT.putInt(REVIVE_END_INT, this.revEnd/20);
         cNBT.putString(PENALTY_ENUM, this.penaltyType.name());
         cNBT.putDouble(PENALTY_DOUBLE, this.penaltyAmount);
+        cNBT.putString(PENALTY_ITEM, ForgeRegistries.ITEMS.getKey(this.penaltyItem.getItem()).toString());
+
+        //The saved sacrificial items
+        StringBuilder ItemList = new StringBuilder();
+        for (Item item : sacrificialItems){
+            ItemList.append(ForgeRegistries.ITEMS.getKey(item)).append(",");
+        }
+        cNBT.putString(SACRIFICEITEMS_STRING, ItemList.toString());
+        //If the player sacrificed items
+        cNBT.putBoolean(SACRIFICEITEMS_BOOL, this.sacrificedItemsUsed);
+        //If the player used the chance
+        cNBT.putBoolean(REVIVECHANCE_BOOL, this.reviveChanceUsed);
+        //How many times the player fell with penalty timer active
+        cNBT.putInt(PENALTY_MULTIPLIER_INT, this.penaltyMultiplier);
 
         if(this.otherPlayer != null)
-        cNBT.putUUID(OTHERPLAYER_UUID, this.otherPlayer);
+            cNBT.putUUID(OTHERPLAYER_UUID, this.otherPlayer);
         return cNBT;
     }
     public void readNBT(INBT nbt){
@@ -204,7 +287,18 @@ public class FallenCapability {
         this.SetTimeLeft(cNBT.getInt(FELL_START_INT), cNBT.getInt(FELL_END_FLOAT));
         this.setFallen(cNBT.getBoolean(FALLEN_BOOL));
         this.setProgress(cNBT.getInt(REVIVE_START_INT), cNBT.getInt(REVIVE_END_INT));
-        this.setPenalty(PENALTYPE.valueOf(cNBT.getString(PENALTY_ENUM)), cNBT.getDouble(PENALTY_DOUBLE));
+        this.setPenalty(PENALTYPE.valueOf(cNBT.getString(PENALTY_ENUM)), cNBT.getDouble(PENALTY_DOUBLE), cNBT.getString(PENALTY_ITEM));
+
+        sacrificialItems.clear();
+        for (String itemString : cNBT.getString(SACRIFICEITEMS_STRING).split(",")){
+            Item item = ForgeRegistries.ITEMS.getValue(new net.minecraft.util.ResourceLocation(itemString));
+            if (item != Items.AIR){
+                sacrificialItems.add(item);
+            }
+        }
+        this.sacrificedItemsUsed = cNBT.getBoolean(SACRIFICEITEMS_BOOL);
+        this.reviveChanceUsed = cNBT.getBoolean(REVIVECHANCE_BOOL);
+        this.penaltyMultiplier = cNBT.getInt(PENALTY_MULTIPLIER_INT);
 
         if(cNBT.hasUUID(OTHERPLAYER_UUID)) {
             this.setOtherPlayer(cNBT.getUUID(OTHERPLAYER_UUID));
@@ -219,28 +313,12 @@ public class FallenCapability {
         @Nullable
         @Override
         public INBT writeNBT(Capability<FallenCapability> capability, FallenCapability instance, Direction side) {
-            CompoundNBT cNBT = new CompoundNBT();
-            cNBT.putInt(FELL_START_INT, instance.fellStart);
-            cNBT.putFloat(FELL_END_FLOAT, instance.fellEnd/20);
-            cNBT.putBoolean(FALLEN_BOOL, instance.isFallen());
-            cNBT.putString(PENALTY_ENUM, instance.penaltyType.name());
-            cNBT.putDouble(PENALTY_DOUBLE, instance.penaltyAmount);
-            return cNBT;
+            return instance.writeNBT();
         }
 
         @Override
         public void readNBT(Capability<FallenCapability> capability, FallenCapability instance, Direction side, INBT nbt) {
-            CompoundNBT cNBT = (CompoundNBT) nbt;
-            instance.SetTimeLeft(cNBT.getInt(FELL_START_INT), cNBT.getInt(FELL_END_FLOAT));
-            instance.setFallen(cNBT.getBoolean(FALLEN_BOOL));
-            try {
-                instance.setPenalty(PENALTYPE.valueOf(cNBT.getString(PENALTY_ENUM)), cNBT.getDouble(PENALTY_DOUBLE));
-            }
-
-            catch (Exception e){
-                //System.out.println("Couldn't find PENALTY type, doing default...");
-                instance.setPenalty(PENALTYPE.NONE,0D);
-            }
+            instance.readNBT(nbt);
         }
     }
 }

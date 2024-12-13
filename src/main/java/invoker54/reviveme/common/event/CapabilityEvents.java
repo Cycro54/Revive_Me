@@ -3,8 +3,10 @@ package invoker54.reviveme.common.event;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.api.FallenProvider;
 import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
+import invoker54.reviveme.common.network.message.SyncConfigMsg;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
@@ -26,9 +28,9 @@ public class CapabilityEvents {
     @SubscribeEvent
     public static void AttachCapability(AttachCapabilitiesEvent<Entity> event) {
 
-            if (event.getObject() instanceof PlayerEntity) {
-                event.addCapability(ReviveMe.FALLEN_LOC, new FallenProvider(event.getObject().level));
-            }
+        if (event.getObject() instanceof PlayerEntity) {
+            event.addCapability(ReviveMe.FALLEN_LOC, new FallenProvider(event.getObject().level));
+        }
 
     }
 
@@ -45,6 +47,7 @@ public class CapabilityEvents {
         nbt.put(playerUUID.toString(), cap.writeNBT());
 
         NetworkHandler.sendToPlayer(event.getPlayer(), new SyncClientCapMsg(nbt));
+        NetworkHandler.sendToPlayer(event.getPlayer(), new SyncConfigMsg(ReviveMeConfig.serialize()));
     }
 
     @SubscribeEvent
@@ -58,9 +61,9 @@ public class CapabilityEvents {
         //System.out.println("Start tracking: " + event.getTarget().getDisplayName());
 
         //Get the target player
-        PlayerEntity targPlayer = (PlayerEntity) event.getTarget();
 
         //Grab their cap data
+        PlayerEntity targPlayer = (PlayerEntity) event.getTarget();
         FallenCapability cap = FallenCapability.GetFallCap(targPlayer);
 
         //Now add themselves to the targets list of players who are tracking them.
@@ -81,8 +84,8 @@ public class CapabilityEvents {
         //System.out.println("Stop tracking: " + event.getTarget().getDisplayName());
 
         //Get the target player
-        PlayerEntity targPlayer = (PlayerEntity) event.getTarget();
 
+        PlayerEntity targPlayer = (PlayerEntity) event.getTarget();
         if (playerTracking.get(targPlayer.getUUID()) == null) return;
 
         //Now add themselves to the targets list of players who are tracking them.

@@ -53,9 +53,13 @@ public class CircleRender {
         float f2 = (float) (colorCode & 255) / 255.0F;
 
         //Setting up the render system
-        RenderSystem.disableTexture();
-        RenderSystem.disableCull();
         BufferBuilder bufferbuilder = Tessellator.getInstance().getBuilder();
+        RenderSystem.disableCull();
+        RenderSystem.disableDepthTest();
+        RenderSystem.enableBlend();
+        RenderSystem.disableTexture();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.color4f(1F,1F,1F,1F);
         bufferbuilder.begin(GL11.GL_TRIANGLE_FAN, DefaultVertexFormats.POSITION_COLOR);
 
         //Places a point in the middle of the circle only if it isn't going to be a full circle
@@ -77,11 +81,12 @@ public class CircleRender {
             //Increases the current angle by angleIncrement for the next cycle
             arcPos += angleIncrement;
         } while (!arcFinished && arcPos <= Math.toRadians(360.0)); // arcPos test is a fail safe to prevent infinite loop in case of problem with angle arguments
-
         bufferbuilder.end();
         WorldVertexBufferUploader.end(bufferbuilder);
         RenderSystem.enableTexture();
+        RenderSystem.disableBlend();
         RenderSystem.enableCull();
+        RenderSystem.enableDepthTest();
         stack.popPose();
 
 //        Matrix4f lastPos = stack.last().pose();

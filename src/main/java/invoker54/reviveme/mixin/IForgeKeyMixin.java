@@ -3,9 +3,12 @@ package invoker54.reviveme.mixin;
 import invoker54.invocore.client.ClientUtil;
 import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.client.util.InputMappings;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraftforge.client.extensions.IForgeKeybinding;
+import net.minecraftforge.fluids.IFluidBlock;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.mixin.*;
@@ -31,9 +34,17 @@ public abstract class IForgeKeyMixin implements IForgeKeybinding {
     public boolean isActiveAndMatches(InputMappings.Input keyCode) {
         if (ClientUtil.getWorld() != null) {
             FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
-            KeyBinding KeyBinding = ALL.get(this.name);
+            KeyBinding keyMapping = ALL.get(this.name);
 
-            if (cap.isFallen() && !VanillaKeybindHandler.isVanillaKeybind(KeyBinding)) return false;
+            if (cap.isFallen()) {
+                if (!VanillaKeybindHandler.isVanillaKeybind(keyMapping)) {
+                    return false;
+                }
+                if (ReviveMeConfig.interactWithInventory == ReviveMeConfig.INTERACT_WITH_INVENTORY.NO
+                        && keyMapping.same(ClientUtil.mC.options.keyInventory) && ClientUtil.mC.screen == null) {
+                    return false;
+                }
+            }
         }
         return IForgeKeybinding.super.isActiveAndMatches(keyCode);
     }
@@ -41,34 +52,47 @@ public abstract class IForgeKeyMixin implements IForgeKeybinding {
 
 
     @Inject(
-            remap = true,
             method = "isDown()Z",
             at = {
                     @At(value = "HEAD")
             },
             cancellable = true)
     private void isDown(CallbackInfoReturnable<Boolean> cir) {
-        if (ClientUtil.getWorld() != null) {
-            FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
+        if (ClientUtil.getWorld() == null) return;
+        PlayerEntity player = ClientUtil.getPlayer();
+        if (player == null) return;
+        FallenCapability cap = FallenCapability.GetFallCap(player);
 
-            KeyBinding KeyBinding = ALL.get(this.name);
-//            if (cap.isFallen()){
-//                //This will disable move keybinds if they are disallowed in the config
-//                if (!ReviveMeConfig.canMove && VanillaKeybindHandler.isMovementKeybind(KeyBinding)){
-//                    cir.setReturnValue(false);
-//                }
-//            }
 
-            //This is strictly for the use key when reviving or being revived
-            if (KeyBinding.equals(ClientUtil.mC.options.keyUse)) {
-                VanillaKeybindHandler.useKeyDown = isDown;
-
-                if (cap.getOtherPlayer() != null) {
-                    this.clickCount = 0;
+        KeyBinding KeyBinding = ALL.get(this.name);
+            if (cap.isFallen()){
+                //This will disable move keybinds if they are disallowed in the config
+                if (!ReviveMeConfig.canMove && VanillaKeybindHandler.isMovementKeybind(KeyBinding)){
                     cir.setReturnValue(false);
+                }
+                //This is for jumping
+                if (KeyBinding.equals(ClientUtil.mC.options.keyJump)) {
+                    switch (ReviveMeConfig.canJump) {
+                        case YES:
+                            return;
+                        case LIQUID_ONLY:
+                            if (!player.isInWater()) cir.setReturnValue(false);
+                            return;
+                        case NO:
+                            cir.setReturnValue(false);
+                            return;
+                    }
                 }
             }
 
+        //This is strictly for the use key when reviving or being revived
+        if (KeyBinding.equals(ClientUtil.mC.options.keyUse)) {
+            VanillaKeybindHandler.useKeyDown = isDown;
+
+            if (cap.getOtherPlayer() != null) {
+                this.clickCount = 0;
+                cir.setReturnValue(false);
+            }
         }
     }
 

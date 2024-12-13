@@ -5,29 +5,39 @@ import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
+import invoker54.reviveme.init.EffectInit;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.IAngerable;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.potion.Effect;
 import net.minecraft.potion.EffectInstance;
-import net.minecraft.potion.Effects;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Hand;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.network.PacketDistributor;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.ArrayList;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class FallEvent {
@@ -39,31 +49,49 @@ public class FallEvent {
         if (event.isCanceled()) return;
 //        LOGGER.info("IS IT A PLAYER? " + (event.getEntityLiving() instanceof PlayerEntity));
         if (!(event.getEntityLiving() instanceof PlayerEntity)) return;
-
+        
         PlayerEntity player = (PlayerEntity) event.getEntityLiving();
+
+        //If they are in creative mode, don't bother with any of this.
+        if (player.isCreative()) return;
+
+        //If they have a totem of undying in their InteractionHand, don't cancel the events
+        for (Hand InteractionHand : Hand.values()) {
+            ItemStack itemstack1 = player.getItemInHand(InteractionHand);
+            if (itemstack1.getItem() == Items.TOTEM_OF_UNDYING) {
+                return;
+            }
+        }
 
         //They are probs not allowed to die.
         event.setCanceled(cancelEvent(player, event.getSource()));
     }
 
-    public static boolean cancelEvent(PlayerEntity player, DamageSource source){
+    public static boolean cancelEvent(PlayerEntity player, DamageSource source) {
         FallenCapability instance = FallenCapability.GetFallCap(player);
 
-        //If they are in creative mode, don't bother with any of this.
-        if (player.isCreative()) return false;
-
-        //If they have a totem of undying in their hand, dont cancel the events
-        for(Hand hand : Hand.values()) {
-            ItemStack itemstack1 = player.getItemInHand(hand);
-            if (itemstack1.getItem() == Items.TOTEM_OF_UNDYING) {
-                return false;
-            }
+        //Generate a sacrificial item list
+        ArrayList<Item> playerItems = new ArrayList<>();
+        for (ItemStack itemStack : player.inventory.items) {
+            if (playerItems.contains(itemStack.getItem())) continue;
+            if (!itemStack.isStackable()) continue;
+            if (itemStack.isEmpty()) continue;
+            playerItems.add(itemStack.getItem());
         }
+        //Remove all except 4
+        while (playerItems.size() > 4) {
+            playerItems.remove(player.level.random.nextInt(playerItems.size()));
+        }
+
+        //If they used both self-revive options, and they are not on a server, they should die immediately
+        if (instance.usedChance() &&
+                (instance.usedSacrificedItems() || playerItems.isEmpty()) &&
+                (player.getServer() != null && player.getServer().getPlayerCount() < 2)) return false;
 
 //        LOGGER.info("Are they fallen? " + instance.isFallen());
         if (!instance.isFallen()) {
 //            LOGGER.info("MAKING THEM FALLEN");
-            for(PlayerEntity player1 : ((ServerWorld)player.level).getServer().getPlayerList().getPlayers()){
+            for (PlayerEntity player1 : ((ServerWorld) player.level).getServer().getPlayerList().getPlayers()) {
                 player1.sendMessage(new StringTextComponent(player.getName().getString())
                         .append(new TranslationTextComponent("revive-me.chat.player_fallen")), Util.NIL_UUID);
             }
@@ -84,16 +112,18 @@ public class FallEvent {
             instance.SetTimeLeft((int) player.level.getGameTime(), ReviveMeConfig.timeLeft);
 
             //Set penalty type and amount
-            instance.setPenalty(ReviveMeConfig.penaltyType, ReviveMeConfig.penaltyAmount);
+            instance.setPenalty(ReviveMeConfig.penaltyType, ReviveMeConfig.penaltyAmount, ReviveMeConfig.penaltyItem);
             //System.out.println(ReviveMeConfig.penaltyType);
 
-            //Make them invulnerable to all damage (besides void and creative of course.)
-            player.setInvulnerable(true);
+            //grab the FALLEN EFFECT amplifier for later use
+            if (player.hasEffect(EffectInit.FALLEN_EFFECT)){
+                instance.setPenaltyMultiplier(player.getEffect(EffectInit.FALLEN_EFFECT).getAmplifier() + 1);
+            }
 
             player.removeAllEffects();
 
-            //Make it so they can't move very fast.
-            player.addEffect(new EffectInstance(Effects.MOVEMENT_SLOWDOWN, 99999, 3, false, false, false));
+            //Give them all the downed effects.
+            applyDownedEffects(player);
 
             //Dismount the player if riding something
             player.stopRiding();
@@ -103,6 +133,18 @@ public class FallEvent {
 
             //Close any containers they have open as well.
             player.closeContainer();
+
+            //Take away xp levels
+            if (ReviveMeConfig.fallenXpPenalty > 0){
+                double xpToRemove = ReviveMeConfig.fallenXpPenalty;
+                if (xpToRemove < 1) xpToRemove = Math.round(player.experienceLevel * xpToRemove);
+                player.giveExperienceLevels((int) -xpToRemove);
+            }
+
+            //This will only happen if the player is in a single player world
+            if (!instance.usedSacrificedItems()) {
+                instance.setSacrificialItems(playerItems);
+            }
 
             //Finally send capability code to all players
             CompoundNBT nbt = new CompoundNBT();
@@ -124,17 +166,16 @@ public class FallEvent {
 
             //Make all angerable enemies nearby forgive the player.
             for (Entity entity : ((ServerWorld) player.level).getAllEntities()) {
-                if (entity instanceof IAngerable) {
-                    ((IAngerable) entity).playerDied(player);
-                }
                 if (!(entity instanceof MobEntity)) continue;
-                LivingEntity target = ((MobEntity) entity).getTarget();
+                MobEntity mob = (MobEntity) entity;
 
-                if (target == null) continue;
-                if (target.getId() == player.getId()) {
-                    ((MobEntity) entity).setTarget(null);
+                if (mob instanceof IAngerable){
+                    ((IAngerable)mob).playerDied(player);
                 }
+                if (mob.getTarget() == null) continue;
+                if (mob.getTarget().getId() == player.getId()) mob.setTarget(null);
             }
+
 
             NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player),
                     new SyncClientCapMsg(nbt));
@@ -143,5 +184,30 @@ public class FallEvent {
         }
 
         return false;
+    }
+
+    public static void applyDownedEffects(PlayerEntity player){
+        for (String string : ReviveMeConfig.downedEffects){
+            try {
+                String[] array = string.split(":");
+//                LOGGER.info("The effect split into pieces: " + Arrays.toString(array));
+                ResourceLocation effectLocation = new ResourceLocation(array[0],array[1]);
+                int tier = Integer.parseInt(array[2]);
+//                LOGGER.info("The tier: " + tier);
+                Effect effect = ForgeRegistries.POTIONS.getValue(effectLocation);
+                if (effect == null){
+                    LOGGER.error("Incorrect MOD ID or Potion Effect: " + string);
+                    continue;
+                }
+
+                EffectInstance effectInstance = player.getEffect(effect);
+                if (effectInstance == null || effectInstance.getAmplifier() < tier) {
+                    player.addEffect(new EffectInstance(effect, Integer.MAX_VALUE, tier));
+                }
+            }
+            catch (Exception e){
+                LOGGER.error("This string couldn't be parsed: " + string);
+            }
+        }
     }
 }

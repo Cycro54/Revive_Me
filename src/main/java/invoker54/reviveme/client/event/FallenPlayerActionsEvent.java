@@ -2,9 +2,13 @@ package invoker54.reviveme.client.event;
 
 import invoker54.invocore.client.ClientUtil;
 import invoker54.reviveme.ReviveMe;
+import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.InstaKillMsg;
+import invoker54.reviveme.common.network.message.ReviveChanceMsg;
+import invoker54.reviveme.common.network.message.SacrificeItemsMsg;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.player.PlayerEntity;
@@ -28,6 +32,7 @@ public class FallenPlayerActionsEvent {
     @SubscribeEvent
     public static void onAttack(InputEvent.ClickInputEvent event){
         if (FallenCapability.GetFallCap(inst.player).isFallen()) {
+
             event.setCanceled(true);
             if (event.isAttack()){
                 event.setSwingHand(false);
@@ -36,32 +41,50 @@ public class FallenPlayerActionsEvent {
     }
 
     @SubscribeEvent
-    public static void forceDeath(TickEvent.PlayerTickEvent event){
-        if(event.side == LogicalSide.SERVER) return;
+    public static void forceDeath(TickEvent.PlayerTickEvent event) {
+        if (event.side == LogicalSide.SERVER) return;
         if (event.type != TickEvent.Type.PLAYER) return;
         if (event.phase == TickEvent.Phase.END) return;
         if (event.player != ClientUtil.getPlayer()) return;
 
-        if(!FallenCapability.GetFallCap(inst.player).isFallen()) return;
+        FallenCapability cap = FallenCapability.GetFallCap(inst.player);
 
-        if(inst.options.keyAttack.isDown()) {
+        if (!cap.isFallen()) return;
+
+        boolean flag = (ReviveMeConfig.selfReviveMultiplayer || (ClientUtil.mC.hasSingleplayerServer() &&
+                ClientUtil.mC.getSingleplayerServer().getPlayerList().getPlayers().size() == 1));
+
+        //This will be chance
+        if (inst.options.keyAttack.isDown()) {
             timeHeld++;
             if (!ClientUtil.getPlayer().swinging) {
                 ClientUtil.getPlayer().swing(Hand.MAIN_HAND);
             }
 
             if (timeHeld == 40) {
-                NetworkHandler.INSTANCE.sendToServer(new InstaKillMsg(inst.player.getUUID()));
-                //System.out.println("Who's about to die: " + inst.player.getDisplayName());
+                if (flag) NetworkHandler.INSTANCE.sendToServer(new ReviveChanceMsg());
+                else if (ReviveMeConfig.canGiveUp) NetworkHandler.INSTANCE.sendToServer(new InstaKillMsg(ClientUtil.getPlayer().getUUID()));
             }
         }
-        else if (timeHeld != 0) timeHeld = 0;
+        //This will use items
+        else if (VanillaKeybindHandler.useKeyDown && flag && (!cap.usedChance() || !cap.getItemList().isEmpty())) {
+            timeHeld++;
+
+            if (timeHeld == 40) {
+                NetworkHandler.INSTANCE.sendToServer(new SacrificeItemsMsg());
+            }
+        } else if (timeHeld != 0) timeHeld = 0;
     }
 
     @SubscribeEvent
     public static void modifyFOV(FOVUpdateEvent event){
         PlayerEntity player = event.getEntity();
-        if (!FallenCapability.GetFallCap(player).isFallen()) return;
+        FallenCapability cap = FallenCapability.GetFallCap(player);
+        if (!cap.isFallen()) return;
+        boolean isSinglePlayer = (ClientUtil.mC.hasSingleplayerServer() &&
+                ClientUtil.mC.getSingleplayerServer().getPlayerList().getPlayers().size() == 1);
+        if (!ReviveMeConfig.canGiveUp && !isSinglePlayer &&
+                (!ReviveMeConfig.selfReviveMultiplayer || cap.usedSacrificedItems() && cap.usedChance())) return;
 
         float f = 1.0F;
         if (player.abilities.flying) {

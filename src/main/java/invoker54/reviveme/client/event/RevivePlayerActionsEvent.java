@@ -4,29 +4,31 @@ import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.network.NetworkHandler;
-import invoker54.reviveme.common.network.message.SyncServerCapMsg;
+import invoker54.reviveme.common.network.message.RestartDeathTimerMsg;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.UUID;
 
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = ReviveMe.MOD_ID)
 public class RevivePlayerActionsEvent {
-    private static Minecraft inst = Minecraft.getInstance();
+    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Minecraft inst = Minecraft.getInstance();
 
     @SubscribeEvent
-    public static void reviveCheck(TickEvent.PlayerTickEvent event) {
+    public static void reviveCheck(TickEvent.PlayerTickEvent event){
         if (event.side == LogicalSide.SERVER) return;
 
-        if (event.phase == TickEvent.Phase.END) return;
+        if(event.phase == TickEvent.Phase.END) return;
 
-        if (event.player != inst.player) return;
+        if(event.player != inst.player) return;
 
         FallenCapability myCap = FallenCapability.GetFallCap(inst.player);
         UUID myUUID = inst.player.getUUID();
@@ -37,41 +39,39 @@ public class RevivePlayerActionsEvent {
 
         PlayerEntity targPlayer = inst.level.getPlayerByUUID(myCap.getOtherPlayer());
 
-        boolean cancelEvent = false;
+        boolean cancelEvent;
 
         //Check if it's a player
-        //System.out.println("Player entity instance? : " + (inst.crosshairPickEntity instanceof PlayerEntity));
+        //System.out.println("PlayerEntity entity instance? : " + (inst.crosshairPickEntity instanceof PlayerEntity));
 
         cancelEvent = !(inst.crosshairPickEntity instanceof PlayerEntity);
 
         //Check if that player is being revived by them
         if (!cancelEvent) {
-//            //System.out.println("Someone I'm reviving? : " + (FallenCapability.GetFallCap((Player)inst.crosshairPickEntity).
+//            //System.out.println("Someone I'm reviving? : " + (FallenCapability.GetFallCap((PlayerEntity)inst.crosshairPickEntity).
 //                    compareUUID(myUUID)));
             cancelEvent = !(FallenCapability.GetFallCap((PlayerEntity) inst.crosshairPickEntity).
                     isReviver(myUUID));
         }
 
         //Check if I'm holding the use button down
-        if (!cancelEvent) {
+        if(!cancelEvent) {
             //System.out.println("Am I holding use down?: " + inst.options.keyUse.isDown());
             cancelEvent = !VanillaKeybindHandler.useKeyDown;
         }
 
-        if (cancelEvent) {
-            CompoundNBT nbt = new CompoundNBT();
+        if (cancelEvent){
+            String targPlayerUUID = null;
             myCap.setOtherPlayer(null);
-            nbt.put(inst.player.getStringUUID(), myCap.writeNBT());
 
             if (targPlayer != null) {
                 FallenCapability targCap = FallenCapability.GetFallCap(targPlayer);
                 targCap.setOtherPlayer(null);
-                targCap.resumeFallTimer();
 
-                nbt.put(targPlayer.getStringUUID(), targCap.writeNBT());
+                targPlayerUUID = targPlayer.getStringUUID();
             }
 
-            NetworkHandler.INSTANCE.sendToServer(new SyncServerCapMsg(nbt));
+            NetworkHandler.INSTANCE.sendToServer(new RestartDeathTimerMsg(targPlayerUUID, inst.player.getStringUUID()));
         }
     }
 }

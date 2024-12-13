@@ -97,7 +97,7 @@ public class ReviveCommand {
 //        cap.setFallen(false);
 //        caller.setPose(Pose.STANDING);
 //
-//        CompoundTag nbt = new CompoundTag();
+//        CompoundNBT nbt = new CompoundNBT();
 //        nbt.put(caller.getStringUUID(), cap.writeNBT());
 //
 //        ServerPlayer finalCaller = caller;
