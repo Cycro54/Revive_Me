@@ -100,7 +100,8 @@ public class FallenCapability {
                 break;
             case FOOD:
                 if (actualAmount > 0 && actualAmount < 1){
-                    actualAmount *= 40;
+                    actualAmount *= ((Player)player).getFoodData().getFoodLevel() +
+                            ((Player)player).getFoodData().getSaturationLevel();
                 }
                 break;
             case ITEM:

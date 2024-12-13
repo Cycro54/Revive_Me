@@ -183,28 +183,6 @@ public class FallEvent {
         return false;
     }
 
-    @SubscribeEvent
-    public static void onJump(LivingEvent.LivingJumpEvent event){
-        if (!(event.getEntityLiving() instanceof Player player)) return;
-        FallenCapability cap = FallenCapability.GetFallCap(player);
-        if (!cap.isFallen()) return;
-        if (ReviveMeConfig.canJump == ReviveMeConfig.JUMP.YES) return;
-        Vec3 delta = player.getDeltaMovement();
-        player.setDeltaMovement(delta.x, Math.min(delta.y, 0), delta.z);
-    }
-
-    @SubscribeEvent
-    public static void onSwim(TickEvent.PlayerTickEvent event){
-       FallenCapability cap = FallenCapability.GetFallCap(event.player);
-        if (!cap.isFallen()) return;
-        if (ReviveMeConfig.canJump != ReviveMeConfig.JUMP.NO) return;
-        Level level = event.player.getLevel();
-        if (!(level.getBlockState(event.player.blockPosition()).getBlock() instanceof LiquidBlock)) return;
-
-        Vec3 delta = event.player.getDeltaMovement();
-        event.player.setDeltaMovement(delta.x, Math.min(delta.y, 0), delta.z);
-    }
-
     public static void applyDownedEffects(Player player){
         for (String string : ReviveMeConfig.downedEffects){
             try {

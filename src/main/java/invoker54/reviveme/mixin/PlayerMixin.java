@@ -1,8 +1,6 @@
 package invoker54.reviveme.mixin;
 
 import invoker54.reviveme.common.capability.FallenCapability;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Final;

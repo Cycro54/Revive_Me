@@ -7,8 +7,6 @@ import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
 import invoker54.reviveme.init.MobEffectInit;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.level.ServerPlayerGameMode;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Pose;
@@ -17,7 +15,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
@@ -30,6 +27,7 @@ public class FallenTimerEvent {
     @SubscribeEvent
     public static void TickDownTimer(TickEvent.PlayerTickEvent event) {
         //System.out.println("Game time is: " + event.player.level.getGameTime());
+        if (event.side == LogicalSide.CLIENT) return;
 
         if (event.phase == TickEvent.Phase.END) return;
 
@@ -41,8 +39,6 @@ public class FallenTimerEvent {
 
         //If they are in creative or spectator mode, cancel the event
         if (event.player.isCreative() || event.player.isSpectator()) {
-            if (event.side.isClient()) return;
-
             revivePlayer(event.player);
             return;
         }
@@ -62,8 +58,6 @@ public class FallenTimerEvent {
         FallEvent.applyDownedEffects(event.player);
 
         if (!cap.shouldDie()) return;
-
-        if (event.side == LogicalSide.CLIENT) return;
 
         cap.kill(event.player);
         //System.out.println("Who's about to die: " + event.player.getDisplayName());
