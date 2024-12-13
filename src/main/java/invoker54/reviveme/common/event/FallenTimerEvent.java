@@ -40,27 +40,8 @@ public class FallenTimerEvent {
         if (event.player.isCreative() || event.player.isSpectator()) {
             if (event.side.isClient()) return;
 
-            cap.setFallen(false);
-            event.player.setPose(Pose.STANDING);
-            event.player.setInvulnerable(false);
-            //Remove all potion effects
-            event.player.removeAllEffects();
-            event.player.setHealth(event.player.getMaxHealth());
-
-            CompoundTag nbt = new CompoundTag();
-            nbt.put(event.player.getStringUUID(), cap.writeNBT());
-
-            if (event.side == LogicalSide.SERVER) {
-                NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> event.player),
-                        new SyncClientCapMsg(nbt));
-            }
-
+            revivePlayer(event.player);
             return;
-        }
-
-        //Make sure they are still invulnerable
-        if (!event.player.isInvulnerable()){
-            event.player.setInvulnerable(true);
         }
 
         //Make sure they aren't sprinting.
@@ -203,9 +184,6 @@ public class FallenTimerEvent {
 
         //Add the fallen potion effect if one of the two self revives were used
         fallen.addEffect(new MobEffectInstance(MobEffectInit.FALLEN_EFFECT, (int) (ReviveMeConfig.fallenPenaltyTimer * 20), cap.getPenaltyMultiplier()));
-
-        //Make it so they aren't invulnerable anymore
-        fallen.setInvulnerable(false);
 
         //Add invulnerability if it isn't 0
         if (ReviveMeConfig.reviveInvulnTime != 0) {

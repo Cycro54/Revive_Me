@@ -13,7 +13,7 @@ public class NetworkHandler {
     //Increment the first number if you add new stuff to NetworkHandler class
     //Increment the middle number each time you make a new Message
     //Increment the last number each time you fix a bug
-    private static final String PROTOCOL_VERSION = "1.5.0";
+    private static final String PROTOCOL_VERSION = "1.6.0";
 
     public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
 

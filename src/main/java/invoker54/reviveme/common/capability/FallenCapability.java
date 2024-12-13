@@ -115,9 +115,9 @@ public class FallenCapability {
     }
 
     public void kill(Player player){
-        player.setInvulnerable(false);
-        player.die(this.damageSource);
         player.setHealth(0);
+        player.getCombatTracker().recordDamage(this.damageSource,1,1);
+        player.die(this.damageSource);
     }
 
     public boolean hasEnough(Player player){
@@ -134,7 +134,7 @@ public class FallenCapability {
     }
 
     public void setDamageSource(DamageSource damageSource){
-        this.damageSource = damageSource.bypassMagic().bypassInvul().bypassArmor().bypassEnchantments();
+        this.damageSource = damageSource;
     }
 
     public DamageSource getDamageSource(){

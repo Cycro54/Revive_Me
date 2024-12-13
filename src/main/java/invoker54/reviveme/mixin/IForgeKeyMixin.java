@@ -35,10 +35,11 @@ public abstract class IForgeKeyMixin implements IForgeKeyMapping {
             KeyMapping keyMapping = ALL.get(this.name);
 
             if (cap.isFallen()) {
-                if (!VanillaKeybindHandler.isVanillaKeybind(keyMapping)){
+                if (!VanillaKeybindHandler.isVanillaKeybind(keyMapping)) {
                     return false;
                 }
-                if (!ReviveMeConfig.openInventoryWhileDowned && keyMapping.same(ClientUtil.mC.options.keyInventory) && ClientUtil.mC.screen == null) {
+                if (ReviveMeConfig.interactWithInventory == ReviveMeConfig.INTERACT_WITH_INVENTORY.NO
+                        && keyMapping.same(ClientUtil.mC.options.keyInventory) && ClientUtil.mC.screen == null) {
                     return false;
                 }
             }

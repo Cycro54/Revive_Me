@@ -45,6 +45,9 @@ public class FixCommand {
         if (!caller.isAlive()){
             return 1;
         }
+
+        //TODO: Remove this in future versions.
+        caller.setInvulnerable(false);
         
         //This should fix the player if they are downed
         if (cap.isFallen()){
