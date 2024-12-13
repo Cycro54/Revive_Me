@@ -38,11 +38,7 @@ public class InstaKillMsg {
 
             if (player != null){
                 FallenCapability cap = FallenCapability.GetFallCap(player);
-                //Make them vulnerable
-                player.setInvulnerable(false);
-
-                //Then make them take damage from the saved damage source
-                player.hurt(cap.getDamageSource().bypassArmor().bypassInvul(), Float.MAX_VALUE);
+                cap.kill(player);
             }
         });
 

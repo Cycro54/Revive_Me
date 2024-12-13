@@ -113,9 +113,6 @@ public class FallEvent {
             instance.setPenalty(ReviveMeConfig.penaltyType, ReviveMeConfig.penaltyAmount, ReviveMeConfig.penaltyItem);
             //System.out.println(ReviveMeConfig.penaltyType);
 
-            //Make them invulnerable to all damage (besides void and creative of course.)
-            player.setInvulnerable(true);
-
             //grab the FALLEN EFFECT amplifier for later use
             if (player.hasEffect(MobEffectInit.FALLEN_EFFECT)){
                 instance.setPenaltyMultiplier(player.getEffect(MobEffectInit.FALLEN_EFFECT).getAmplifier() + 1);

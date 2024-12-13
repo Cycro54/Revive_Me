@@ -10,7 +10,6 @@ import invoker54.reviveme.common.capability.FallenCapability;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -54,7 +53,7 @@ public class RenderFallPlateEvent {
             PoseStack stack = event.getPoseStack();
 
             if (!cap.isFallen()) continue;
-            float f = entity.getBbHeight() * 0.30f;
+            float f = entity.getBbHeight() * 0.40f;
             stack.pushPose();
 
             RenderSystem.disableCull();
@@ -67,6 +66,7 @@ public class RenderFallPlateEvent {
             stack.translate(difference.x, difference.y + f, difference.z);
             stack.mulPose(mC.getEntityRenderDispatcher().cameraOrientation());
             stack.scale(-0.025F, -0.025F, 0.025F);
+            stack.scale(0.5F, 0.5F, 0.5F);
 
             if (cap.getOtherPlayer() == null) {
                 //This txt is for showing how the long the player has left to die
@@ -119,11 +119,17 @@ public class RenderFallPlateEvent {
                     int radius = 30;
 
                     MutableComponent message = null;
-                    if (mC.player.isCrouching() && cap.getKillTime() == 0) {
-                        message = new TranslatableComponent("revive-me.fall_plate.kill");
-                        message = new TextComponent(message.getString()
-                                .replace("{attack}", inst.options.keyAttack.getKey().getDisplayName().getString()));
-                    } else if (cap.hasEnough(mC.player)) {
+                    if (mC.player.isCrouching()){
+                        if (cap.getKillTime() > 0){
+                            message = new TranslatableComponent("revive-me.fall_plate.cant_kill");
+                        }
+                        else {
+                            message = new TranslatableComponent("revive-me.fall_plate.kill");
+                            message = new TextComponent(message.getString()
+                                    .replace("{attack}", inst.options.keyAttack.getKey().getDisplayName().getString()));
+                        }
+                    }
+                    else if (cap.hasEnough(mC.player)) {
                         message = new TranslatableComponent("revive-me.fall_plate.revive");
                         message = new TextComponent(message.getString()
                                 .replace("{use}", inst.options.keyUse.getKey().getDisplayName().getString()));

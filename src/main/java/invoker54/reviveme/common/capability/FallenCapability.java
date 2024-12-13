@@ -114,6 +114,12 @@ public class FallenCapability {
         return penaltyType;
     }
 
+    public void kill(Player player){
+        player.setHealth(0);
+        player.getCombatTracker().recordDamage(this.damageSource,1,1);
+        player.die(this.damageSource);
+    }
+
     public boolean hasEnough(Player player){
         if (player.isCreative()) return true;
 
@@ -297,34 +303,4 @@ public class FallenCapability {
             this.setOtherPlayer(null);
         }
     }
-
-//    public static class FallenNBTStorage implements Capability<FallenCapability> {
-//
-//        @Nullable
-//        @Override
-//        public Tag writeNBT(Capability<FallenCapability> capability, FallenCapability instance, Direction side) {
-//            CompoundTag cNBT = new CompoundTag();
-//            cNBT.putInt(FELL_START_INT, instance.fellStart);
-//            cNBT.putFloat(FELL_END_FLOAT, instance.fellEnd/20);
-//            cNBT.putBoolean(FALLEN_BOOL, instance.isFallen());
-//            cNBT.putString(PENALTY_ENUM, instance.penaltyType.name());
-//            cNBT.putDouble(PENALTY_DOUBLE, instance.penaltyAmount);
-//            return cNBT;
-//        }
-//
-//        @Override
-//        public void readNBT(Capability<FallenCapability> capability, FallenCapability instance, Direction side, Tag nbt) {
-//            CompoundTag cNBT = (CompoundTag) nbt;
-//            instance.SetTimeLeft(cNBT.getInt(FELL_START_INT), cNBT.getInt(FELL_END_FLOAT));
-//            instance.setFallen(cNBT.getBoolean(FALLEN_BOOL));
-//            try {
-//                instance.setPenalty(PENALTYPE.valueOf(cNBT.getString(PENALTY_ENUM)), cNBT.getDouble(PENALTY_DOUBLE));
-//            }
-//
-//            catch (Exception e){
-//                //System.out.println("Couldn't find PENALTY type, doing default...");
-//                instance.setPenalty(PENALTYPE.NONE,0D);
-//            }
-//        }
-//    }
 }

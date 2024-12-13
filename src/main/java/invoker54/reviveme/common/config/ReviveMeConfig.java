@@ -32,6 +32,12 @@ public final class ReviveMeConfig {
     public static Double fallenPenaltyTimer;
     public static boolean selfReviveMultiplayer;
     public static boolean canGiveUp;
+    public enum FALLEN_POSE{
+        CROUCH,
+        PRONE,
+        SLEEP
+    }
+    public static FALLEN_POSE fallenPose;
     public enum JUMP{
         YES,
         LIQUID_ONLY,
@@ -39,7 +45,12 @@ public final class ReviveMeConfig {
     }
     public static JUMP canJump;
     public static boolean canMove;
-    public static boolean openInventoryWhileDowned;
+    public static INTERACT_WITH_INVENTORY interactWithInventory;
+    public enum INTERACT_WITH_INVENTORY{
+        NO,
+        LOOK_ONLY,
+        YES
+    }
     public static double fallenXpPenalty;
     public static double timeReductionPenalty;
     public static Integer pvpTimer;
@@ -71,9 +82,10 @@ public final class ReviveMeConfig {
         fallenPenaltyTimer = COMMON.fallenPenaltyTimer.get();
         selfReviveMultiplayer = COMMON.selfReviveMultiplayer.get();
         canGiveUp = COMMON.canGiveUp.get();
+        fallenPose = COMMON.fallenPose.get();
         canJump = COMMON.canJump.get();
         canMove = COMMON.canMove.get();
-        openInventoryWhileDowned = COMMON.openInventoryWhileDowned.get();
+        interactWithInventory = COMMON.interactWithInventory.get();
         fallenXpPenalty = COMMON.fallenXpPenalty.get();
         timeReductionPenalty = COMMON.timeReductionPenalty.get();
         pvpTimer = COMMON.pvpTimer.get();
@@ -84,16 +96,22 @@ public final class ReviveMeConfig {
 
     public static CompoundTag serialize(){
         CompoundTag mainTag = new CompoundTag();
+        //Revive Chance
+        mainTag.putDouble("reviveChance", reviveChance);
+        //Sacrificial Item Percentage
+        mainTag.putDouble("sacrificialItemPercent", sacrificialItemPercent);
         //Self Revive Multiplayer
         mainTag.putBoolean("selfReviveMultiplayer", selfReviveMultiplayer);
         //is Give Up Disabled
         mainTag.putBoolean("canGiveUp", canGiveUp);
+        //Fallen pose
+        mainTag.putString("fallenPose", fallenPose.toString());
         //can jump
         mainTag.putString("canJump", canJump.toString());
         //can move
         mainTag.putBoolean("canMove", canMove);
         //open Inventory While Downed
-        mainTag.putBoolean("openInventoryWhileDowned", openInventoryWhileDowned);
+        mainTag.putString("interactWithInventory", interactWithInventory.toString());
         //time Reduction Penalty
         mainTag.putDouble("timeReductionPenalty", timeReductionPenalty);
         //pvp Timer
@@ -108,16 +126,22 @@ public final class ReviveMeConfig {
     }
 
     public static void deserialize(CompoundTag mainTag){
+        //Revive Chance
+        reviveChance = mainTag.getDouble("reviveChance");
+        //Sacrificial Item Percentage
+        sacrificialItemPercent = mainTag.getDouble("sacrificialItemPercent");
         //Self Revive Multiplayer
         selfReviveMultiplayer = mainTag.getBoolean("selfReviveMultiplayer");
         //Is Give Up Disabled
         canGiveUp = mainTag.getBoolean("canGiveUp");
+        //Fallen Pose
+        fallenPose = FALLEN_POSE.valueOf(mainTag.getString("fallenPose"));
         //Can Jump
         canJump = JUMP.valueOf(mainTag.getString("canJump"));
         //can Move
         canMove = mainTag.getBoolean("canMove");
         //open Inventory While Downed
-        openInventoryWhileDowned = mainTag.getBoolean("openInventoryWhileDowned");
+        interactWithInventory = INTERACT_WITH_INVENTORY.valueOf(mainTag.getString("interactWithInventory"));
         //time Reduction Penalty
         timeReductionPenalty = mainTag.getDouble("timeReductionPenalty");
         //pvp Timer
@@ -162,9 +186,10 @@ public final class ReviveMeConfig {
         public final ForgeConfigSpec.ConfigValue<Double> fallenPenaltyTimer;
         public final ForgeConfigSpec.ConfigValue<Boolean> selfReviveMultiplayer;
         public final ForgeConfigSpec.ConfigValue<Boolean> canGiveUp;
+        public final ForgeConfigSpec.ConfigValue<FALLEN_POSE> fallenPose;
         public final ForgeConfigSpec.ConfigValue<JUMP> canJump;
         public final ForgeConfigSpec.ConfigValue<Boolean> canMove;
-        public final ForgeConfigSpec.ConfigValue<Boolean> openInventoryWhileDowned;
+        public final ForgeConfigSpec.ConfigValue<INTERACT_WITH_INVENTORY> interactWithInventory;
         public final ForgeConfigSpec.ConfigValue<Double> fallenXpPenalty;
         public final ForgeConfigSpec.ConfigValue<Double> timeReductionPenalty;
         public final ForgeConfigSpec.ConfigValue<Integer> pvpTimer;
@@ -187,11 +212,13 @@ public final class ReviveMeConfig {
 
             canGiveUp = builder.comment("If you can give up and die").define("Can_Give_Up", true);
 
+            fallenPose = builder.comment("What pose you have whilst fallen").defineEnum("Fallen_Pose", FALLEN_POSE.CROUCH);
+
             canJump = builder.comment("If the player may jump while fallen").defineEnum("Can_Jump", JUMP.YES);
 
             canMove = builder.comment("If the player may move while fallen").define("Can_Move", true);
 
-            openInventoryWhileDowned = builder.comment("If the player can open their inventory while fallen").define("Open_Inventory_While_Fallen", true);
+            interactWithInventory = builder.comment("If the player can use their inventory while fallen").defineEnum("Interact_With_Inventory", INTERACT_WITH_INVENTORY.LOOK_ONLY);
 
             fallenXpPenalty = builder.comment("How many xp levels a player loses when downed (Less than 1 is a percentage)").defineInRange("Fallen_Xp_Penalty", 0, 0, Double.MAX_VALUE);
 

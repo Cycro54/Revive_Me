@@ -53,12 +53,12 @@ public class FixCommand {
 
             DamageSource damageSource = cap.getDamageSource();
             if (damageSource == null) damageSource = DamageSource.OUT_OF_WORLD;
+            //TODO: Remove this in future versions.
+            caller.setInvulnerable(false);
 
             //If they are out of time, smite them.
             if (cap.shouldDie()){
-                caller.setInvulnerable(false);
-                caller.hurt(cap.getDamageSource().bypassInvul().bypassArmor(), Float.MAX_VALUE);
-
+                cap.kill(caller);
                 return 1;
             }
 

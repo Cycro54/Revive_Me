@@ -38,7 +38,8 @@ public abstract class IForgeKeyMixin implements IForgeKeyMapping {
                 if (!VanillaKeybindHandler.isVanillaKeybind(keyMapping)) {
                     return false;
                 }
-                if (!ReviveMeConfig.openInventoryWhileDowned && keyMapping.same(ClientUtil.mC.options.keyInventory) && ClientUtil.mC.screen == null) {
+                if (ReviveMeConfig.interactWithInventory == ReviveMeConfig.INTERACT_WITH_INVENTORY.NO
+                        && keyMapping.same(ClientUtil.mC.options.keyInventory) && ClientUtil.mC.screen == null) {
                     return false;
                 }
             }
@@ -49,34 +50,32 @@ public abstract class IForgeKeyMixin implements IForgeKeyMapping {
 
 
     @Inject(
-            remap = true,
             method = "isDown()Z",
             at = {
                     @At(value = "HEAD")
             },
             cancellable = true)
     private void isDown(CallbackInfoReturnable<Boolean> cir) {
-        if (ClientUtil.getWorld() != null) {
-            FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
+        if (ClientUtil.getWorld() == null) return;
+        if (ClientUtil.getPlayer() == null) return;
+        FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
 
-            KeyMapping keyMapping = ALL.get(this.name);
-            if (cap.isFallen()){
-                //This will disable move keybinds if they are disallowed in the config
-                if (!ReviveMeConfig.canMove && VanillaKeybindHandler.isMovementKeybind(keyMapping)){
-                    cir.setReturnValue(false);
-                }
+        KeyMapping keyMapping = ALL.get(this.name);
+        if (cap.isFallen()) {
+            //This will disable move keybinds if they are disallowed in the config
+            if (!ReviveMeConfig.canMove && VanillaKeybindHandler.isMovementKeybind(keyMapping)) {
+                cir.setReturnValue(false);
             }
+        }
 
-            //This is strictly for the use key when reviving or being revived
-            if (keyMapping.equals(ClientUtil.mC.options.keyUse)) {
-                VanillaKeybindHandler.useKeyDown = isDown;
+        //This is strictly for the use key when reviving or being revived
+        if (keyMapping.equals(ClientUtil.mC.options.keyUse)) {
+            VanillaKeybindHandler.useKeyDown = isDown;
 
-                if (cap.getOtherPlayer() != null) {
-                    this.clickCount = 0;
-                    cir.setReturnValue(false);
-                }
+            if (cap.getOtherPlayer() != null) {
+                this.clickCount = 0;
+                cir.setReturnValue(false);
             }
-
         }
     }
 
