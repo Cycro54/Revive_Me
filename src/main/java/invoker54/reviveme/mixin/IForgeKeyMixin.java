@@ -7,6 +7,7 @@ import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.client.util.InputMappings;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.tags.FluidTags;
 import net.minecraftforge.client.extensions.IForgeKeybinding;
 import net.minecraftforge.fluids.IFluidBlock;
 import org.apache.logging.log4j.LogManager;
@@ -76,7 +77,7 @@ public abstract class IForgeKeyMixin implements IForgeKeybinding {
                         case YES:
                             return;
                         case LIQUID_ONLY:
-                            if (!player.isInWater()) cir.setReturnValue(false);
+                            if (player.level.getFluidState(player.blockPosition()).isEmpty()) cir.setReturnValue(false);
                             return;
                         case NO:
                             cir.setReturnValue(false);
