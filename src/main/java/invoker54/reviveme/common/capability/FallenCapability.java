@@ -232,7 +232,8 @@ public class FallenCapability {
     }
     public int getPenaltyTicks(float ticks){
         float multiplier = (float) (getPenaltyMultiplier() * ReviveMeConfig.timeReductionPenalty);
-        if (ReviveMeConfig.timeReductionPenalty < 1) multiplier *= ticks;
+        if (ReviveMeConfig.timeReductionPenalty == -1) multiplier = (float) (getPenaltyMultiplier() * ticks);
+        else if (ReviveMeConfig.timeReductionPenalty < 1) multiplier *= ticks;
         else if (ReviveMeConfig.timeReductionPenalty >= 1) multiplier *= 20F;
 
         return Math.max(0, (int) (ticks - multiplier));
