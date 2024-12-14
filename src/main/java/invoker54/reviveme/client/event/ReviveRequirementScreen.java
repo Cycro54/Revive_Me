@@ -28,6 +28,7 @@ public class ReviveRequirementScreen {
     @SubscribeEvent
     public static void renderRequirementScreen(RenderGameOverlayEvent.Post event) {
         if (event.getType() != RenderGameOverlayEvent.ElementType.CHAT) return;
+        if (ClientUtil.getPlayer().isCreative() || ClientUtil.getPlayer().isSpectator()) return;
         //if (true) return;
         if (!(mC.crosshairPickEntity instanceof PlayerEntity)) return;
         if (((PlayerEntity) mC.crosshairPickEntity).isDeadOrDying()) return;
@@ -108,5 +109,30 @@ public class ReviveRequirementScreen {
 
         TextUtil.renderText(stack, penaltyAmount, false, x0 + (panelWidth / 2F),
                 (panelWidth / 2F), eighthHeight, panelHeight, padding / 2, TextUtil.txtAlignment.MIDDLE);
+
+        //This is how much you have, and how much you will have after
+        int requirementBoxHeight = (eighthHeight+panelHeight) + 10;
+        int startAmount = (int) Math.round(cap.countReviverPenaltyAmount(mC.player));
+        int endAmount = Math.round(startAmount-cap.getPenaltyAmount(mC.player));
+        float panelThirdWidth = panelWidth/3F;
+
+        IFormattableTextComponent startTxt = new StringTextComponent(""+startAmount)
+                .withStyle(TextFormatting.BOLD)
+                .withStyle(TextFormatting.GREEN);
+
+        IFormattableTextComponent arrowTxt = new StringTextComponent("->")
+                .withStyle(TextFormatting.BOLD);
+
+        IFormattableTextComponent endTxt = new StringTextComponent(""+endAmount)
+                .withStyle(TextFormatting.BOLD)
+                .withStyle(TextFormatting.RED);
+
+        ClientUtil.blitColor(stack, x0, panelWidth, requirementBoxHeight, panelHeight/2F, blackBg);
+        TextUtil.renderText(stack, startTxt, 1, true, x0,
+                panelThirdWidth,requirementBoxHeight, panelHeight/2F, 2, TextUtil.txtAlignment.MIDDLE);
+        TextUtil.renderText(stack, arrowTxt, 1, true, x0+(panelThirdWidth),
+                panelThirdWidth,requirementBoxHeight, panelHeight/2F, 2, TextUtil.txtAlignment.MIDDLE);
+        TextUtil.renderText(stack, endTxt, 1, true, x0+(panelThirdWidth*2),
+                panelThirdWidth,requirementBoxHeight, panelHeight/2F, 2, TextUtil.txtAlignment.MIDDLE);
     }
 }

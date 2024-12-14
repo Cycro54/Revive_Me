@@ -61,7 +61,7 @@ public class RevivePlayerActionsEvent {
         }
 
         if (cancelEvent){
-            String targPlayerUUID = null;
+            String targPlayerUUID = "";
             myCap.setOtherPlayer(null);
 
             if (targPlayer != null) {

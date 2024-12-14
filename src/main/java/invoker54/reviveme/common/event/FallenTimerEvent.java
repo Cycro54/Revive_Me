@@ -6,6 +6,7 @@ import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
 import invoker54.reviveme.init.EffectInit;
+import invoker54.reviveme.mixin.FoodMixin;
 import net.minecraft.entity.Pose;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -17,7 +18,6 @@ import net.minecraft.potion.Effects;
 import net.minecraft.util.FoodStats;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.network.PacketDistributor;
@@ -98,35 +98,36 @@ public class FallenTimerEvent {
 
         //Take penalty amount from reviver
         if (!reviver.isCreative()) {
+            int amount = (int) cap.getPenaltyAmount(reviver);
+            int leftoverAmount = 0;
             switch (cap.getPenaltyType()) {
                 case NONE:
                     break;
                 case HEALTH:
-                    reviver.setHealth(Math.max(1, reviver.getHealth() - cap.getPenaltyAmount(reviver)));
+                    leftoverAmount = Math.max(0, Math.round(amount - reviver.getAbsorptionAmount()));
+                    reviver.setAbsorptionAmount(reviver.getAbsorptionAmount()-amount);
+                    reviver.setHealth(Math.max(1, reviver.getHealth() - leftoverAmount));
                     break;
                 case EXPERIENCE:
-                    reviver.giveExperienceLevels(-Math.round(cap.getPenaltyAmount(reviver)));
+                    reviver.giveExperienceLevels(-amount);
                     break;
                 case FOOD:
                     FoodStats food = reviver.getFoodData();
-                    float amountNeeded = cap.getPenaltyAmount(reviver);
-                    float saturation = food.getSaturationLevel();
-                    if (saturation > 0) food.setSaturation(Math.max(0, food.getSaturationLevel() - amountNeeded));
-                    amountNeeded = Math.max(0, amountNeeded - saturation);
-                    food.setFoodLevel((int) (food.getFoodLevel() - amountNeeded));
+                    leftoverAmount = (int) Math.max(0,Math.round(amount - food.getSaturationLevel()));
+                    ((FoodMixin)food).setSaturationLevel(Math.max(0, food.getSaturationLevel() - amount));
+                    food.setFoodLevel(Math.max(0,food.getFoodLevel() - leftoverAmount));
                     break;
                 case ITEM:
-                    int itemAmount = (int) cap.getPenaltyAmount(reviver);
                     Item penaltyItem = cap.getPenaltyItem().getItem();
                     PlayerInventory playerInv = reviver.inventory;
                     for (int a = 0; a < playerInv.getContainerSize(); a++) {
                         ItemStack currStack = playerInv.getItem(a);
                         if (currStack.getItem() == penaltyItem) {
-                            int takeAway = (Math.min(itemAmount, currStack.getCount()));
-                            itemAmount -= takeAway;
+                            int takeAway = (Math.min(amount, currStack.getCount()));
+                            amount -= takeAway;
                             currStack.setCount(currStack.getCount() - takeAway);
                         }
-                        if (itemAmount == 0) break;
+                        if (amount == 0) break;
                     }
                     break;
             }
@@ -147,7 +148,7 @@ public class FallenTimerEvent {
 
         //region Set the revived players health
         float healAmount;
-        if (ReviveMeConfig.revivedHealth == 0) {
+        if (ReviveMeConfig.revivedHealth <= 0) {
             healAmount = fallen.getMaxHealth();
         }
         //Percentage
@@ -163,11 +164,11 @@ public class FallenTimerEvent {
 
         //region Set the revived players Food
         float foodAmount;
-        if (ReviveMeConfig.revivedFood == 0) {
+        if (ReviveMeConfig.revivedFood < 0) {
             foodAmount = 40;
         }
         //Percentage
-        else if (ReviveMeConfig.revivedFood > 0 && ReviveMeConfig.revivedFood < 1) {
+        else if (ReviveMeConfig.revivedFood >= 0 && ReviveMeConfig.revivedFood < 1) {
             foodAmount = (float) (40 * ReviveMeConfig.revivedFood);
         }
         //Flat value
@@ -175,9 +176,9 @@ public class FallenTimerEvent {
             foodAmount = ReviveMeConfig.revivedFood.floatValue();
         }
         //Now set their food level
-        fallen.getFoodData().eat((int) Math.min(20, foodAmount), 0);
+        fallen.getFoodData().setFoodLevel((int) Math.min(foodAmount,20));
         //Then their saturation
-        fallen.getFoodData().eat(1, Math.max(0, foodAmount - 20) / 2);
+        ((FoodMixin)fallen.getFoodData()).setSaturationLevel(Math.max(0, foodAmount-20));
         //endregion
 
         //Remove all potion effects

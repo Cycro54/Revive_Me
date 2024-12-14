@@ -55,6 +55,7 @@ public class FallenCapability {
     protected float fellEnd = 0;
     protected DamageSource damageSource = DamageSource.OUT_OF_WORLD;
     protected boolean isFallen = false;
+    protected boolean isDying = false;
     protected UUID otherPlayer = null;
     protected Double penaltyAmount = 0D;
     protected ItemStack penaltyItem = ItemStack.EMPTY;
@@ -86,30 +87,12 @@ public class FallenCapability {
         this.penaltyType = type;
     }
 
-    public float getPenaltyAmount(LivingEntity player){
+    public float getPenaltyAmount(PlayerEntity player){
         Double actualAmount = penaltyAmount;
-        switch (penaltyType){
-            case NONE:
-                break;
-            case HEALTH:
-                if (actualAmount > 0 && actualAmount < 1){
-                    actualAmount *= player.getMaxHealth();
-                }
-                break;
-            case EXPERIENCE:
-                if (actualAmount > 0 && actualAmount < 1){
-                    actualAmount *= ((PlayerEntity)player).experienceLevel;
-                }
-                break;
-            case FOOD:
-                if (actualAmount > 0 && actualAmount < 1){
-                    actualAmount *= ((PlayerEntity)player).getFoodData().getFoodLevel() +
-                            ((PlayerEntity)player).getFoodData().getSaturationLevel();
-                }
-                break;
-            case ITEM:
+        if (actualAmount > 0 && actualAmount < 1){
+            actualAmount *= countReviverPenaltyAmount(player);
         }
-        if ((player instanceof PlayerEntity) && ((PlayerEntity)player).isCreative()) actualAmount = 0D;
+        if (player.isCreative()) actualAmount = 0D;
 
         return Math.round(actualAmount);
     }
@@ -119,22 +102,26 @@ public class FallenCapability {
     }
 
     public void kill(PlayerEntity player){
+        this.setDying();
+        player.hurt(this.damageSource, 1);
         player.setHealth(0);
-        player.getCombatTracker().recordDamage(this.damageSource,1,1);
         player.die(this.damageSource);
     }
 
-    public boolean hasEnough(PlayerEntity player){
-        if (player.isCreative()) return true;
-
+    public double countReviverPenaltyAmount(PlayerEntity reviver){
         switch (penaltyType) {
-            case NONE: return true;
-            case HEALTH: return player.getHealth() > this.penaltyAmount;
-            case EXPERIENCE: return player.experienceLevel > this.penaltyAmount;
-            case FOOD: return (player.getFoodData().getFoodLevel() + Math.max(player.getFoodData().getSaturationLevel(), 0)) > this.penaltyAmount;
-            case ITEM: return player.inventory.countItem(this.penaltyItem.getItem()) > this.penaltyAmount;
+            case NONE: return 0;
+            case HEALTH: return reviver.getHealth() + reviver.getAbsorptionAmount();
+            case EXPERIENCE: return reviver.experienceLevel;
+            case FOOD: return (reviver.getFoodData().getFoodLevel() + Math.max(reviver.getFoodData().getSaturationLevel(), 0));
+            case ITEM: return reviver.inventory.countItem(this.penaltyItem.getItem());
         }
-        return false;
+        return 0;
+    }
+    public boolean hasEnough(PlayerEntity reviver){
+        if (reviver.isCreative()) return true;
+        if (this.penaltyType == PENALTYPE.NONE) return true;
+        return countReviverPenaltyAmount(reviver) - this.getPenaltyAmount(reviver) >= 0;
     }
 
     public void setDamageSource(DamageSource damageSource){
@@ -177,12 +164,15 @@ public class FallenCapability {
         fellStart = (int) (level.getGameTime() - (revStart - fellStart));
     }
 
-    public void ForceDeath() {
-        SetTimeLeft(1,0);
-    }
-
     public boolean isFallen() {
         return isFallen;
+    }
+    public boolean isDying() {
+        return this.isDying;
+    }
+
+    public void setDying(){
+        this.isDying = true;
     }
 
     public void setFallen(boolean fallen) {
@@ -245,7 +235,8 @@ public class FallenCapability {
     }
     public int getPenaltyTicks(float ticks){
         float multiplier = (float) (getPenaltyMultiplier() * ReviveMeConfig.timeReductionPenalty);
-        if (ReviveMeConfig.timeReductionPenalty < 1) multiplier *= ticks;
+        if (ReviveMeConfig.timeReductionPenalty == -1) multiplier = (float) (getPenaltyMultiplier() * ticks);
+        else if (ReviveMeConfig.timeReductionPenalty < 1) multiplier *= ticks;
         else if (ReviveMeConfig.timeReductionPenalty >= 1) multiplier *= 20F;
 
         return Math.max(0, (int) (ticks - multiplier));

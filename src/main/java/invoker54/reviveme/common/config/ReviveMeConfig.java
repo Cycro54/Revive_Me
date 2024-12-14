@@ -199,57 +199,48 @@ public final class ReviveMeConfig {
         public final ForgeConfigSpec.ConfigValue<Boolean> compactReviveUI;
 
         public CommonConfig(ForgeConfigSpec.Builder builder) {
-            //This is what goes on top inside of the config
-            builder.push("Fallen Settings");
-            //This is how you place a variable in the config file
-            //exampleInt = BUILDER.comment("This is an integer. Default value is 3.").define("Example Integer", 54);
-            timeLeft = builder.comment("How long you have before death. Default is 30 seconds. Setting to 0 will disable the timer").defineInRange("Time Left", 30,0, Integer.MAX_VALUE);
-
-            reviveChance = builder.comment("(SinglePlayer only) How high your chance is to revive.").defineInRange("Revive Chance", 0.5F, 0F, 1F);
-
-            sacrificialItemPercent = builder.comment("(SinglePlayer only) Percentage to lose for sacrificial items.").defineInRange("Sacrificial item percentage", 0.5F, 0F, 1F);
-
+            builder.push("Fallen Player Settings");
+            builder.push("Self-Revive Settings");
             selfReviveMultiplayer = builder.comment("If you can use self-revive methods in multiplayer").define("Self_Revive_Multiplayer", false);
-
-            canGiveUp = builder.comment("If you can give up and die").define("Can_Give_Up", true);
-
-            fallenPose = builder.comment("What pose you have whilst fallen").defineEnum("Fallen_Pose", FALLEN_POSE.CROUCH);
-
-            canJump = builder.comment("If the player may jump while fallen").defineEnum("Can_Jump", JUMP.YES);
-
-            canMove = builder.comment("If the player may move while fallen").define("Can_Move", true);
-
-            interactWithInventory = builder.comment("If the player can use their inventory while fallen").defineEnum("Interact_With_Inventory", INTERACT_WITH_INVENTORY.LOOK_ONLY);
-
-            fallenXpPenalty = builder.comment("How many xp levels a player loses when downed (Less than 1 is a percentage)").defineInRange("Fallen_Xp_Penalty", 0, 0, Double.MAX_VALUE);
-
-            timeReductionPenalty = builder.comment("How much time (in seconds) your death timer loses each time you fall. (Less than 1 is a percentage of max death time)").defineInRange("Time_Reduction_Penalty", 0.2, 0, Double.MAX_VALUE);
-
-            pvpTimer = builder.comment("How much time (in seconds) must pass before you may be killed by other players. Affected by time reduction penalty. Setting to -1 will disable this").defineInRange("PVP_Timer", 10, -1, Integer.MAX_VALUE);
-
-            downedEffects = builder.comment("Potion effects the player has while fallen (ModId:PotionEffect:Tier)(minecraft:slowness:0)").define("Downed_Effects", new ArrayList<String>(ImmutableList.of("minecraft:slowness:3")));
-
-            blockedCommands = builder.comment("Commands the player isn't allowed to use while fallen").define("Blocked_Commands", new ArrayList<>());
+            reviveChance = builder.comment("How high your chance is to revive.").defineInRange("Revive Chance", 0.5F, 0F, 1F);
+            sacrificialItemPercent = builder.comment("Percentage to lose for sacrificial items.").defineInRange("Sacrificial item percentage", 0.5F, 0F, 1F);
             builder.pop();
 
+            builder.push("Timer Settings");
+            timeLeft = builder.comment("How long you have before death. Default is 30 seconds. Setting to 0 will disable the timer").defineInRange("Time Left", 30,0, Integer.MAX_VALUE);
+            timeReductionPenalty = builder.comment("How much time (in seconds) your death timer loses each time you fall. (Less than 1 is a percentage of max death time, -1 will take away the max)").defineInRange("Time_Reduction_Penalty", 0.2, -1F, Double.MAX_VALUE);
+            pvpTimer = builder.comment("How much time (in seconds) must pass before you may be killed by other players. Affected by time reduction penalty. Setting to -1 will disable this").defineInRange("PVP_Timer", 10, -1, Integer.MAX_VALUE);
+            builder.pop();
+
+            builder.push("Movement Settings");
+            fallenPose = builder.comment("What pose you have whilst fallen").defineEnum("Fallen_Pose", FALLEN_POSE.CROUCH);
+            canJump = builder.comment("If the player may jump while fallen").defineEnum("Can_Jump", JUMP.YES);
+            canMove = builder.comment("If the player may move while fallen").define("Can_Move", true);
+            builder.pop();
+
+            builder.push("Other Settings");
+            canGiveUp = builder.comment("If you can give up and die").define("Can_Give_Up", true);
+            interactWithInventory = builder.comment("If the player can use their inventory while fallen").defineEnum("Interact_With_Inventory", INTERACT_WITH_INVENTORY.LOOK_ONLY);
+            fallenXpPenalty = builder.comment("How many xp levels a player loses when downed (Less than 1 is a percentage)").defineInRange("Fallen_Xp_Penalty", 0, 0, Double.MAX_VALUE);
+            downedEffects = builder.comment("Potion effects the player has while fallen (ModId:PotionEffect:Tier)(minecraft:slowness:0)").define("Downed_Effects", new ArrayList<String>(ImmutableList.of("minecraft:slowness:3")));
+            blockedCommands = builder.comment("Commands the player isn't allowed to use while fallen. Type \"/\" to block all commands.").define("Blocked_Commands", new ArrayList<>());
+            builder.pop();
+            builder.pop();
+
+            builder.push("Revive Settings");
             builder.push("Revivee Settings");
-            revivedHealth = builder.comment("How much health you will be revived with, 0 is max health, Less than 1 is percentage").defineInRange("Revive Health", 10F, 0F, Integer.MAX_VALUE);
-
-            revivedFood = builder.comment("How much food you will be revived with, 0 is max food, Less than 1 is percentage").defineInRange("Revive Food", 6F, 0F, Integer.MAX_VALUE);
-
+            revivedHealth = builder.comment("How much health you will be revived with, -1 is max health, Less than 1 is percentage").defineInRange("Revive Health", 10F, -1F, Integer.MAX_VALUE);
+            revivedFood = builder.comment("How much food you will be revived with, -1 is max food, Less than 1 is percentage").defineInRange("Revive Food", 6F, -1F, Integer.MAX_VALUE);
             reviveInvulnTime = builder.comment("How many seconds of invulnerability you have on revive").defineInRange("Revive_Invuln_Time", 5F, 0F, Float.MAX_VALUE);
-
-            fallenPenaltyTimer = builder.comment("how long the self-revive penalty will last in SECONDS until you can use both options again").defineInRange("Self_Revive_Penalty_Timer", 45, 0F, Double.MAX_VALUE);
+            fallenPenaltyTimer = builder.comment("how long the revive penalty effects will last in SECONDS").defineInRange("Revive_Penalty_Timer", 45, 0F, Double.MAX_VALUE);
             builder.pop();
 
             builder.push("Reviver Settings");
-            reviveTime = builder.comment("How long to revive someone").define("Revive Time", 3);
-
+            reviveTime = builder.comment("How long to revive someone").defineInRange("Revive Time", 3,0, Integer.MAX_VALUE);
             penaltyType = builder.comment("What the reviver will lose").defineEnum("Penalty Type", FallenCapability.PENALTYPE.FOOD);
-
             penaltyAmount = builder.comment("Amount that will be taken from reviver, Numbers below 1 and greater than 0 will turn it into a percentage").define("Penalty Amount", 10D);
-
             penaltyItem = builder.comment("Item used to revive fallen players (Only if you selected ITEM as penalty type). Usage: MODID:ITEM").define("Revive Item", "minecraft:golden_apple");
+            builder.pop();
             builder.pop();
 
             builder.push("Client Settings");
