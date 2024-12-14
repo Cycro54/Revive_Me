@@ -25,12 +25,13 @@ public class CommandEvents {
         List<ParsedCommandNode<CommandSourceStack>> nodes = event.getParseResults().getContext().getNodes();
         if (nodes.isEmpty()) return;
         String rootName = nodes.get(0).getNode().getName();
-        Player player = event.getParseResults().getContext().getSource().getPlayer();
+        if (!(event.getParseResults().getContext().getSource().getEntity() instanceof Player)) return;
+        Player player = (Player) event.getParseResults().getContext().getSource().getEntity();
         if (player == null) return;
 //        LOGGER.debug("What's the root name? " + rootName);
 //        LOGGER.debug("Who did the command" + player.getName().getString());
         if (!FallenCapability.GetFallCap(player).isFallen()) return;
-        if (ReviveMeConfig.blockedCommands.contains(rootName)){
+        if (ReviveMeConfig.blockedCommands.contains("/") || ReviveMeConfig.blockedCommands.contains(rootName)){
             player.sendSystemMessage(Component.translatable("revive-me.chat.blocked_command"));
             event.setCanceled(true);
         }

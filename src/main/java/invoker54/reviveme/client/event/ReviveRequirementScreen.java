@@ -28,6 +28,7 @@ public class ReviveRequirementScreen {
     public static void registerRequirementScreen(RegisterGuiOverlaysEvent event){
         //if (true) return;
         event.registerAboveAll("requirement_screen", (gui, stack, partialTicks, fullWidth, fullHeight) -> {
+            if (ClientUtil.getPlayer().isCreative() || ClientUtil.getPlayer().isSpectator()) return;
             if (!(mC.crosshairPickEntity instanceof Player)) return;
             if (((Player) mC.crosshairPickEntity).isDeadOrDying()) return;
             FallenCapability cap = FallenCapability.GetFallCap((LivingEntity) mC.crosshairPickEntity);
@@ -105,6 +106,31 @@ public class ReviveRequirementScreen {
 
             TextUtil.renderText(stack, penaltyAmount, false, x0 + (panelWidth/2F),
                     (panelWidth/2F), eighthHeight, panelHeight, padding/2, TextUtil.txtAlignment.MIDDLE);
+
+            //This is how much you have, and how much you will have after
+            int requirementBoxHeight = (eighthHeight+panelHeight) + 10;
+            int startAmount = (int) Math.round(cap.countReviverPenaltyAmount(mC.player));
+            int endAmount = Math.round(startAmount-cap.getPenaltyAmount(mC.player));
+            float panelThirdWidth = panelWidth/3F;
+
+            MutableComponent startTxt = Component.literal(""+startAmount)
+                    .withStyle(ChatFormatting.BOLD)
+                    .withStyle(ChatFormatting.GREEN);
+
+            MutableComponent arrowTxt = Component.literal("->")
+                    .withStyle(ChatFormatting.BOLD);
+
+            MutableComponent endTxt = Component.literal(""+endAmount)
+                    .withStyle(ChatFormatting.BOLD)
+                    .withStyle(ChatFormatting.RED);
+
+            ClientUtil.blitColor(stack, x0, panelWidth, requirementBoxHeight, panelHeight/2F, blackBg);
+            TextUtil.renderText(stack, startTxt, 1, true, x0,
+                    panelThirdWidth,requirementBoxHeight, panelHeight/2F, 2, TextUtil.txtAlignment.MIDDLE);
+            TextUtil.renderText(stack, arrowTxt, 1, true, x0+(panelThirdWidth),
+                    panelThirdWidth,requirementBoxHeight, panelHeight/2F, 2, TextUtil.txtAlignment.MIDDLE);
+            TextUtil.renderText(stack, endTxt, 1, true, x0+(panelThirdWidth*2),
+                    panelThirdWidth,requirementBoxHeight, panelHeight/2F, 2, TextUtil.txtAlignment.MIDDLE);
         });
     }
 

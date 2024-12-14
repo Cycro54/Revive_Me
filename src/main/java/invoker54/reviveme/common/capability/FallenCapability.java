@@ -53,6 +53,7 @@ public class FallenCapability {
     protected float fellEnd = 0;
     protected DamageSource damageSource = DamageSource.OUT_OF_WORLD;
     protected boolean isFallen = false;
+    protected boolean isDying = false;
     protected UUID otherPlayer = null;
     protected Double penaltyAmount = 0D;
     protected ItemStack penaltyItem = ItemStack.EMPTY;
@@ -83,29 +84,12 @@ public class FallenCapability {
         this.penaltyType = type;
     }
 
-    public float getPenaltyAmount(LivingEntity player){
+    public float getPenaltyAmount(Player player){
         Double actualAmount = penaltyAmount;
-        switch (penaltyType){
-            case NONE:
-                break;
-            case HEALTH:
-                if (actualAmount > 0 && actualAmount < 1){
-                    actualAmount *= player.getMaxHealth();
-                }
-                break;
-            case EXPERIENCE:
-                if (actualAmount > 0 && actualAmount < 1){
-                    actualAmount *= ((Player)player).experienceLevel;
-                }
-                break;
-            case FOOD:
-                if (actualAmount > 0 && actualAmount < 1){
-                    actualAmount *= 40;
-                }
-                break;
-            case ITEM:
+        if (actualAmount > 0 && actualAmount < 1){
+            actualAmount *= countReviverPenaltyAmount(player);
         }
-        if ((player instanceof Player) && ((Player)player).isCreative()) actualAmount = 0D;
+        if (player.isCreative()) actualAmount = 0D;
 
         return Math.round(actualAmount);
     }
@@ -115,22 +99,26 @@ public class FallenCapability {
     }
 
     public void kill(Player player){
+        this.setDying();
+        player.hurt(this.damageSource, 1);
         player.setHealth(0);
-        player.getCombatTracker().recordDamage(this.damageSource,1,1);
         player.die(this.damageSource);
     }
 
-    public boolean hasEnough(Player player){
-        if (player.isCreative()) return true;
-
-        return switch (penaltyType) {
-            case NONE -> true;
-            case HEALTH -> player.getHealth() > this.penaltyAmount;
-            case EXPERIENCE -> player.experienceLevel > this.penaltyAmount;
-            case FOOD ->
-                    (player.getFoodData().getFoodLevel() + Math.max(player.getFoodData().getSaturationLevel(), 0)) > this.penaltyAmount;
-            case ITEM -> player.getInventory().countItem(this.penaltyItem.getItem()) > this.penaltyAmount;
-        };
+    public double countReviverPenaltyAmount(Player reviver){
+        switch (penaltyType) {
+            case NONE: return 0;
+            case HEALTH: return reviver.getHealth() + reviver.getAbsorptionAmount();
+            case EXPERIENCE: return reviver.experienceLevel;
+            case FOOD: return (reviver.getFoodData().getFoodLevel() + Math.max(reviver.getFoodData().getSaturationLevel(), 0));
+            case ITEM: return reviver.getInventory().countItem(this.penaltyItem.getItem());
+        }
+        return 0;
+    }
+    public boolean hasEnough(Player reviver){
+        if (reviver.isCreative()) return true;
+        if (this.penaltyType == PENALTYPE.NONE) return true;
+        return countReviverPenaltyAmount(reviver) - this.getPenaltyAmount(reviver) >= 0;
     }
 
     public void setDamageSource(DamageSource damageSource){
@@ -164,21 +152,24 @@ public class FallenCapability {
     }
 
     public void SetTimeLeft(int timeStart, float maxSeconds) {
-            this.fellStart = timeStart;
-            this.fellEnd = maxSeconds * 20;
-            //System.out.println("Time left is!: " + (a/20f));
+        this.fellStart = timeStart;
+        this.fellEnd = maxSeconds * 20;
+        //System.out.println("Time left is!: " + (a/20f));
     }
 
     public void resumeFallTimer(){
         fellStart = (int) (level.getGameTime() - (revStart - fellStart));
     }
 
-    public void ForceDeath() {
-        SetTimeLeft(1,0);
-    }
-
     public boolean isFallen() {
         return isFallen;
+    }
+    public boolean isDying() {
+        return this.isDying;
+    }
+
+    public void setDying(){
+        this.isDying = true;
     }
 
     public void setFallen(boolean fallen) {
@@ -303,34 +294,4 @@ public class FallenCapability {
             this.setOtherPlayer(null);
         }
     }
-
-//    public static class FallenNBTStorage implements Capability<FallenCapability> {
-//
-//        @Nullable
-//        @Override
-//        public Tag writeNBT(Capability<FallenCapability> capability, FallenCapability instance, Direction side) {
-//            CompoundTag cNBT = new CompoundTag();
-//            cNBT.putInt(FELL_START_INT, instance.fellStart);
-//            cNBT.putFloat(FELL_END_FLOAT, instance.fellEnd/20);
-//            cNBT.putBoolean(FALLEN_BOOL, instance.isFallen());
-//            cNBT.putString(PENALTY_ENUM, instance.penaltyType.name());
-//            cNBT.putDouble(PENALTY_DOUBLE, instance.penaltyAmount);
-//            return cNBT;
-//        }
-//
-//        @Override
-//        public void readNBT(Capability<FallenCapability> capability, FallenCapability instance, Direction side, Tag nbt) {
-//            CompoundTag cNBT = (CompoundTag) nbt;
-//            instance.SetTimeLeft(cNBT.getInt(FELL_START_INT), cNBT.getInt(FELL_END_FLOAT));
-//            instance.setFallen(cNBT.getBoolean(FALLEN_BOOL));
-//            try {
-//                instance.setPenalty(PENALTYPE.valueOf(cNBT.getString(PENALTY_ENUM)), cNBT.getDouble(PENALTY_DOUBLE));
-//            }
-//
-//            catch (Exception e){
-//                //System.out.println("Couldn't find PENALTY type, doing default...");
-//                instance.setPenalty(PENALTYPE.NONE,0D);
-//            }
-//        }
-//    }
 }
