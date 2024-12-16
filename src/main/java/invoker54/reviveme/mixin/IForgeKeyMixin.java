@@ -40,7 +40,7 @@ public abstract class IForgeKeyMixin implements IForgeKeyMapping {
                     return false;
                 }
                 if (ReviveMeConfig.interactWithInventory == ReviveMeConfig.INTERACT_WITH_INVENTORY.NO
-                        && keyMapping.same(ClientUtil.mC.options.keyInventory) && ClientUtil.mC.screen == null) {
+                        && keyMapping.same(ClientUtil.getMinecraft().options.keyInventory) && ClientUtil.getMinecraft().screen == null) {
                     return false;
                 }
             }
@@ -51,7 +51,6 @@ public abstract class IForgeKeyMixin implements IForgeKeyMapping {
 
 
     @Inject(
-            remap = true,
             method = "isDown()Z",
             at = {
                     @At(value = "HEAD")
@@ -71,12 +70,12 @@ public abstract class IForgeKeyMixin implements IForgeKeyMapping {
                 cir.setReturnValue(false);
             }
             //This is for jumping
-            if (KeyBinding.equals(ClientUtil.mC.options.keyJump)) {
+            if (KeyBinding.equals(ClientUtil.getMinecraft().options.keyJump)) {
                 switch (ReviveMeConfig.canJump) {
                     case YES:
                         return;
                     case LIQUID_ONLY:
-                        if (player.level.getFluidState(player.blockPosition()).isEmpty()) cir.setReturnValue(false);
+                        if (player.level().getFluidState(player.blockPosition()).isEmpty()) cir.setReturnValue(false);
                         return;
                     case NO:
                         cir.setReturnValue(false);
@@ -86,7 +85,7 @@ public abstract class IForgeKeyMixin implements IForgeKeyMapping {
         }
 
         //This is strictly for the use key when reviving or being revived
-        if (KeyBinding.equals(ClientUtil.mC.options.keyUse)) {
+        if (KeyBinding.equals(ClientUtil.getMinecraft().options.keyUse)) {
             VanillaKeybindHandler.useKeyDown = isDown;
 
             if (cap.getOtherPlayer() != null) {

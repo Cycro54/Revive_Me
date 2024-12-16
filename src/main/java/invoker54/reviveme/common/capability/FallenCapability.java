@@ -41,6 +41,7 @@ public class FallenCapability {
 
     public FallenCapability(Level level){
         this.level = level;
+        this.damageSource = this.level.damageSources().fellOutOfWorld();
     }
     public FallenCapability() {
 
@@ -51,7 +52,7 @@ public class FallenCapability {
     protected int revEnd = 0;
     protected int fellStart = 0;
     protected float fellEnd = 0;
-    protected DamageSource damageSource = DamageSource.OUT_OF_WORLD;
+    protected DamageSource damageSource;
     protected boolean isFallen = false;
     protected boolean isDying = false;
     protected UUID otherPlayer = null;
@@ -232,7 +233,7 @@ public class FallenCapability {
     }
     public int getPenaltyTicks(float ticks){
         float multiplier = (float) (getPenaltyMultiplier() * ReviveMeConfig.timeReductionPenalty);
-        if (ReviveMeConfig.timeReductionPenalty == -1) multiplier = (float) (getPenaltyMultiplier() * ticks);
+        if (ReviveMeConfig.timeReductionPenalty == -1) multiplier = getPenaltyMultiplier() * ticks;
         else if (ReviveMeConfig.timeReductionPenalty < 1) multiplier *= ticks;
         else if (ReviveMeConfig.timeReductionPenalty >= 1) multiplier *= 20F;
 

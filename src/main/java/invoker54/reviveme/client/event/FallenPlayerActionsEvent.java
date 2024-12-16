@@ -51,8 +51,8 @@ public class FallenPlayerActionsEvent {
 
         if (!cap.isFallen()) return;
 
-        boolean flag = (ReviveMeConfig.selfReviveMultiplayer || (ClientUtil.mC.hasSingleplayerServer() &&
-                ClientUtil.mC.getSingleplayerServer().getPlayerList().getPlayers().size() == 1));
+        boolean flag = (ReviveMeConfig.selfReviveMultiplayer || (ClientUtil.getMinecraft().hasSingleplayerServer() &&
+                ClientUtil.getMinecraft().getSingleplayerServer().getPlayerList().getPlayers().size() == 1));
 
         //This will be chance
         if (inst.options.keyAttack.isDown()) {
@@ -81,8 +81,8 @@ public class FallenPlayerActionsEvent {
         Player player = event.getPlayer();
         FallenCapability cap = FallenCapability.GetFallCap(player);
         if (!cap.isFallen()) return;
-        boolean isSinglePlayer = (ClientUtil.mC.hasSingleplayerServer() &&
-                ClientUtil.mC.getSingleplayerServer().getPlayerList().getPlayers().size() == 1);
+        boolean isSinglePlayer = (ClientUtil.getMinecraft().hasSingleplayerServer() &&
+                ClientUtil.getMinecraft().getSingleplayerServer().getPlayerList().getPlayers().size() == 1);
         if (!ReviveMeConfig.canGiveUp && !isSinglePlayer &&
                 (!ReviveMeConfig.selfReviveMultiplayer || cap.usedSacrificedItems() && cap.usedChance())) return;
 

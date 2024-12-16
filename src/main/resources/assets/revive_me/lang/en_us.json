@@ -21,5 +21,5 @@
   "revive-me.commands.fix": " should be fixed",
 
   "__comment": "This is for mob effect names",
-  "effect.reviveme.fallen_effect": "Fallen Penalty"
+  "effect.revive_me.fallen_effect": "Fallen Penalty"
 }

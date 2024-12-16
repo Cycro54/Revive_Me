@@ -26,7 +26,7 @@ public class ForgeHooksMixin {
             },
             cancellable = true)
     private static void onInteractEntity(Player player, Entity target, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir){
-        if (target.level.isClientSide) return;
+        if (target.level().isClientSide) return;
 
         FallenCapability myCap = FallenCapability.GetFallCap(player);
 
@@ -50,9 +50,9 @@ public class ForgeHooksMixin {
         if (!targCap.hasEnough(player)) return;
 
         //Now add the player to the targets fallencapability and vice versa.
-        targCap.setProgress((int) player.level.getGameTime(), ReviveMeConfig.reviveTime);
+        targCap.setProgress((int) player.level().getGameTime(), ReviveMeConfig.reviveTime);
         targCap.setOtherPlayer(player.getUUID());
-        myCap.setProgress((int) player.level.getGameTime(), ReviveMeConfig.reviveTime);
+        myCap.setProgress((int) player.level().getGameTime(), ReviveMeConfig.reviveTime);
         myCap.setOtherPlayer(targPlayer.getUUID());
 
         //Make sure the fallen client has this data too

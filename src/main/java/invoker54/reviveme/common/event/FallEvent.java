@@ -71,7 +71,7 @@ public class FallEvent {
         }
         //Remove all except 4
         while (playerItems.size() > 4) {
-            playerItems.remove(player.level.random.nextInt(playerItems.size()));
+            playerItems.remove(player.level().random.nextInt(playerItems.size()));
         }
 
         //If they used both self-revive options, and they are not on a server, they should die immediately
@@ -82,7 +82,7 @@ public class FallEvent {
 //        LOGGER.info("Are they fallen? " + instance.isFallen());
         if (!instance.isFallen()) {
 //            LOGGER.info("MAKING THEM FALLEN");
-            for(Player player1 : ((ServerLevel)player.level).players()){
+            for(Player player1 : ((ServerLevel)player.level()).players()){
                 player1.sendSystemMessage(Component.literal(player.getName().getString())
                         .append(Component.translatable("revive-me.chat.player_fallen")));
             }
@@ -100,7 +100,7 @@ public class FallEvent {
             instance.setDamageSource(source);
 
             //Set time left to whatever is in config file
-            instance.SetTimeLeft((int) player.level.getGameTime(), ReviveMeConfig.timeLeft);
+            instance.SetTimeLeft((int) player.level().getGameTime(), ReviveMeConfig.timeLeft);
 
             //Set penalty type and amount
             instance.setPenalty(ReviveMeConfig.penaltyType, ReviveMeConfig.penaltyAmount, ReviveMeConfig.penaltyItem);
@@ -143,7 +143,7 @@ public class FallEvent {
             //System.out.println("Am I fallen?: " + FallenCapability.GetFallCap(player).isFallen());
             if (instance.getOtherPlayer() != null) {
 
-                Player otherPlayer = player.level.getPlayerByUUID(instance.getOtherPlayer());
+                Player otherPlayer = player.level().getPlayerByUUID(instance.getOtherPlayer());
                 if (otherPlayer != null) {
                     FallenCapability otherCap = FallenCapability.GetFallCap(otherPlayer);
                     otherCap.resumeFallTimer();
@@ -156,7 +156,7 @@ public class FallEvent {
             nbt.put(player.getStringUUID(), instance.writeNBT());
 
             //Make all aggressive enemies nearby forgive the player.
-            for (Entity entity : ((ServerLevel) player.level).getAllEntities()) {
+            for (Entity entity : ((ServerLevel) player.level()).getAllEntities()) {
                 if (!(entity instanceof Mob mob)) continue;
 
                 if (mob instanceof NeutralMob neutralMob){

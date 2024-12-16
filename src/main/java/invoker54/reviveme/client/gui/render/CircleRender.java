@@ -2,11 +2,11 @@ package invoker54.reviveme.client.gui.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Vector3d;
 import net.minecraft.client.renderer.GameRenderer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.joml.Matrix4f;
+import org.joml.Vector3d;
 
 public class CircleRender {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -55,7 +55,7 @@ public class CircleRender {
         BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
         RenderSystem.disableCull();
         RenderSystem.enableBlend();
-        RenderSystem.disableTexture();
+//        RenderSystem.texture();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
@@ -81,7 +81,7 @@ public class CircleRender {
             arcPos += angleIncrement;
         } while (!arcFinished && arcPos <= Math.toRadians(360.0)); // arcPos test is a fail safe to prevent infinite loop in case of problem with angle arguments
         BufferUploader.drawWithShader(bufferbuilder.end());
-        RenderSystem.enableTexture();
+//        RenderSystem.enableTexture();
         RenderSystem.disableBlend();
         RenderSystem.enableCull();
         stack.popPose();
@@ -158,7 +158,7 @@ public class CircleRender {
         float f1 = (float)(colorCode >> 8 & 255) / 255.0F;
         float f2 = (float)(colorCode & 255) / 255.0F;
 
-        RenderSystem.disableTexture();
+//        RenderSystem.disableTexture();
         BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
         bufferbuilder.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
 
@@ -180,7 +180,7 @@ public class CircleRender {
         } while (!arcFinished && arcPos <= Math.toRadians(360.0));      // arcPos test is a fail safe to prevent infinite loop in case of problem with angle arguments
         //System.out.println("COORDINATES STOP ");
         BufferUploader.drawWithShader(bufferbuilder.end());
-        RenderSystem.enableTexture();
+//        RenderSystem.enableTexture();
         //GL11.glEnd();
     }
 }

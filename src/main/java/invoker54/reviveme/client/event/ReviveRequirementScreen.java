@@ -1,5 +1,7 @@
 package invoker54.reviveme.client.event;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import invoker54.invocore.client.ClientUtil;
 import invoker54.invocore.client.TextUtil;
 import invoker54.reviveme.ReviveMe;
@@ -16,7 +18,7 @@ import net.minecraftforge.fml.common.Mod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import static invoker54.invocore.client.ClientUtil.mC;
+import static invoker54.invocore.client.ClientUtil.getMinecraft;
 import static invoker54.reviveme.client.event.FallScreenEvent.*;
 import static invoker54.reviveme.client.event.RenderFallPlateEvent.blackBg;
 
@@ -27,14 +29,16 @@ public class ReviveRequirementScreen {
     @SubscribeEvent
     public static void registerRequirementScreen(RegisterGuiOverlaysEvent event){
         //if (true) return;
-        event.registerAboveAll("requirement_screen", (gui, stack, partialTicks, fullWidth, fullHeight) -> {
+        event.registerAboveAll("requirement_screen", (gui, guiGraphics, partialTicks, fullWidth, fullHeight) -> {
             if (ClientUtil.getPlayer().isCreative() || ClientUtil.getPlayer().isSpectator()) return;
-            if (!(mC.crosshairPickEntity instanceof Player)) return;
-            if (((Player) mC.crosshairPickEntity).isDeadOrDying()) return;
-            FallenCapability cap = FallenCapability.GetFallCap((LivingEntity) mC.crosshairPickEntity);
+            if (!(getMinecraft().crosshairPickEntity instanceof Player)) return;
+            if (((Player) getMinecraft().crosshairPickEntity).isDeadOrDying()) return;
+            FallenCapability cap = FallenCapability.GetFallCap((LivingEntity) getMinecraft().crosshairPickEntity);
             if (!cap.isFallen()) return;
             if (cap.getOtherPlayer() != null) return;
             if (cap.getPenaltyType() == FallenCapability.PENALTYPE.NONE) return;
+            PoseStack stack = guiGraphics.pose();
+            RenderSystem.disableDepthTest();
 
             //50%
             int halfWidth = fullWidth/2;
@@ -65,7 +69,7 @@ public class ReviveRequirementScreen {
             int panelHeight = space + padding;
 
             //This is the background of the requirements
-            ClientUtil.blitColor(stack, x0, panelWidth, eighthHeight, panelHeight, blackBg);
+            ClientUtil.blitColor( stack,x0, panelWidth, eighthHeight, panelHeight, blackBg);
 
             //This is the picture
             //Revive type item texture
@@ -91,7 +95,7 @@ public class ReviveRequirementScreen {
                     foodIMG.RenderImage(stack);
                     break;
                 case ITEM:
-                    ClientUtil.blitItem(stack, x0 + (((panelWidth/2F) - penaltyTypeSize)/2F), penaltyTypeSize,
+                    ClientUtil.blitItem( stack,x0 + (((panelWidth/2F) - penaltyTypeSize)/2F), penaltyTypeSize,
                             (y0 + ((panelHeight - penaltyTypeSize)/2F)), penaltyTypeSize, cap.getPenaltyItem());
                     break;
             }
@@ -100,17 +104,17 @@ public class ReviveRequirementScreen {
 
             //This is penalty amount txt
             //Penalty txt
-            MutableComponent penaltyAmount = Component.literal(Integer.toString((int) cap.getPenaltyAmount(mC.player)))
+            MutableComponent penaltyAmount = Component.literal(Integer.toString((int) cap.getPenaltyAmount(getMinecraft().player)))
                     .withStyle(ChatFormatting.BOLD)
-                    .withStyle(cap.hasEnough(mC.player) ? ChatFormatting.GREEN : ChatFormatting.RED);
+                    .withStyle(cap.hasEnough(getMinecraft().player) ? ChatFormatting.GREEN : ChatFormatting.RED);
 
-            TextUtil.renderText(stack, penaltyAmount, false, x0 + (panelWidth/2F),
+            TextUtil.renderText( stack,penaltyAmount, false, x0 + (panelWidth/2F),
                     (panelWidth/2F), eighthHeight, panelHeight, padding/2, TextUtil.txtAlignment.MIDDLE);
 
             //This is how much you have, and how much you will have after
             int requirementBoxHeight = (eighthHeight+panelHeight) + 10;
-            int startAmount = (int) Math.round(cap.countReviverPenaltyAmount(mC.player));
-            int endAmount = Math.round(startAmount-cap.getPenaltyAmount(mC.player));
+            int startAmount = (int) Math.round(cap.countReviverPenaltyAmount(getMinecraft().player));
+            int endAmount = Math.round(startAmount-cap.getPenaltyAmount(getMinecraft().player));
             float panelThirdWidth = panelWidth/3F;
 
             MutableComponent startTxt = Component.literal(""+startAmount)
@@ -124,13 +128,15 @@ public class ReviveRequirementScreen {
                     .withStyle(ChatFormatting.BOLD)
                     .withStyle(ChatFormatting.RED);
 
-            ClientUtil.blitColor(stack, x0, panelWidth, requirementBoxHeight, panelHeight/2F, blackBg);
-            TextUtil.renderText(stack, startTxt, 1, true, x0,
+            ClientUtil.blitColor( stack,x0, panelWidth, requirementBoxHeight, panelHeight/2F, blackBg);
+            TextUtil.renderText( stack,startTxt, 1, true, x0,
                     panelThirdWidth,requirementBoxHeight, panelHeight/2F, 2, TextUtil.txtAlignment.MIDDLE);
-            TextUtil.renderText(stack, arrowTxt, 1, true, x0+(panelThirdWidth),
+            TextUtil.renderText( stack,arrowTxt, 1, true, x0+(panelThirdWidth),
                     panelThirdWidth,requirementBoxHeight, panelHeight/2F, 2, TextUtil.txtAlignment.MIDDLE);
-            TextUtil.renderText(stack, endTxt, 1, true, x0+(panelThirdWidth*2),
+            TextUtil.renderText( stack,endTxt, 1, true, x0+(panelThirdWidth*2),
                     panelThirdWidth,requirementBoxHeight, panelHeight/2F, 2, TextUtil.txtAlignment.MIDDLE);
+
+            RenderSystem.enableDepthTest();
         });
     }
 

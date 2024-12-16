@@ -110,7 +110,7 @@ public class FallenTimerEvent {
                     break;
                 case FOOD:
                     FoodData food = reviver.getFoodData();
-                    leftoverAmount = (int) Math.max(0,Math.round(amount - food.getSaturationLevel()));
+                    leftoverAmount = Math.max(0,Math.round(amount - food.getSaturationLevel()));
                     ((FoodMixin)food).setSaturationLevel(Math.max(0, food.getSaturationLevel() - amount));
                     food.setFoodLevel(Math.max(0,food.getFoodLevel() - leftoverAmount));
                     break;
@@ -196,7 +196,7 @@ public class FallenTimerEvent {
         CompoundTag nbt = new CompoundTag();
         nbt.put(fallen.getStringUUID(), cap.writeNBT());
 
-        if (!fallen.level.isClientSide) {
+        if (!fallen.level().isClientSide) {
             NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> fallen),
                     new SyncClientCapMsg(nbt));
         }

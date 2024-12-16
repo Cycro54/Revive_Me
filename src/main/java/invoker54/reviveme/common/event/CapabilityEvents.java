@@ -29,7 +29,7 @@ public class CapabilityEvents {
     public static void AttachCapability(AttachCapabilitiesEvent<Entity> event) {
 
             if (event.getObject() instanceof Player) {
-                event.addCapability(ReviveMe.FALLEN_LOC, new FallenProvider(event.getObject().level));
+                event.addCapability(ReviveMe.FALLEN_LOC, new FallenProvider(event.getObject().level()));
             }
 
     }

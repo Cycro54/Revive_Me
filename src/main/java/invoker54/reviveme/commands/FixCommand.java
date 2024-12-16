@@ -55,7 +55,7 @@ public class FixCommand {
                     caller.getDisplayName().copy().append(Component.translatable("revive-me.commands.fix")), false);
 
             DamageSource damageSource = cap.getDamageSource();
-            if (damageSource == null) damageSource = DamageSource.OUT_OF_WORLD;
+            if (damageSource == null) damageSource = caller.damageSources().fellOutOfWorld();
 
             //If they are out of time, smite them.
             if (cap.shouldDie()){

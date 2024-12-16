@@ -19,7 +19,7 @@ public class ReviveChanceMsg {
             if (!player.isAlive()) return;
 
             FallenCapability cap = FallenCapability.GetFallCap(player);
-            boolean willDie = player.level.random.nextFloat() > ReviveMeConfig.reviveChance;
+            boolean willDie = player.level().random.nextFloat() > ReviveMeConfig.reviveChance;
 
 
             if ((cap.usedChance() && ReviveMeConfig.canGiveUp) || (!cap.usedChance() && willDie)) {

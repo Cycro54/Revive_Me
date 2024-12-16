@@ -2,8 +2,8 @@
   "required": true,
   "minVersion": "0.8",
   "package": "invoker54.reviveme.mixin",
-  "compatibilityLevel": "JAVA_8",
-  "refmap": "reviveme.refmap.json",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "revive_me.refmap.json",
   "mixins": [
     "EntityMixin",
     "FoodMixin",

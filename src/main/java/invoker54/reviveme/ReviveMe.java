@@ -16,7 +16,7 @@ import org.apache.logging.log4j.Logger;
 @Mod(ReviveMe.MOD_ID)
 public class ReviveMe
 {
-    public static final String MOD_ID = "reviveme";
+    public static final String MOD_ID = "revive_me";
     public static IEventBus bus;
 
     // Directly reference a log4j logger.

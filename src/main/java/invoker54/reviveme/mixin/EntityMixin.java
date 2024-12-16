@@ -2,6 +2,7 @@ package invoker54.reviveme.mixin;
 
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
+import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Pose;
@@ -42,9 +43,8 @@ public abstract class EntityMixin {
     private void hasPose(Pose pose, CallbackInfoReturnable<Boolean> cir){
         if (!this.level.isClientSide) return;
         Entity entity = this.level.getEntity(this.getId());
-        if (!(entity instanceof Player)) return;
+        if (!(entity instanceof Player player)) return;
 
-        Player player = (Player)entity;
         if (!FallenCapability.GetFallCap(player).isFallen()) return;
 
         switch (ReviveMeConfig.fallenPose){
@@ -74,7 +74,7 @@ public abstract class EntityMixin {
             }, cancellable = true
     )
     private void isInvulnerableTo(DamageSource damageSource, CallbackInfoReturnable<Boolean> cir){
-        if (damageSource.isBypassInvul()) return;
+        if (damageSource.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) return;
         if (revive_Me$getCap() == null) return;
         if (!revive_Me$getCap().isFallen()) return;
         if (revive_Me$getCap().isDying()) return;
