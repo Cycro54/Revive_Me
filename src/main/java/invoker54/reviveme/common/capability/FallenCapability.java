@@ -100,9 +100,12 @@ public class FallenCapability {
 
     public void kill(Player player){
         this.setDying();
-        player.hurt(this.damageSource, 1);
-        player.setHealth(0);
-        player.die(this.damageSource);
+        player.hurt(this.damageSource, Float.MAX_VALUE);
+        if (!player.isDeadOrDying() || Float.isNaN(player.getHealth())) {
+            player.getCombatTracker().recordDamage(this.getDamageSource(), 1,1);
+            player.setHealth(0);
+            player.die(this.damageSource);
+        }
     }
 
     public double countReviverPenaltyAmount(Player reviver){
