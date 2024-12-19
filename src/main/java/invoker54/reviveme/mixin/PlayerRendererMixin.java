@@ -1,6 +1,6 @@
 package invoker54.reviveme.mixin;
 
-import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
@@ -19,7 +19,7 @@ public class PlayerRendererMixin {
                     @At(value = "HEAD")
             }, cancellable = true)
     private void getRenderOffset(AbstractClientPlayer player, float p_117786_, CallbackInfoReturnable<Vec3> cir){
-        if (FallenCapability.GetFallCap(player).isFallen() && ReviveMeConfig.fallenPose == ReviveMeConfig.FALLEN_POSE.SLEEP) {
+        if (FallenData.get(player).isFallen() && ReviveMeConfig.fallenPose == ReviveMeConfig.FALLEN_POSE.SLEEP) {
             cir.setReturnValue(new Vec3(1, 0.1F, 0));
         }
     }

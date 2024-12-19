@@ -1,7 +1,7 @@
 package invoker54.reviveme.mixin;
 
 import invoker54.invocore.client.ClientUtil;
-import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.capability.FallenData;
 import net.minecraft.client.player.LocalPlayer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,7 +18,7 @@ public class LocalPlayerMixin {
             }, cancellable = true)
     private void isMovingSlowly(CallbackInfoReturnable<Boolean> cir){
         if (ClientUtil.getPlayer() == null) return;
-        if (!FallenCapability.GetFallCap(ClientUtil.getPlayer()).isFallen()) return;
+        if (!FallenData.get(ClientUtil.getPlayer()).isFallen()) return;
         cir.setReturnValue(ClientUtil.getPlayer().isCrouching());
     }
 }

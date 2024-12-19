@@ -1,12 +1,12 @@
 package invoker54.reviveme.common.event;
 
 import invoker54.reviveme.ReviveMe;
-import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
-import invoker54.reviveme.common.network.NetworkHandler;
-import invoker54.reviveme.common.network.message.SyncClientCapMsg;
+import invoker54.reviveme.common.network.payload.SyncClientCapMsg;
 import invoker54.reviveme.init.MobEffectInit;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -21,18 +21,18 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
-@Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
+@EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class FallEvent {
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -59,7 +59,7 @@ public class FallEvent {
     }
 
     public static boolean cancelEvent(Player player, DamageSource source){
-        FallenCapability instance = FallenCapability.GetFallCap(player);
+        FallenData instance = FallenData.get(player);
 
         //Generate a sacrificial item list
         ArrayList<Item> playerItems = new ArrayList<>();
@@ -138,22 +138,22 @@ public class FallEvent {
             }
 
             //Finally send capability code to all players
-            CompoundTag nbt = new CompoundTag();
+//            CompoundTag nbt = new CompoundTag();
 
             //System.out.println("Am I fallen?: " + FallenCapability.GetFallCap(player).isFallen());
             if (instance.getOtherPlayer() != null) {
 
                 Player otherPlayer = player.level().getPlayerByUUID(instance.getOtherPlayer());
                 if (otherPlayer != null) {
-                    FallenCapability otherCap = FallenCapability.GetFallCap(otherPlayer);
+                    FallenData otherCap = FallenData.get(otherPlayer);
                     otherCap.resumeFallTimer();
                     otherCap.setOtherPlayer(null);
 
-                    nbt.put(otherPlayer.getStringUUID(), otherCap.writeNBT());
+                    PacketDistributor.sendToPlayersTrackingEntityAndSelf(otherPlayer, new SyncClientCapMsg(otherPlayer.getUUID(), otherCap.writeNBT()));
                 }
                 instance.setOtherPlayer(null);
             }
-            nbt.put(player.getStringUUID(), instance.writeNBT());
+            PacketDistributor.sendToPlayersTrackingEntityAndSelf(player, new SyncClientCapMsg(player.getUUID(), instance.writeNBT()));
 
             //Make all aggressive enemies nearby forgive the player.
             for (Entity entity : ((ServerLevel) player.level()).getAllEntities()) {
@@ -166,10 +166,6 @@ public class FallEvent {
                 if (mob.getTarget().getId() == player.getId()) mob.setTarget(null);
             }
 
-
-            NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player),
-                    new SyncClientCapMsg(nbt));
-
             return true;
         }
 
@@ -181,18 +177,18 @@ public class FallEvent {
             try {
                 String[] array = string.split(":");
 //                LOGGER.info("The effect split into pieces: " + Arrays.toString(array));
-                ResourceLocation effectLocation = new ResourceLocation(array[0],array[1]);
+                ResourceLocation effectLocation = ResourceLocation.fromNamespaceAndPath(array[0],array[1]);
                 int tier = Integer.parseInt(array[2]);
 //                LOGGER.info("The tier: " + tier);
-                MobEffect effect = ForgeRegistries.MOB_EFFECTS.getValue(effectLocation);
-                if (effect == null){
+                Optional<Holder.Reference<MobEffect>> effect = BuiltInRegistries.MOB_EFFECT.getHolder(effectLocation);
+                if (effect.isEmpty()){
                     LOGGER.error("Incorrect MOD ID or Potion Effect: " + string);
                     continue;
                 }
 
-                MobEffectInstance effectInstance = player.getEffect(effect);
+                MobEffectInstance effectInstance = player.getEffect(effect.get());
                 if (effectInstance == null || effectInstance.getAmplifier() < tier) {
-                    player.addEffect(new MobEffectInstance(effect, Integer.MAX_VALUE, tier));
+                    player.addEffect(new MobEffectInstance(effect.get(), Integer.MAX_VALUE, tier));
                 }
             }
             catch (Exception e){

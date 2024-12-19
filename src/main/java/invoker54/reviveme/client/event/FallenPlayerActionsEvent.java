@@ -3,27 +3,25 @@ package invoker54.reviveme.client.event;
 import invoker54.invocore.client.ClientUtil;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.VanillaKeybindHandler;
-import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
-import invoker54.reviveme.common.network.NetworkHandler;
-import invoker54.reviveme.common.network.message.InstaKillMsg;
-import invoker54.reviveme.common.network.message.ReviveChanceMsg;
-import invoker54.reviveme.common.network.message.SacrificeItemsMsg;
+import invoker54.reviveme.common.network.payload.InstaKillMsg;
+import invoker54.reviveme.common.network.payload.ReviveChanceMsg;
+import invoker54.reviveme.common.network.payload.SacrificeItemsMsg;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ComputeFovModifierEvent;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ComputeFovModifierEvent;
+import net.neoforged.neoforge.client.event.InputEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-@Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ReviveMe.MOD_ID, value = net.neoforged.api.distmarker.Dist.CLIENT)
 public class FallenPlayerActionsEvent {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final Minecraft inst = Minecraft.getInstance();
@@ -31,23 +29,22 @@ public class FallenPlayerActionsEvent {
 
     @SubscribeEvent
     public static void onAttack(InputEvent.InteractionKeyMappingTriggered event){
-        if (FallenCapability.GetFallCap(inst.player).isFallen()) {
+        if (FallenData.get(inst.player).isFallen()) {
 
             event.setCanceled(true);
             if (event.isAttack()){
                 event.setSwingHand(false);
             }
         }
+
     }
 
     @SubscribeEvent
-    public static void forceDeath(TickEvent.PlayerTickEvent event) {
-        if (event.side == LogicalSide.SERVER) return;
-        if (event.type != TickEvent.Type.PLAYER) return;
-        if (event.phase == TickEvent.Phase.END) return;
-        if (event.player != ClientUtil.getPlayer()) return;
+    public static void forceDeath(PlayerTickEvent.Pre event) {
+        if (!event.getEntity().level().isClientSide) return;
+        if (event.getEntity() != ClientUtil.getPlayer()) return;
 
-        FallenCapability cap = FallenCapability.GetFallCap(inst.player);
+        FallenData cap = FallenData.get(inst.player);
 
         if (!cap.isFallen()) return;
 
@@ -62,8 +59,8 @@ public class FallenPlayerActionsEvent {
             }
 
             if (timeHeld == 40) {
-                if (flag) NetworkHandler.INSTANCE.sendToServer(new ReviveChanceMsg());
-                else if (ReviveMeConfig.canGiveUp) NetworkHandler.INSTANCE.sendToServer(new InstaKillMsg(ClientUtil.getPlayer().getUUID()));
+                if (flag) PacketDistributor.sendToServer(new ReviveChanceMsg());
+                else if (ReviveMeConfig.canGiveUp) PacketDistributor.sendToServer(new InstaKillMsg());
             }
         }
         //This will use items
@@ -71,7 +68,7 @@ public class FallenPlayerActionsEvent {
             timeHeld++;
 
             if (timeHeld == 40) {
-                NetworkHandler.INSTANCE.sendToServer(new SacrificeItemsMsg());
+                PacketDistributor.sendToServer(new SacrificeItemsMsg());
             }
         } else if (timeHeld != 0) timeHeld = 0;
     }
@@ -79,7 +76,7 @@ public class FallenPlayerActionsEvent {
     @SubscribeEvent
     public static void modifyFOV(ComputeFovModifierEvent event){
         Player player = event.getPlayer();
-        FallenCapability cap = FallenCapability.GetFallCap(player);
+        FallenData cap = FallenData.get(player);
         if (!cap.isFallen()) return;
         boolean isSinglePlayer = (ClientUtil.getMinecraft().hasSingleplayerServer() &&
                 ClientUtil.getMinecraft().getSingleplayerServer().getPlayerList().getPlayers().size() == 1);

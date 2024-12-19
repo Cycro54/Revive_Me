@@ -1,6 +1,6 @@
 package invoker54.reviveme.mixin;
 
-import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.capability.FallenData;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Final;
@@ -22,7 +22,7 @@ public abstract class PlayerMixin {
             },
             cancellable = true)
     private void canEat(boolean p_36392_, CallbackInfoReturnable<Boolean> cir){
-        FallenCapability cap = FallenCapability.GetFallCap(this.inventory.player);
+        FallenData cap = FallenData.get(this.inventory.player);
         if (!cap.isFallen()) return;
         cir.setReturnValue(false);
     }

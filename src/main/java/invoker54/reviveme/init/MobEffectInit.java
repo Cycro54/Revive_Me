@@ -1,30 +1,27 @@
 package invoker54.reviveme.init;
 
-import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.potion.FallenPotionEffect;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegisterEvent;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
-@Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
+import static invoker54.reviveme.ReviveMe.MOD_ID;
+
 public class MobEffectInit {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final DeferredRegister<MobEffect> MOB_EFFECTS = DeferredRegister.create(
+            BuiltInRegistries.MOB_EFFECT,
+            MOD_ID
+    );
 
-    public static final MobEffect FALLEN_EFFECT = new FallenPotionEffect(MobEffectCategory.NEUTRAL);
 
-    @SubscribeEvent
-    public static void registerEffects(RegisterEvent event){
-        event.register(ForgeRegistries.Keys.MOB_EFFECTS,
-                helper -> {
-            helper.register(new ResourceLocation(ReviveMe.MOD_ID, "fallen_effect"), FALLEN_EFFECT);
+    public static final Holder<MobEffect> FALLEN_EFFECT =
+            MOB_EFFECTS.register("fallen_effect", () -> new FallenPotionEffect(MobEffectCategory.NEUTRAL));
 
-                });
+    public static void registerEffects(IEventBus eventBus){
+        MOB_EFFECTS.register(eventBus);
     }
 }

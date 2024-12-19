@@ -3,7 +3,7 @@ package invoker54.reviveme.commands;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.event.FallEvent;
 import invoker54.reviveme.common.event.FallenTimerEvent;
 import net.minecraft.commands.CommandSourceStack;
@@ -40,7 +40,7 @@ public class FixCommand {
             }
             caller = commandContext.getSource().getPlayer();
         }
-        FallenCapability cap = FallenCapability.GetFallCap(caller);
+        FallenData cap = FallenData.get(caller);
 
         if (!caller.isAlive()){
             return 1;

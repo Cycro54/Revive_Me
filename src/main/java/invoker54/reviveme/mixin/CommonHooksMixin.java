@@ -1,22 +1,21 @@
 package invoker54.reviveme.mixin;
 
-import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
-import invoker54.reviveme.common.network.NetworkHandler;
-import invoker54.reviveme.common.network.message.SyncClientCapMsg;
-import net.minecraft.nbt.CompoundTag;
+import invoker54.reviveme.common.network.payload.SyncClientCapMsg;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.common.ForgeHooks;
+import net.neoforged.neoforge.common.CommonHooks;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(ForgeHooks.class)
-public class ForgeHooksMixin {
+@Mixin(CommonHooks.class)
+public class CommonHooksMixin {
 
     @Inject(
             remap = false,
@@ -28,10 +27,10 @@ public class ForgeHooksMixin {
     private static void onInteractEntity(Player player, Entity target, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir){
         if (target.level().isClientSide) return;
 
-        FallenCapability myCap = FallenCapability.GetFallCap(player);
+        FallenData reviverCap = FallenData.get(player);
 
         //Make sure the player isn't fallen
-        if (myCap.isFallen()) return;
+        if (reviverCap.isFallen()) return;
 
         //Make sure they aren't crouching
         if (player.isDiscrete()) return;
@@ -41,7 +40,7 @@ public class ForgeHooksMixin {
 
         //Grab that target entity (player)
         //Grab the targets cap too
-        FallenCapability targCap = FallenCapability.GetFallCap(targPlayer);
+        FallenData targCap = FallenData.get(targPlayer);
 
         //Make sure the target is fallen and isn't being revived already
         if (!targCap.isFallen() || targCap.getOtherPlayer() != null) return;
@@ -52,17 +51,12 @@ public class ForgeHooksMixin {
         //Now add the player to the targets fallencapability and vice versa.
         targCap.setProgress((int) player.level().getGameTime(), ReviveMeConfig.reviveTime);
         targCap.setOtherPlayer(player.getUUID());
-        myCap.setProgress((int) player.level().getGameTime(), ReviveMeConfig.reviveTime);
-        myCap.setOtherPlayer(targPlayer.getUUID());
+        reviverCap.setProgress((int) player.level().getGameTime(), ReviveMeConfig.reviveTime);
+        reviverCap.setOtherPlayer(targPlayer.getUUID());
 
         //Make sure the fallen client has this data too
-        CompoundTag nbt = new CompoundTag();
-
-        nbt.put(player.getStringUUID(), myCap.writeNBT());
-        nbt.put(targPlayer.getStringUUID(), targCap.writeNBT());
-
-        NetworkHandler.sendToPlayer(targPlayer, new SyncClientCapMsg(nbt));
-        NetworkHandler.sendToPlayer(player, new SyncClientCapMsg(nbt));
+        PacketDistributor.sendToPlayersTrackingEntityAndSelf(player, new SyncClientCapMsg(player.getUUID(), reviverCap.writeNBT()));
+        PacketDistributor.sendToPlayersTrackingEntityAndSelf(targPlayer, new SyncClientCapMsg(targPlayer.getUUID(), targCap.writeNBT()));
 
         cir.setReturnValue(InteractionResult.FAIL);
     }

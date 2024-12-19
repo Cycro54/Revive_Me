@@ -1,7 +1,9 @@
 package invoker54.reviveme.common.capability;
 
-import invoker54.reviveme.common.api.FallenProvider;
 import invoker54.reviveme.common.config.ReviveMeConfig;
+import invoker54.reviveme.init.AttachmentTypesInit;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
@@ -12,16 +14,17 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.util.INBTSerializable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.UnknownNullability;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class FallenCapability {
+public class FallenData implements INBTSerializable<CompoundTag> {
     private static final Logger LOGGER = LogManager.getLogger();
 
     public static final String FALLEN_BOOL = "isFallenREVIVE";
@@ -39,11 +42,11 @@ public class FallenCapability {
     public static final String PENALTY_MULTIPLIER_INT = "penaltyMultiplierIntREVIVE";
     //endregion
 
-    public FallenCapability(Level level){
+    public FallenData(Level level){
         this.level = level;
         this.damageSource = this.level.damageSources().fellOutOfWorld();
     }
-    public FallenCapability() {
+    public FallenData() {
 
     }
 
@@ -64,6 +67,17 @@ public class FallenCapability {
     protected boolean sacrificedItemsUsed = false;
     protected boolean reviveChanceUsed = false;
     protected int penaltyMultiplier = 0;
+
+    @Override
+    public @UnknownNullability CompoundTag serializeNBT(HolderLookup.Provider provider) {
+        return this.writeNBT();
+    }
+
+    @Override
+    public void deserializeNBT(HolderLookup.Provider provider, CompoundTag compoundTag) {
+        this.readNBT(compoundTag);
+    }
+
     public enum PENALTYPE  {
         NONE,
         HEALTH,
@@ -72,12 +86,15 @@ public class FallenCapability {
         ITEM
     }
 
-    public static FallenCapability GetFallCap(LivingEntity player){
-        return player.getCapability(FallenProvider.FALLENDATA).orElseGet(FallenCapability::new);
+    public static FallenData get(LivingEntity player){
+        FallenData cap = player.getData(AttachmentTypesInit.FALLEN_DATA);
+        if (cap.level == null) cap.level = player.level();
+        return cap;
+//        return player.getCapability();
     }
 
     public void setPenalty(PENALTYPE type, Double amount, String penaltyItem){
-        this.penaltyItem = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(penaltyItem)));
+        this.penaltyItem = new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(penaltyItem)));
         this.setPenalty(type, amount);
     }
     public void setPenalty(PENALTYPE type, Double amount){
@@ -101,12 +118,9 @@ public class FallenCapability {
 
     public void kill(Player player){
         this.setDying();
-        player.hurt(this.damageSource, Float.MAX_VALUE);
-        if (!player.isDeadOrDying() || Float.isNaN(player.getHealth())) {
-            player.getCombatTracker().recordDamage(this.getDamageSource(), 1);
-            player.setHealth(0);
-            player.die(this.damageSource);
-        }
+        player.hurt(this.damageSource, 1);
+        player.setHealth(0);
+        player.die(this.damageSource);
     }
 
     public double countReviverPenaltyAmount(Player reviver){
@@ -246,7 +260,7 @@ public class FallenCapability {
         this.penaltyMultiplier = newMultiplier;
     }
 
-    public Tag writeNBT(){
+    public CompoundTag writeNBT(){
         CompoundTag cNBT = new CompoundTag();
         cNBT.putInt(FELL_START_INT, this.fellStart);
         cNBT.putFloat(FELL_END_FLOAT, this.fellEnd/20);
@@ -255,12 +269,12 @@ public class FallenCapability {
         cNBT.putInt(REVIVE_END_INT, this.revEnd/20);
         cNBT.putString(PENALTY_ENUM, this.penaltyType.name());
         cNBT.putDouble(PENALTY_DOUBLE, this.penaltyAmount);
-        cNBT.putString(PENALTY_ITEM, ForgeRegistries.ITEMS.getKey(this.penaltyItem.getItem()).toString());
+        cNBT.putString(PENALTY_ITEM, BuiltInRegistries.ITEM.getKey(this.penaltyItem.getItem()).toString());
 
         //The saved sacrificial items
         StringBuilder ItemList = new StringBuilder();
         for (Item item : sacrificialItems){
-            ItemList.append(ForgeRegistries.ITEMS.getKey(item)).append(",");
+            ItemList.append(BuiltInRegistries.ITEM.getKey(item)).append(",");
         }
         cNBT.putString(SACRIFICEITEMS_STRING, ItemList.toString());
         //If the player sacrificed items
@@ -283,7 +297,7 @@ public class FallenCapability {
 
         sacrificialItems.clear();
         for (String itemString : cNBT.getString(SACRIFICEITEMS_STRING).split(",")){
-            Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(itemString));
+            Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(itemString));
             if (item != Items.AIR){
                 sacrificialItems.add(item);
             }

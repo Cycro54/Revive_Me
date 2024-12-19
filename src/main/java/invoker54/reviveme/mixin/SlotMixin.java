@@ -1,6 +1,6 @@
 package invoker54.reviveme.mixin;
 
-import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
@@ -24,7 +24,7 @@ public abstract class SlotMixin {
             },
             cancellable = true)
     private void mayPickupMix(Player player, CallbackInfoReturnable<Boolean> cir) {
-        FallenCapability cap = FallenCapability.GetFallCap(player);
+        FallenData cap = FallenData.get(player);
         if (!cap.isFallen()) return;
         if (!this.hasItem()) return;
         if (!cap.usedSacrificedItems() && cap.getItemList().contains(getItem().getItem())){

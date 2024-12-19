@@ -6,22 +6,20 @@ import invoker54.invocore.client.ClientUtil;
 import invoker54.invocore.client.TextUtil;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.gui.render.CircleRender;
-import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,23 +28,19 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 import static invoker54.invocore.client.ClientUtil.getMinecraft;
+import static invoker54.reviveme.ReviveMe.makeResource;
 
-@Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = ReviveMe.MOD_ID, value = net.neoforged.api.distmarker.Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
 public class FallScreenEvent {
     private static final Logger LOGGER = LogManager.getLogger();
 
     private static final Minecraft inst = Minecraft.getInstance();
 
-    public static final ResourceLocation Timer_TEXTURE = new
-            ResourceLocation(ReviveMe.MOD_ID,"textures/screens/timer_background.png");
-    public static final ResourceLocation HEALTH_TEXTURE = new
-            ResourceLocation(ReviveMe.MOD_ID,"textures/revive_types/heart.png");
-    public static final ResourceLocation FOOD_TEXTURE = new
-            ResourceLocation(ReviveMe.MOD_ID,"textures/revive_types/hunger.png");
-    public static final ResourceLocation EXPERIENCE_TEXTURE = new
-            ResourceLocation(ReviveMe.MOD_ID,"textures/revive_types/experience_bottle.png");
-    public static final ResourceLocation MOUSE_TEXTURE = new
-            ResourceLocation(ReviveMe.MOD_ID, "textures/mouse_icons.png");
+    public static final ResourceLocation Timer_TEXTURE = makeResource("textures/screens/timer_background.png");
+    public static final ResourceLocation HEALTH_TEXTURE = makeResource("textures/revive_types/heart.png");
+    public static final ResourceLocation FOOD_TEXTURE = makeResource("textures/revive_types/hunger.png");
+    public static final ResourceLocation EXPERIENCE_TEXTURE = makeResource("textures/revive_types/experience_bottle.png");
+    public static final ResourceLocation MOUSE_TEXTURE = makeResource("textures/mouse_icons.png");
 
     //Images
     public static ClientUtil.Image timerIMG = new ClientUtil.Image(Timer_TEXTURE, 0, 64, 0, 64, 64);
@@ -65,12 +59,12 @@ public class FallScreenEvent {
     private static final int greenColor = new Color(39, 235, 86, 255).getRGB();
 
     @SubscribeEvent
-    public static void registerFallenScreen(RegisterGuiOverlaysEvent event){
+    public static void registerFallenScreen(RegisterGuiLayersEvent event){
 
         //if (true) return;
-        event.registerAbove(VanillaGuiOverlay.CHAT_PANEL.id(),"fallen_screen", (gui, guiGraphics, partialTicks, width, height) -> {
+        event.registerAbove(VanillaGuiLayers.CHAT, makeResource("fallen_screen"), (guiGraphics, tracker) -> {
             if (getMinecraft().screen instanceof ChatScreen) return;
-            FallenCapability cap = FallenCapability.GetFallCap(inst.player);
+            FallenData cap = FallenData.get(inst.player);
             if (!cap.isFallen()) return;
 
             if (cap.getOtherPlayer() != null) return;
@@ -80,6 +74,8 @@ public class FallScreenEvent {
 
             if ((getMinecraft().hasSingleplayerServer() && getMinecraft().getSingleplayerServer().getPlayerList().getPlayers().size() == 1)) return;
 
+            int width = guiGraphics.guiWidth();
+            int height = guiGraphics.guiHeight();
             PoseStack stack = guiGraphics.pose();
 
             RenderSystem.disableDepthTest();
@@ -129,7 +125,7 @@ public class FallScreenEvent {
             RenderSystem.enableDepthTest();
         });
 
-        event.registerAbove(VanillaGuiOverlay.CHAT_PANEL.id(),"fallen_self_revive_screen", (gui, guiGraphics, partialTicks, width, height) -> {
+        event.registerAbove(VanillaGuiLayers.CHAT,makeResource("fallen_self_revive_screen"), (guiGraphics, tracker) -> {
             if (getMinecraft().screen instanceof ChatScreen) return;
             if (ReviveMeConfig.compactReviveUI) return;
             if (!ReviveMeConfig.selfReviveMultiplayer &&
@@ -139,11 +135,13 @@ public class FallScreenEvent {
                     )
             ) return;
 
-            FallenCapability cap = FallenCapability.GetFallCap(inst.player);
+            FallenData cap = FallenData.get(inst.player);
             if (!cap.isFallen()) return;
             if (cap.getOtherPlayer() != null) return;
             if (cap.usedChance() && cap.getItemList().isEmpty()) return;
             PoseStack stack = guiGraphics.pose();
+            int width = guiGraphics.guiWidth();
+            int height = guiGraphics.guiHeight();
 
             int fifthHeight = (height / 5);
             float halfWidth = (width / 2F);
@@ -324,7 +322,7 @@ public class FallScreenEvent {
             RenderSystem.enableDepthTest();
         });
 
-        event.registerAbove(VanillaGuiOverlay.CHAT_PANEL.id(),"fallen_self_revive_compact_screen", (gui, guiGraphics, partialTicks, width, height) -> {
+        event.registerAbove(VanillaGuiLayers.CHAT,makeResource("fallen_self_revive_compact_screen"), (guiGraphics, tracker) -> {
             if (getMinecraft().screen instanceof ChatScreen) return;
             if (!ReviveMeConfig.compactReviveUI) return;
             if (!ReviveMeConfig.selfReviveMultiplayer &&
@@ -334,11 +332,13 @@ public class FallScreenEvent {
                     )
             ) return;
 
-            FallenCapability cap = FallenCapability.GetFallCap(inst.player);
+            FallenData cap = FallenData.get(inst.player);
             if (!cap.isFallen()) return;
             if (cap.getOtherPlayer() != null) return;
             if (cap.usedChance() && cap.getItemList().isEmpty()) return;
             PoseStack stack = guiGraphics.pose();
+            int width = guiGraphics.guiWidth();
+            int height = guiGraphics.guiHeight();
 
             RenderSystem.disableDepthTest();
             float halfWidth = (width / 2F);
@@ -348,7 +348,6 @@ public class FallScreenEvent {
             //This is the top of the timer picture
             int timerOrigY = (int) (thirdHeight + (radius/2)) + 2;
             int mouseOrigY = (int) (timerOrigY + (timerIMG.getHeight()/2F) + radius) + 2;
-            Font font = getMinecraft().font;
 
             ClientUtil.blitColor(stack, 0,width, 0, height, 1615855616);
 
@@ -552,13 +551,16 @@ public class FallScreenEvent {
         });
 
 
-        event.registerBelowAll("chat_fallen_timer_screen", (gui, guiGraphics, partialTicks, width, height) -> {
+        event.registerBelowAll(makeResource("chat_fallen_timer_screen"), (guiGraphics, tracker) -> {
             if (!(getMinecraft().screen instanceof ChatScreen)) return;
 
-            FallenCapability cap = FallenCapability.GetFallCap(inst.player);
+            FallenData cap = FallenData.get(inst.player);
             if (!cap.isFallen()) return;
             if (cap.getOtherPlayer() != null) return;
             PoseStack stack = guiGraphics.pose();
+            int width = guiGraphics.guiWidth();
+            int height = guiGraphics.guiHeight();
+
             RenderSystem.disableDepthTest();
 
             float halfWidth = (width / 2F);

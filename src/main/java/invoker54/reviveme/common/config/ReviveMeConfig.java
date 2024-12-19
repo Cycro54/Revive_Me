@@ -3,28 +3,28 @@ package invoker54.reviveme.common.config;
 
 import com.google.common.collect.ImmutableList;
 import invoker54.reviveme.ReviveMe;
-import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.capability.FallenData;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
-import org.apache.commons.lang3.tuple.Pair;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.config.ModConfigEvent;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = ReviveMe.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
 public final class ReviveMeConfig {
+    public static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
     public static final CommonConfig COMMON;
-    public static final ForgeConfigSpec COMMON_SPEC;
+    public static final ModConfigSpec COMMON_SPEC;
 
     public static Integer timeLeft;
     public static Integer reviveTime;
     public static Double revivedHealth;
     public static Double revivedFood;
-    public static FallenCapability.PENALTYPE penaltyType;
+    public static FallenData.PENALTYPE penaltyType;
     public static Double penaltyAmount;
     public static String penaltyItem;
     public static Double reviveInvulnTime;
@@ -64,9 +64,8 @@ public final class ReviveMeConfig {
     private static boolean isDirty = false;
 
     static {
-        final Pair<CommonConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(CommonConfig::new);
-        COMMON_SPEC = specPair.getRight();
-        COMMON = specPair.getLeft();
+        COMMON = new CommonConfig(BUILDER);
+        COMMON_SPEC = BUILDER.build();
     }
 
     public static void bakeConfig(){
@@ -173,32 +172,32 @@ public final class ReviveMeConfig {
     public static class CommonConfig {
 
         //This is how to make a config value
-        //public static final ForgeConfigSpec.ConfigValue<Integer> exampleInt;
-        public final ForgeConfigSpec.ConfigValue<Integer> timeLeft;
-        public final ForgeConfigSpec.ConfigValue<Integer> reviveTime;
-        public final ForgeConfigSpec.ConfigValue<Double> revivedHealth;
-        public final ForgeConfigSpec.ConfigValue<Double> revivedFood;
-        public final ForgeConfigSpec.EnumValue<FallenCapability.PENALTYPE> penaltyType;
-        public final ForgeConfigSpec.ConfigValue<Double> penaltyAmount;
-        public final ForgeConfigSpec.ConfigValue<String> penaltyItem;
-        public final ForgeConfigSpec.ConfigValue<Double> reviveInvulnTime;
-        public final ForgeConfigSpec.ConfigValue<Double> reviveChance;
-        public final ForgeConfigSpec.ConfigValue<Double> sacrificialItemPercent;
-        public final ForgeConfigSpec.ConfigValue<Double> fallenPenaltyTimer;
-        public final ForgeConfigSpec.ConfigValue<Boolean> selfReviveMultiplayer;
-        public final ForgeConfigSpec.ConfigValue<Boolean> canGiveUp;
-        public final ForgeConfigSpec.ConfigValue<FALLEN_POSE> fallenPose;
-        public final ForgeConfigSpec.ConfigValue<JUMP> canJump;
-        public final ForgeConfigSpec.ConfigValue<Boolean> canMove;
-        public final ForgeConfigSpec.ConfigValue<INTERACT_WITH_INVENTORY> interactWithInventory;
-        public final ForgeConfigSpec.ConfigValue<Double> fallenXpPenalty;
-        public final ForgeConfigSpec.ConfigValue<Double> timeReductionPenalty;
-        public final ForgeConfigSpec.ConfigValue<Integer> pvpTimer;
-        public final ForgeConfigSpec.ConfigValue<List<? extends String>> downedEffects;
-        public final ForgeConfigSpec.ConfigValue<List<? extends String>> blockedCommands;
-        public final ForgeConfigSpec.ConfigValue<Boolean> compactReviveUI;
+        //public static final ModConfigSpec.ConfigValue<Integer> exampleInt;
+        public final ModConfigSpec.ConfigValue<Integer> timeLeft;
+        public final ModConfigSpec.ConfigValue<Integer> reviveTime;
+        public final ModConfigSpec.ConfigValue<Double> revivedHealth;
+        public final ModConfigSpec.ConfigValue<Double> revivedFood;
+        public final ModConfigSpec.EnumValue<FallenData.PENALTYPE> penaltyType;
+        public final ModConfigSpec.ConfigValue<Double> penaltyAmount;
+        public final ModConfigSpec.ConfigValue<String> penaltyItem;
+        public final ModConfigSpec.ConfigValue<Double> reviveInvulnTime;
+        public final ModConfigSpec.ConfigValue<Double> reviveChance;
+        public final ModConfigSpec.ConfigValue<Double> sacrificialItemPercent;
+        public final ModConfigSpec.ConfigValue<Double> fallenPenaltyTimer;
+        public final ModConfigSpec.ConfigValue<Boolean> selfReviveMultiplayer;
+        public final ModConfigSpec.ConfigValue<Boolean> canGiveUp;
+        public final ModConfigSpec.ConfigValue<FALLEN_POSE> fallenPose;
+        public final ModConfigSpec.ConfigValue<JUMP> canJump;
+        public final ModConfigSpec.ConfigValue<Boolean> canMove;
+        public final ModConfigSpec.ConfigValue<INTERACT_WITH_INVENTORY> interactWithInventory;
+        public final ModConfigSpec.ConfigValue<Double> fallenXpPenalty;
+        public final ModConfigSpec.ConfigValue<Double> timeReductionPenalty;
+        public final ModConfigSpec.ConfigValue<Integer> pvpTimer;
+        public final ModConfigSpec.ConfigValue<List<? extends String>> downedEffects;
+        public final ModConfigSpec.ConfigValue<List<? extends String>> blockedCommands;
+        public final ModConfigSpec.ConfigValue<Boolean> compactReviveUI;
 
-        public CommonConfig(ForgeConfigSpec.Builder builder) {
+        public CommonConfig(ModConfigSpec.Builder builder) {
             builder.push("Fallen Player Settings");
             builder.push("Self-Revive Settings");
             selfReviveMultiplayer = builder.comment("If you can use self-revive methods in multiplayer").define("Self_Revive_Multiplayer", false);
@@ -237,7 +236,7 @@ public final class ReviveMeConfig {
 
             builder.push("Reviver Settings");
             reviveTime = builder.comment("How long to revive someone").defineInRange("Revive Time", 3,0, Integer.MAX_VALUE);
-            penaltyType = builder.comment("What the reviver will lose").defineEnum("Penalty Type", FallenCapability.PENALTYPE.FOOD);
+            penaltyType = builder.comment("What the reviver will lose").defineEnum("Penalty Type", FallenData.PENALTYPE.FOOD);
             penaltyAmount = builder.comment("Amount that will be taken from reviver, Numbers below 1 and greater than 0 will turn it into a percentage").define("Penalty Amount", 10D);
             penaltyItem = builder.comment("Item used to revive fallen players (Only if you selected ITEM as penalty type). Usage: MODID:ITEM").define("Revive Item", "minecraft:golden_apple");
             builder.pop();

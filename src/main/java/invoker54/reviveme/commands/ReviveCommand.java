@@ -2,7 +2,7 @@ package invoker54.reviveme.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
-import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.event.FallenTimerEvent;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -33,7 +33,7 @@ public class ReviveCommand {
             }
             caller = commandContext.getSource().getPlayer();
         }
-        FallenCapability cap = FallenCapability.GetFallCap(caller);
+        FallenData cap = FallenData.get(caller);
 
         if (caller.isDeadOrDying() || !cap.isFallen()){
 

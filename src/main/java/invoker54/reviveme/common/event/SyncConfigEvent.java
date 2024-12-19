@@ -2,23 +2,20 @@ package invoker54.reviveme.common.event;
 
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.config.ReviveMeConfig;
-import invoker54.reviveme.common.network.NetworkHandler;
-import invoker54.reviveme.common.network.message.SyncConfigMsg;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
+import invoker54.reviveme.common.network.payload.SyncConfigMsg;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
-@Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
+@EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class SyncConfigEvent {
 
     @SubscribeEvent
-    public static void onUpdateConfig(TickEvent.ServerTickEvent event){
-        if (event.type == TickEvent.Type.CLIENT) return;
-        if (event.phase == TickEvent.Phase.START) return;
+    public static void onUpdateConfig(ServerTickEvent.Post event){
         if (ReviveMeConfig.isDirty()){
             //Then finally send the config data to all players
-            NetworkHandler.INSTANCE.send(PacketDistributor.ALL.noArg(), new SyncConfigMsg(ReviveMeConfig.serialize()));
+            PacketDistributor.sendToAllPlayers(new SyncConfigMsg(ReviveMeConfig.serialize()));
 
             ReviveMeConfig.markDirty(false);
         }

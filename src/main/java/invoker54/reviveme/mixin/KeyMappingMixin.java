@@ -3,11 +3,11 @@ package invoker54.reviveme.mixin;
 import com.mojang.blaze3d.platform.InputConstants;
 import invoker54.invocore.client.ClientUtil;
 import invoker54.reviveme.client.VanillaKeybindHandler;
-import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.client.extensions.IForgeKeyMapping;
+import net.neoforged.neoforge.client.extensions.IKeyMappingExtension;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.mixin.*;
@@ -19,7 +19,7 @@ import java.util.Map;
 
 @Pseudo
 @Mixin(KeyMapping.class)
-public abstract class IForgeKeyMixin implements IForgeKeyMapping {
+public abstract class KeyMappingMixin implements IKeyMappingExtension {
     @Shadow @Final private static Map<String, KeyMapping> ALL;
     @Shadow @Final private String name;
     @Shadow private int clickCount;
@@ -32,7 +32,7 @@ public abstract class IForgeKeyMixin implements IForgeKeyMapping {
     @Override
     public boolean isActiveAndMatches(InputConstants.Key keyCode) {
         if (ClientUtil.getWorld() != null) {
-            FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
+            FallenData cap = FallenData.get(ClientUtil.getPlayer());
             KeyMapping keyMapping = ALL.get(this.name);
 
             if (cap.isFallen()) {
@@ -45,7 +45,7 @@ public abstract class IForgeKeyMixin implements IForgeKeyMapping {
                 }
             }
         }
-        return IForgeKeyMapping.super.isActiveAndMatches(keyCode);
+        return IKeyMappingExtension.super.isActiveAndMatches(keyCode);
     }
 
 
@@ -60,7 +60,7 @@ public abstract class IForgeKeyMixin implements IForgeKeyMapping {
         if (ClientUtil.getWorld() == null) return;
         Player player = ClientUtil.getPlayer();
         if (player == null) return;
-        FallenCapability cap = FallenCapability.GetFallCap(player);
+        FallenData cap = FallenData.get(player);
 
 
         KeyMapping KeyBinding = ALL.get(this.name);

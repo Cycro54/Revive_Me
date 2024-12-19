@@ -5,20 +5,21 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import invoker54.invocore.client.ClientUtil;
 import invoker54.invocore.client.TextUtil;
 import invoker54.reviveme.ReviveMe;
-import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.capability.FallenData;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 
 import java.awt.*;
 
-@Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
+import static invoker54.reviveme.ReviveMe.makeResource;
+
+@EventBusSubscriber(modid = ReviveMe.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
 public class ReviveScreenEvent {
     private static final Minecraft inst = Minecraft.getInstance();
     public static MutableComponent beingRevivedText = Component.translatable("reviveScreen.being_revived");
@@ -29,15 +30,16 @@ public class ReviveScreenEvent {
     public static final int progressColor = new Color(247,247,247,255).getRGB();
 
     @SubscribeEvent
-    public static void registerReviveScreen(RegisterGuiOverlaysEvent event){
-        event.registerBelow(VanillaGuiOverlay.CHAT_PANEL.id(),"revive_screen", (gui, guiGraphics, partialTicks, width, height) -> {
-            FallenCapability cap = FallenCapability.GetFallCap(inst.player);
+    public static void registerReviveScreen(RegisterGuiLayersEvent event){
+        event.registerBelow(VanillaGuiLayers.CHAT,makeResource("revive_screen"), (guiGraphics, tracker) -> {
+            FallenData cap = FallenData.get(inst.player);
 
             //MAKE SURE this only happens if you are being revived, or reviving someone
             if (cap.getOtherPlayer() == null) return;
+            int width = guiGraphics.guiWidth();
+            int height = guiGraphics.guiHeight();
 
             int startTextHeight = (height / 5);
-            Font font = inst.font;
             PoseStack stack = guiGraphics.pose();
             RenderSystem.disableDepthTest();
 

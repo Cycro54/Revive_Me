@@ -2,35 +2,31 @@ package invoker54.reviveme.client.event;
 
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.VanillaKeybindHandler;
-import invoker54.reviveme.common.capability.FallenCapability;
-import invoker54.reviveme.common.network.NetworkHandler;
-import invoker54.reviveme.common.network.message.RestartDeathTimerMsg;
+import invoker54.reviveme.common.capability.FallenData;
+import invoker54.reviveme.common.network.payload.RestartDeathTimerMsg;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.UUID;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = ReviveMe.MOD_ID)
+@EventBusSubscriber(value = Dist.CLIENT, modid = ReviveMe.MOD_ID)
 public class RevivePlayerActionsEvent {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final Minecraft inst = Minecraft.getInstance();
 
     @SubscribeEvent
-    public static void reviveCheck(TickEvent.PlayerTickEvent event){
-        if (event.side == LogicalSide.SERVER) return;
+    public static void reviveCheck(PlayerTickEvent.Pre event){
+        if (!event.getEntity().level().isClientSide) return;
+        if(event.getEntity() != inst.player) return;
 
-        if(event.phase == TickEvent.Phase.END) return;
-
-        if(event.player != inst.player) return;
-
-        FallenCapability myCap = FallenCapability.GetFallCap(inst.player);
+        FallenData myCap = FallenData.get(inst.player);
         UUID myUUID = inst.player.getUUID();
 
         if (myCap.getOtherPlayer() == null) return;
@@ -50,7 +46,7 @@ public class RevivePlayerActionsEvent {
         if (!cancelEvent) {
 //            //System.out.println("Someone I'm reviving? : " + (FallenCapability.GetFallCap((Player)inst.crosshairPickEntity).
 //                    compareUUID(myUUID)));
-            cancelEvent = !(FallenCapability.GetFallCap((Player) inst.crosshairPickEntity).
+            cancelEvent = !(FallenData.get((Player) inst.crosshairPickEntity).
                     isReviver(myUUID));
         }
 
@@ -61,17 +57,18 @@ public class RevivePlayerActionsEvent {
         }
 
         if (cancelEvent){
-            String targPlayerUUID = "";
+//            String targPlayerUUID = "";
             myCap.setOtherPlayer(null);
 
             if (targPlayer != null) {
-                FallenCapability targCap = FallenCapability.GetFallCap(targPlayer);
+                FallenData targCap = FallenData.get(targPlayer);
                 targCap.setOtherPlayer(null);
 
-                targPlayerUUID = targPlayer.getStringUUID();
+//                targPlayerUUID = targPlayer.getStringUUID();
             }
 
-            NetworkHandler.INSTANCE.sendToServer(new RestartDeathTimerMsg(targPlayerUUID, inst.player.getStringUUID()));
+            PacketDistributor.sendToServer(new RestartDeathTimerMsg());
+//            NetworkHandler.INSTANCE.sendToServer(new RestartDeathTimerMsg(targPlayerUUID, inst.player.getStringUUID()));
         }
     }
 }

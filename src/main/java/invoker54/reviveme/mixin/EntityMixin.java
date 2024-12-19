@@ -1,6 +1,6 @@
 package invoker54.reviveme.mixin;
 
-import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
@@ -20,17 +20,17 @@ public abstract class EntityMixin {
     @Shadow public Level level;
 
     @Unique
-    private FallenCapability revive_Me$cap;
+    private FallenData revive_Me$cap;
 
     @Shadow public abstract int getId();
 
     @Unique
-    private FallenCapability revive_Me$getCap(){
+    private FallenData revive_Me$getCap(){
         if (this.revive_Me$cap != null) return this.revive_Me$cap;
 
         Entity entity = this.level.getEntity(this.getId());
         if (!(entity instanceof Player)) return null;
-        revive_Me$cap = FallenCapability.GetFallCap((Player)entity);
+        revive_Me$cap = FallenData.get((Player)entity);
 
         return this.revive_Me$cap;
     }
@@ -45,7 +45,7 @@ public abstract class EntityMixin {
         Entity entity = this.level.getEntity(this.getId());
         if (!(entity instanceof Player player)) return;
 
-        if (!FallenCapability.GetFallCap(player).isFallen()) return;
+        if (!FallenData.get(player).isFallen()) return;
 
         switch (ReviveMeConfig.fallenPose){
             case CROUCH -> cir.setReturnValue(pose == Pose.CROUCHING);

@@ -5,44 +5,47 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import invoker54.invocore.client.ClientUtil;
 import invoker54.invocore.client.TextUtil;
 import invoker54.reviveme.ReviveMe;
-import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.capability.FallenData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import static invoker54.invocore.client.ClientUtil.getMinecraft;
+import static invoker54.reviveme.ReviveMe.makeResource;
 import static invoker54.reviveme.client.event.FallScreenEvent.*;
 import static invoker54.reviveme.client.event.RenderFallPlateEvent.blackBg;
 
-@Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = ReviveMe.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
 public class ReviveRequirementScreen {
     private static final Logger LOGGER = LogManager.getLogger();
 
     @SubscribeEvent
-    public static void registerRequirementScreen(RegisterGuiOverlaysEvent event){
+    public static void registerRequirementScreen(RegisterGuiLayersEvent event){
         //if (true) return;
-        event.registerAboveAll("requirement_screen", (gui, guiGraphics, partialTicks, fullWidth, fullHeight) -> {
+        event.registerAboveAll(makeResource("requirement_screen"), (guiGraphics, tracker) -> {
             if (ClientUtil.getPlayer().isCreative() || ClientUtil.getPlayer().isSpectator()) return;
             if (!(getMinecraft().crosshairPickEntity instanceof Player)) return;
             if (((Player) getMinecraft().crosshairPickEntity).isDeadOrDying()) return;
-            FallenCapability cap = FallenCapability.GetFallCap((LivingEntity) getMinecraft().crosshairPickEntity);
+            FallenData cap = FallenData.get((LivingEntity) getMinecraft().crosshairPickEntity);
             if (!cap.isFallen()) return;
             if (cap.getOtherPlayer() != null) return;
-            if (cap.getPenaltyType() == FallenCapability.PENALTYPE.NONE) return;
+            if (cap.getPenaltyType() == FallenData.PENALTYPE.NONE) return;
             PoseStack stack = guiGraphics.pose();
             RenderSystem.disableDepthTest();
+            int width = guiGraphics.guiWidth();
+            int height = guiGraphics.guiHeight();
 
             //50%
-            int halfWidth = fullWidth/2;
-            int halfHeight = fullHeight/2;
+            int halfWidth = width/2;
+            int halfHeight = height/2;
 
             //25%
             int quarterWidth = halfWidth/2;

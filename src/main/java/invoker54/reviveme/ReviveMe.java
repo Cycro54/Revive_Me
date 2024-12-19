@@ -1,15 +1,13 @@
 package invoker54.reviveme;
 
 import invoker54.reviveme.common.config.ReviveMeConfig;
-import invoker54.reviveme.common.network.NetworkHandler;
+import invoker54.reviveme.init.AttachmentTypesInit;
+import invoker54.reviveme.init.MobEffectInit;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -21,22 +19,24 @@ public class ReviveMe
 
     // Directly reference a log4j logger.
     private static final Logger LOGGER = LogManager.getLogger();
-    public static final ResourceLocation FALLEN_LOC = new ResourceLocation(MOD_ID, "fallen");
+    public static final ResourceLocation FALLEN_LOC = makeResource("fallen_data");
 
-    public ReviveMe() {
-        bus = FMLJavaModLoadingContext.get().getModEventBus();
-        // Register the setup method for modloading
-        bus.addListener(this::setup);
-        // Register ourselves for server and other game events we are interested in
-        MinecraftForge.EVENT_BUS.register(this);
+    public ReviveMe(IEventBus modEventBus, ModContainer modContainer) {
 
+        AttachmentTypesInit.registerAttachments(modEventBus);
+        MobEffectInit.registerEffects(modEventBus);
+//        NeoForge.EVENT_BUS.register(this);
         //This is for configs
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ReviveMeConfig.COMMON_SPEC, "reviveme-common.toml");
+        modContainer.registerConfig(ModConfig.Type.COMMON, ReviveMeConfig.COMMON_SPEC, "reviveme-common.toml");
         // MinecraftForge.EVENT_BUS.register(new DeathEventHandler());
     }
 
-    private void setup(final FMLCommonSetupEvent event)
-    {
-        NetworkHandler.init();
+    public static ResourceLocation makeResource(String id){
+        return ResourceLocation.fromNamespaceAndPath(ReviveMe.MOD_ID, id);
     }
+//
+//    private void setup(final FMLCommonSetupEvent event)
+//    {
+//        NetworkHandler.init();
+//    }
 }

@@ -2,18 +2,18 @@
   "required": true,
   "minVersion": "0.8",
   "package": "invoker54.reviveme.mixin",
-  "compatibilityLevel": "JAVA_17",
+  "compatibilityLevel": "JAVA_21",
   "refmap": "revive_me.refmap.json",
   "mixins": [
+    "CommonHooksMixin",
     "EntityMixin",
     "FoodMixin",
-    "ForgeHooksMixin",
     "PlayerMixin",
     "SlotMixin"
   ],
   "client": [
-    "ForgeHooksClientMixin",
-    "IForgeKeyMixin",
+    "ClientHooksMixin",
+    "KeyMappingMixin",
     "LocalPlayerMixin",
     "PlayerRendererMixin"
   ],

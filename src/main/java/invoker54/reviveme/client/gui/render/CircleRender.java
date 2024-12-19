@@ -52,18 +52,17 @@ public class CircleRender {
         float f2 = (float) (colorCode & 255) / 255.0F;
 
         //Setting up the render system
-        BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
+        BufferBuilder bufferbuilder = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
         RenderSystem.disableCull();
         RenderSystem.enableBlend();
 //        RenderSystem.texture();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        bufferbuilder.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
 
         //Places a point in the middle of the circle only if it isn't going to be a full circle
         if(deltaAngle < 360)
-            bufferbuilder.vertex(lastPos, origX, origY, 0).color(f, f1, f2, f3).endVertex();
+            bufferbuilder.addVertex(lastPos, origX, origY, 0).setColor(f, f1, f2, f3);
 
         do {
             //Trunc angle is pretty much the current degree we are on. (can't be higher than delta angle)
@@ -72,7 +71,7 @@ public class CircleRender {
             y = origY + (-radius * Math.cos(startAngle + truncAngle));
             //System.out.println("X Coordinates are: " + String.valueOf(x) + "," + String.valueOf(y));
 
-            bufferbuilder.vertex(lastPos, (float) x, (float) y, 0).color(f, f1, f2, f3).endVertex();
+            bufferbuilder.addVertex(lastPos, (float) x, (float) y, 0).setColor(f, f1, f2, f3);
             //GL11.glVertex3d(x, y, zLevel);
 
             //if the current angle (arcpos) is greater than or equal to delta angle
@@ -80,7 +79,7 @@ public class CircleRender {
             //Increases the current angle by angleIncrement for the next cycle
             arcPos += angleIncrement;
         } while (!arcFinished && arcPos <= Math.toRadians(360.0)); // arcPos test is a fail safe to prevent infinite loop in case of problem with angle arguments
-        BufferUploader.drawWithShader(bufferbuilder.end());
+        BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
 //        RenderSystem.enableTexture();
         RenderSystem.disableBlend();
         RenderSystem.enableCull();
@@ -159,11 +158,10 @@ public class CircleRender {
         float f2 = (float)(colorCode & 255) / 255.0F;
 
 //        RenderSystem.disableTexture();
-        BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
-        bufferbuilder.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
+        BufferBuilder bufferbuilder = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
 
         if(Math.abs(endAngle - startAngle) < 360)
-            bufferbuilder.vertex(lastPos, (float) origin.x, (float) origin.y, (float) origin.z).color(f, f1, f2, f3).endVertex();
+            bufferbuilder.addVertex(lastPos, (float) origin.x, (float) origin.y, (float) origin.z).setColor(f, f1, f2, f3);
 
         //System.out.println("COORDINATES START ");
         do {
@@ -172,14 +170,14 @@ public class CircleRender {
             y = origin.y + (-radius * Math.cos(startAngle + direction * truncAngle));
             //System.out.println("X Coordinates are: " + String.valueOf(x) + "," + String.valueOf(y));
 
-            bufferbuilder.vertex(lastPos, (float) x, (float) y, (float) origin.z).color(f, f1, f2, f3).endVertex();
+            bufferbuilder.addVertex(lastPos, (float) x, (float) y, (float) origin.z).setColor(f, f1, f2, f3);
             //GL11.glVertex3d(x, y, zLevel);
 
             arcFinished = (arcPos >= deltaAngle);
             arcPos += angleIncrement;
         } while (!arcFinished && arcPos <= Math.toRadians(360.0));      // arcPos test is a fail safe to prevent infinite loop in case of problem with angle arguments
         //System.out.println("COORDINATES STOP ");
-        BufferUploader.drawWithShader(bufferbuilder.end());
+        BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
 //        RenderSystem.enableTexture();
         //GL11.glEnd();
     }

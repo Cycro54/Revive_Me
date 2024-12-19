@@ -6,7 +6,7 @@ import invoker54.invocore.client.ClientUtil;
 import invoker54.invocore.client.TextUtil;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.gui.render.CircleRender;
-import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.capability.FallenData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -14,10 +14,10 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -29,7 +29,7 @@ import static invoker54.reviveme.client.event.FallScreenEvent.timerIMG;
 import static invoker54.reviveme.client.event.ReviveScreenEvent.bgColor;
 import static invoker54.reviveme.client.event.ReviveScreenEvent.progressColor;
 
-@Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = ReviveMe.MOD_ID, value = Dist.CLIENT)
 public class RenderFallPlateEvent {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final Minecraft inst = Minecraft.getInstance();
@@ -47,7 +47,7 @@ public class RenderFallPlateEvent {
             if (entity.equals(getMinecraft().player)) continue;
             if (entity.distanceTo(getMinecraft().player) > 20) continue;
 
-            FallenCapability cap = FallenCapability.GetFallCap(player);
+            FallenData cap = FallenData.get(player);
             PoseStack stack = event.getPoseStack();
 
             if (!cap.isFallen()) continue;

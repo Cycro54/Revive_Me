@@ -1,0 +1,40 @@
+package invoker54.reviveme.init;
+
+import invoker54.reviveme.ReviveMe;
+import invoker54.reviveme.common.network.payload.*;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.List;
+import java.util.Locale;
+
+@EventBusSubscriber(modid = ReviveMe.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
+public class NetworkInit {
+    private static final Logger LOGGER = LogManager.getLogger();
+
+
+    @SubscribeEvent
+    public static void registerNetwork(final RegisterPayloadHandlersEvent event){
+        PayloadRegistrar registrar = event.registrar("6");
+        InstaKillMsg.register(registrar);
+        RestartDeathTimerMsg.register(registrar);
+        ReviveChanceMsg.register(registrar);
+        SacrificeItemsMsg.register(registrar);
+        SyncClientCapMsg.register(registrar);
+        SyncConfigMsg.register(registrar);
+    }
+
+    public static String createID(Class<?> msgClass){
+        List<String> list = List.of(msgClass.getSimpleName().split("/(?=[A-Z])/"));
+        StringBuilder id = new StringBuilder();
+        for (String s : list){
+            if (!id.isEmpty()) id.append("_");
+            id.append(s);
+        }
+        return id.toString().toLowerCase(Locale.ROOT);
+    }
+}

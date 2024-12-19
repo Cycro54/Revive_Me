@@ -1,13 +1,11 @@
 package invoker54.reviveme.common.event;
 
 import invoker54.reviveme.ReviveMe;
-import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
-import invoker54.reviveme.common.network.NetworkHandler;
-import invoker54.reviveme.common.network.message.SyncClientCapMsg;
+import invoker54.reviveme.common.network.payload.SyncClientCapMsg;
 import invoker54.reviveme.init.MobEffectInit;
 import invoker54.reviveme.mixin.FoodMixin;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Pose;
@@ -16,61 +14,58 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
-@Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
+
+@EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class FallenTimerEvent {
 
     @SubscribeEvent
-    public static void TickDownTimer(TickEvent.PlayerTickEvent event) {
-        //System.out.println("Game time is: " + event.player.level.getGameTime());
-        if (event.side == LogicalSide.CLIENT) return;
+    public static void TickDownTimer(PlayerTickEvent.Pre event) {
+        //System.out.println("Game time is: " + event.getEntity().level.getGameTime());
+        if (event.getEntity().level().isClientSide) return;
+        
+        if (event.getEntity().isDeadOrDying()) return;
 
-        if (event.phase == TickEvent.Phase.END) return;
-
-        if (event.player.isDeadOrDying()) return;
-
-        FallenCapability cap = FallenCapability.GetFallCap(event.player);
+        FallenData cap = FallenData.get(event.getEntity());
 
         if (!cap.isFallen() || cap.getOtherPlayer() != null) return;
 
         //If they are in creative or spectator mode, cancel the event
-        if (event.player.isCreative() || event.player.isSpectator()) {
-            revivePlayer(event.player);
+        if (event.getEntity().isCreative() || event.getEntity().isSpectator()) {
+            revivePlayer(event.getEntity());
             return;
         }
 
         //Make sure they aren't sprinting.
-        if(event.player.isSprinting()) event.player.setSprinting(false);
+        if(event.getEntity().isSprinting()) event.getEntity().setSprinting(false);
 
         //Make sure they aren't healing
-        if(event.player.getHealth() != 1){
-            event.player.setHealth(1);
+        if(event.getEntity().getHealth() != 1){
+            event.getEntity().setHealth(1);
         }
 
         //Make sure they have no food either
-        event.player.getFoodData().setFoodLevel(0);
+        event.getEntity().getFoodData().setFoodLevel(0);
 
         //Finally make sure they have all the required effects.
-        FallEvent.applyDownedEffects(event.player);
+        FallEvent.applyDownedEffects(event.getEntity());
 
         if (!cap.shouldDie()) return;
 
-        cap.kill(event.player);
-        //System.out.println("Who's about to die: " + event.player.getDisplayName());
+        cap.kill(event.getEntity());
+        //System.out.println("Who's about to die: " + event.getEntity().getDisplayName());
     }
 
     //Make sure this only runs for the person being revived
     @SubscribeEvent
-    public static void TickProgress(TickEvent.PlayerTickEvent event) {
-        if (event.phase == TickEvent.Phase.END) return;
-        if (event.side != LogicalSide.SERVER) return;
+    public static void TickProgress(PlayerTickEvent.Pre event) {
+       if (event.getEntity().level().isClientSide) return;
 
-        FallenCapability cap = FallenCapability.GetFallCap(event.player);
+        FallenData cap = FallenData.get(event.getEntity());
 
         //make sure other player isn't null
         if (cap.getOtherPlayer() == null) return;
@@ -81,7 +76,7 @@ public class FallenTimerEvent {
         //Make sure this person is fallen.
         if (!cap.isFallen()) return;
 
-        Player fellPlayer = event.player;
+        Player fellPlayer = event.getEntity();
 
         Player reviver = fellPlayer.getServer().getPlayerList().getPlayer(cap.getOtherPlayer());
         takeFromReviver(reviver, fellPlayer);
@@ -91,7 +86,7 @@ public class FallenTimerEvent {
     public static void takeFromReviver(Player reviver, Player fallen) {
         if (reviver == null) return;
 
-        FallenCapability cap = FallenCapability.GetFallCap(fallen);
+        FallenData cap = FallenData.get(fallen);
 
         //Take penalty amount from reviver
         if (!reviver.isCreative()) {
@@ -131,17 +126,13 @@ public class FallenTimerEvent {
         }
 
 
-        cap = FallenCapability.GetFallCap(reviver);
+        cap = FallenData.get(reviver);
         cap.setOtherPlayer(null);
-        CompoundTag nbt = new CompoundTag();
-        nbt.put(reviver.getStringUUID(), cap.writeNBT());
-
-        NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> reviver),
-                new SyncClientCapMsg(nbt));
+        PacketDistributor.sendToPlayersTrackingEntityAndSelf(reviver, new SyncClientCapMsg(reviver.getUUID(), cap.writeNBT()));
     }
 
     public static void revivePlayer(Player fallen){
-        FallenCapability cap = FallenCapability.GetFallCap(fallen);
+        FallenData cap = FallenData.get(fallen);
 
         //region Set the revived players health
         float healAmount;
@@ -193,12 +184,6 @@ public class FallenTimerEvent {
         cap.setFallen(false);
         fallen.setPose(Pose.STANDING);
 
-        CompoundTag nbt = new CompoundTag();
-        nbt.put(fallen.getStringUUID(), cap.writeNBT());
-
-        if (!fallen.level().isClientSide) {
-            NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> fallen),
-                    new SyncClientCapMsg(nbt));
-        }
+        PacketDistributor.sendToPlayersTrackingEntityAndSelf(fallen, new SyncClientCapMsg(fallen.getUUID(), cap.writeNBT()));
     }
 }
