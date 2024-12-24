@@ -88,9 +88,9 @@ public class FallenData implements INBTSerializable<CompoundTag> {
 
     public static FallenData get(LivingEntity player){
         FallenData cap = player.getData(AttachmentTypesInit.FALLEN_DATA);
-        if (cap.level == null) cap.level = player.level();
+        if (cap.level == null) cap.level = player.getCommandSenderWorld();
+        if (cap.damageSource == null) cap.damageSource = cap.level.damageSources().fellOutOfWorld();
         return cap;
-//        return player.getCapability();
     }
 
     public void setPenalty(PENALTYPE type, Double amount, String penaltyItem){
@@ -118,9 +118,12 @@ public class FallenData implements INBTSerializable<CompoundTag> {
 
     public void kill(Player player){
         this.setDying();
-        player.hurt(this.damageSource, 1);
-        player.setHealth(0);
-        player.die(this.damageSource);
+        player.hurt(this.getDamageSource(), Float.MAX_VALUE);
+        if (!player.isDeadOrDying() || Float.isNaN(player.getHealth())) {
+            player.getCombatTracker().recordDamage(this.getDamageSource(), 1);
+            player.setHealth(0);
+            player.die(this.getDamageSource());
+        }
     }
 
     public double countReviverPenaltyAmount(Player reviver){
