@@ -17,7 +17,6 @@ public class VanillaKeybindHandler {
     public static boolean useKeyDown;
 
     public static void initializeKeybindList(){
-//        LOGGER.error("Vanilla key mappings was null! populating...");
         GameSettings options = ClientUtil.mC.options;
 
         vanillaKeyBindings = Arrays.asList(ArrayUtils.addAll(new KeyBinding[]{

@@ -1,10 +1,17 @@
 package invoker54.reviveme.common.network;
 
 import invoker54.reviveme.ReviveMe;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.message.*;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.network.play.server.SChatPacket;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Util;
+import net.minecraft.util.text.ChatType;
+import net.minecraft.util.text.IFormattableTextComponent;
+import net.minecraft.world.server.ServerChunkProvider;
 import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
@@ -37,10 +44,24 @@ public class NetworkHandler {
         INSTANCE.registerMessage(3, ReviveChanceMsg.class, (message, buf) -> {}, it -> new ReviveChanceMsg(), ReviveChanceMsg::handle);
         INSTANCE.registerMessage(4, SacrificeItemsMsg.class, (message, buf) -> {}, it -> new SacrificeItemsMsg(), SacrificeItemsMsg::handle);
         INSTANCE.registerMessage(5, SyncConfigMsg.class, SyncConfigMsg::Encode, SyncConfigMsg::Decode, SyncConfigMsg::handle);
+        INSTANCE.registerMessage(6, CallForHelpMsg.class, (msg,buf)->{}, it -> new CallForHelpMsg(), CallForHelpMsg::handle);
     }
 
     //Custom method used to send data to players
     public static void sendToPlayer(PlayerEntity player, Object message) {
         NetworkHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) player), message);
+    }
+
+    public static void sendMessage(IFormattableTextComponent component, boolean isCommand, Entity trackedEntity){
+         if (ReviveMeConfig.silenceCommandMessages && isCommand) return;
+         if (ReviveMeConfig.silenceRegularMessages && !isCommand) return;
+
+         if (ReviveMeConfig.universalChatMessages) {
+             trackedEntity.getServer().getPlayerList().broadcastMessage(component, ChatType.CHAT, Util.NIL_UUID);
+         }
+         else {
+             ((ServerChunkProvider) trackedEntity.level.getChunkSource()).broadcastAndSend(trackedEntity, new SChatPacket(component, ChatType.CHAT, Util.NIL_UUID));
+         }
+
     }
 }

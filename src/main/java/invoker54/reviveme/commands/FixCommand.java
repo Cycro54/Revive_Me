@@ -6,13 +6,12 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.event.FallEvent;
 import invoker54.reviveme.common.event.FallenTimerEvent;
+import invoker54.reviveme.common.network.NetworkHandler;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.EntityArgument;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.Util;
 import net.minecraft.util.text.TranslationTextComponent;
 
 public class FixCommand {
@@ -47,13 +46,11 @@ public class FixCommand {
         //TODO: Remove this in future versions.
         caller.setInvulnerable(false);
 
+        NetworkHandler.sendMessage((new TranslationTextComponent("revive-me.commands.fix")),
+                true, caller);
+
         //This should fix the player if they are downed
         if (cap.isFallen()){
-            for(PlayerEntity player1 : caller.server.getPlayerList().getPlayers()){
-                player1.sendMessage(caller.getDisplayName().copy().append
-                        (new TranslationTextComponent("revive-me.commands.fix").getString()), Util.NIL_UUID);
-            }
-
             DamageSource damageSource = cap.getDamageSource();
             if (damageSource == null) damageSource = DamageSource.OUT_OF_WORLD;
 
@@ -69,12 +66,7 @@ public class FixCommand {
 
         //This should fix the player if they are no longer fallen
         else {
-            FallenTimerEvent.revivePlayer(caller);
-
-            for(PlayerEntity player1 : caller.server.getPlayerList().getPlayers()){
-                player1.sendMessage(caller.getDisplayName().copy().append
-                        (new TranslationTextComponent("revive-me.commands.fix").getString()), Util.NIL_UUID);
-            }
+            FallenTimerEvent.revivePlayer(caller, true);
         }
 
         return 1;

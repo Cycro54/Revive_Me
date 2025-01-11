@@ -36,6 +36,7 @@ public class RenderFallPlateEvent {
     public static final int greenProgCircle = new Color(39, 235, 86, 255).getRGB();
     public static final int redProgCircle = new Color(173, 17, 17, 255).getRGB();
     public static final int blackBg = new Color(0, 0, 0, 176).getRGB();
+    public static final int whiteBg = new Color(255, 255, 255, 255).getRGB();
 
     @SubscribeEvent
     public static void renderWorldFallTimer(RenderWorldLastEvent event) {
@@ -45,13 +46,16 @@ public class RenderFallPlateEvent {
         for (Entity entity : inst.level.entitiesForRendering()) {
             if (!(entity instanceof PlayerEntity)) continue;
             if (entity.equals(mC.player)) continue;
-            if (entity.distanceTo(mC.player) > 20) continue;
+            float distance = entity.distanceTo(mC.player);
+            if (distance > 25) continue;
 
             PlayerEntity player = (PlayerEntity) entity;
             FallenCapability cap = FallenCapability.GetFallCap(player);
             MatrixStack stack = event.getMatrixStack();
 
             if (!cap.isFallen()) continue;
+            if (!cap.isCallingForHelp() && distance > 10) continue;
+
             float f = entity.getBbHeight() * 0.40f;
             stack.pushPose();
 
@@ -91,7 +95,7 @@ public class RenderFallPlateEvent {
                             .withStyle(cap.hasEnough(inst.player) ? TextFormatting.GREEN : TextFormatting.RED);
 
                     float scaleFactor = (timerIMG.getWidth() / 64F);
-                    TextUtil.renderText(stack, penaltyAmount, 1,false, timerIMG.x0 + (17 * scaleFactor), 30 * scaleFactor,
+                    TextUtil.renderText(stack, penaltyAmount, 1, false, timerIMG.x0 + (17 * scaleFactor), 30 * scaleFactor,
                             timerIMG.y0 + (17 * scaleFactor), 30 * scaleFactor, 0, TextUtil.txtAlignment.MIDDLE);
                 }
                 //This txt is for showing if the player wishes to kill the fallen player
@@ -114,40 +118,59 @@ public class RenderFallPlateEvent {
                             timerIMG.y0 + (17 * scaleFactor), 30 * scaleFactor, 0, TextUtil.txtAlignment.MIDDLE);
                 }
 
-                if (mC.crosshairPickEntity == player && !player.isDeadOrDying()) {
-                    int radius = 30;
+                IFormattableTextComponent message = null;
+                int radius = 30;
 
-                    IFormattableTextComponent message = null;
-                    if (mC.player.isCrouching()){
-                        if (cap.getKillTime() > 0){
+                if (mC.crosshairPickEntity == player && !player.isDeadOrDying()) {
+
+                    if (mC.player.isCrouching()) {
+                        if (cap.getKillTime() > 0) {
                             message = new TranslationTextComponent("revive-me.fall_plate.cant_kill");
-                        }
-                        else {
+                        } else {
                             message = new TranslationTextComponent("revive-me.fall_plate.kill");
                             message = new StringTextComponent(message.getString()
                                     .replace("{attack}", inst.options.keyAttack.getKey().getDisplayName().getString()));
                         }
-                    }
-                    else if (cap.hasEnough(mC.player)) {
+                    } else if (cap.hasEnough(mC.player)) {
                         message = new TranslationTextComponent("revive-me.fall_plate.revive");
                         message = new StringTextComponent(message.getString()
                                 .replace("{use}", inst.options.keyUse.getKey().getDisplayName().getString()));
 
                     }
-
-                    if (message != null) {
-                        int txtWidth = mC.font.width(message);
-                        int padding = 2;
-
-                        int width = txtWidth + (padding * 2);
-                        int height = (mC.font.lineHeight + (padding * 2));
-
-                        ClientUtil.blitColor(stack, -(width) / 2, width, -(height + radius), height, blackBg);
-
-                        height = mC.font.lineHeight;
-                        TextUtil.renderText(message, stack, -txtWidth / 2F, -(height + radius + padding), false);
-                    }
                 }
+                if (message == null && cap.isCallingForHelp()) {
+                    message = new StringTextComponent("").append(new StringTextComponent("ABBA ")
+                                    .withStyle(TextFormatting.BOLD, TextFormatting.RED, TextFormatting.OBFUSCATED))
+                            .append(new StringTextComponent("[").withStyle(TextFormatting.BOLD))
+                            .append(new TranslationTextComponent("revive-me.call_for_help")
+                                    .withStyle(TextFormatting.BOLD, TextFormatting.GOLD))
+                            .append(new StringTextComponent("]").withStyle(TextFormatting.BOLD))
+                            .append(new StringTextComponent(" ABBA")
+                                    .withStyle(TextFormatting.BOLD, TextFormatting.RED, TextFormatting.OBFUSCATED));
+//                    message = (new TranslationTextComponent("revive-me.call_for_help")
+//                            .withStyle(TextFormatting.GOLD));
+                }
+
+                if (message != null) {
+                    int txtWidth = mC.font.width(message);
+                    int padding = 2;
+
+                    int width = txtWidth + (padding * 2);
+                    int height = (mC.font.lineHeight + (padding * 2));
+                    int x0 = (-(width) / 2);
+                    int y0 = -(height + radius);
+
+//                    ClientUtil.blitColor(stack,   x0- 1, width + 2, y0 - 1, 1, whiteBg);
+//                    ClientUtil.blitColor(stack,   x0- 1, width + 2, y0 + height, 1, whiteBg);
+//                    ClientUtil.blitColor(stack,   x0- 1, 1, y0, height + 1, whiteBg);
+//                    ClientUtil.blitColor(stack,   x0+width, 1, y0, height + 1, whiteBg);
+                    ClientUtil.blitColor(stack, x0, width, y0, height, blackBg);
+
+                    TextUtil.renderText(stack, message, false, x0, width, y0, height,
+                            2, TextUtil.txtAlignment.MIDDLE);
+//                    TextUtil.renderText(message, stack, -txtWidth / 2F, -(height + radius + padding), false);
+                }
+
             }
             else if (!mC.player.getUUID().equals(cap.getOtherPlayer())){
                 int radius = 20;

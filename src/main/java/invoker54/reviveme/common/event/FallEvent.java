@@ -10,6 +10,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.IAngerable;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -19,9 +20,9 @@ import net.minecraft.potion.EffectInstance;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.Util;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.GameType;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -43,12 +44,12 @@ public class FallEvent {
 //        LOGGER.info("WAS IT CANCELLED? " + event.isCanceled());
         if (event.isCanceled()) return;
 //        LOGGER.info("IS IT A PLAYER? " + (event.getEntityLiving() instanceof PlayerEntity));
-        if (!(event.getEntityLiving() instanceof PlayerEntity)) return;
+        if (!(event.getEntityLiving() instanceof ServerPlayerEntity)) return;
         
-        PlayerEntity player = (PlayerEntity) event.getEntityLiving();
+        ServerPlayerEntity player = (ServerPlayerEntity) event.getEntityLiving();
 
         //If they are in creative mode, don't bother with any of this.
-        if (player.isCreative()) return;
+        if ((player.gameMode.getGameModeForPlayer() == GameType.CREATIVE)) return;
 
         //If they have a totem of undying in their InteractionHand, don't cancel the events
         for (Hand InteractionHand : Hand.values()) {
@@ -86,10 +87,8 @@ public class FallEvent {
 //        LOGGER.info("Are they fallen? " + instance.isFallen());
         if (!instance.isFallen()) {
 //            LOGGER.info("MAKING THEM FALLEN");
-            for (PlayerEntity player1 : ((ServerWorld) player.level).getServer().getPlayerList().getPlayers()) {
-                player1.sendMessage(new StringTextComponent(player.getName().getString())
-                        .append(new TranslationTextComponent("revive-me.chat.player_fallen")), Util.NIL_UUID);
-            }
+            NetworkHandler.sendMessage(new StringTextComponent(player.getName().getString())
+                    .append(new TranslationTextComponent("revive-me.chat.player_fallen")), false, player);
 
             //Set to fallen state
             instance.setFallen(true);
@@ -104,7 +103,7 @@ public class FallEvent {
             instance.setDamageSource(source);
 
             //Set time left to whatever is in config file
-            instance.SetTimeLeft((int) player.level.getGameTime(), ReviveMeConfig.timeLeft);
+            instance.SetTimeLeft(player.level.getGameTime(), ReviveMeConfig.timeLeft);
 
             //Set penalty type and amount
             instance.setPenalty(ReviveMeConfig.penaltyType, ReviveMeConfig.penaltyAmount, ReviveMeConfig.penaltyItem);
@@ -159,18 +158,19 @@ public class FallEvent {
             }
             nbt.put(player.getStringUUID(), instance.writeNBT());
 
+            player.setHealth(0);
             //Make all angerable enemies nearby forgive the player.
             for (Entity entity : ((ServerWorld) player.level).getAllEntities()) {
                 if (!(entity instanceof MobEntity)) continue;
                 MobEntity mob = (MobEntity) entity;
-
+                if (mob.getTarget() == null) continue;
+                if (mob.getTarget().getId() != player.getId()) continue;
                 if (mob instanceof IAngerable){
                     ((IAngerable)mob).playerDied(player);
                 }
-                if (mob.getTarget() == null) continue;
-                if (mob.getTarget().getId() == player.getId()) mob.setTarget(null);
+                mob.aiStep();
             }
-
+            player.setHealth(1);
 
             NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player),
                     new SyncClientCapMsg(nbt));

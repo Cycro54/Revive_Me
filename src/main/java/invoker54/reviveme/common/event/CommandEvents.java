@@ -33,7 +33,9 @@ public class CommandEvents {
 //        LOGGER.debug("Who did the command" + player.getName().getString());
         if (!FallenCapability.GetFallCap(player).isFallen()) return;
         if (ReviveMeConfig.blockedCommands.contains("/") || ReviveMeConfig.blockedCommands.contains(rootName)){
-            player.sendMessage(new TranslationTextComponent("revive-me.chat.blocked_command"), Util.NIL_UUID);
+            if (!ReviveMeConfig.silenceCommandMessages) {
+                player.sendMessage(new TranslationTextComponent("revive-me.chat.blocked_command"), Util.NIL_UUID);
+            }
             event.setCanceled(true);
         }
     }
