@@ -1,13 +1,19 @@
 package invoker54.reviveme.common.event;
 
+import invoker54.invocore.common.MathUtil;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
 import invoker54.reviveme.init.MobEffectInit;
+import invoker54.reviveme.init.SoundInit;
 import invoker54.reviveme.mixin.FoodMixin;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetHealthPacket;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Pose;
@@ -16,7 +22,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameType;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
@@ -24,6 +32,14 @@ import net.minecraftforge.network.PacketDistributor;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class FallenTimerEvent {
+
+    @SubscribeEvent
+    public static void changeGamemode(PlayerEvent.PlayerChangeGameModeEvent event){
+        Player player = event.getEntity();
+        if (!(FallenCapability.GetFallCap(player).isFallen())) return;
+        if (event.getNewGameMode() != GameType.CREATIVE && event.getNewGameMode() != GameType.SPECTATOR) return;
+        revivePlayer(player,false);
+    }
 
     @SubscribeEvent
     public static void TickDownTimer(TickEvent.PlayerTickEvent event) {
@@ -37,12 +53,6 @@ public class FallenTimerEvent {
         FallenCapability cap = FallenCapability.GetFallCap(event.player);
 
         if (!cap.isFallen() || cap.getOtherPlayer() != null) return;
-
-        //If they are in creative or spectator mode, cancel the event
-        if (event.player.isCreative() || event.player.isSpectator()) {
-            revivePlayer(event.player);
-            return;
-        }
 
         //Make sure they aren't sprinting.
         if(event.player.isSprinting()) event.player.setSprinting(false);
@@ -85,7 +95,7 @@ public class FallenTimerEvent {
 
         Player reviver = fellPlayer.getServer().getPlayerList().getPlayer(cap.getOtherPlayer());
         takeFromReviver(reviver, fellPlayer);
-        revivePlayer(fellPlayer);
+        revivePlayer(fellPlayer, false);
     }
 
     public static void takeFromReviver(Player reviver, Player fallen) {
@@ -110,9 +120,11 @@ public class FallenTimerEvent {
                     break;
                 case FOOD:
                     FoodData food = reviver.getFoodData();
-                    leftoverAmount = Math.max(0,Math.round(amount - food.getSaturationLevel()));
+                    leftoverAmount = (int) Math.max(0,Math.round(amount - food.getSaturationLevel()));
                     ((FoodMixin)food).setSaturationLevel(Math.max(0, food.getSaturationLevel() - amount));
                     food.setFoodLevel(Math.max(0,food.getFoodLevel() - leftoverAmount));
+                    ((ServerPlayer)reviver).connection.send(new ClientboundSetHealthPacket(reviver.getHealth(),
+                            reviver.getFoodData().getFoodLevel(), reviver.getFoodData().getSaturationLevel()));
                     break;
                 case ITEM:
                     Item penaltyItem = cap.getPenaltyItem().getItem();
@@ -140,7 +152,7 @@ public class FallenTimerEvent {
                 new SyncClientCapMsg(nbt));
     }
 
-    public static void revivePlayer(Player fallen){
+    public static void revivePlayer(Player fallen, boolean isCommand){
         FallenCapability cap = FallenCapability.GetFallCap(fallen);
 
         //region Set the revived players health
@@ -196,7 +208,13 @@ public class FallenTimerEvent {
         CompoundTag nbt = new CompoundTag();
         nbt.put(fallen.getStringUUID(), cap.writeNBT());
 
+        fallen.level().playSound(null, fallen.getX(), fallen.getY(), fallen.getZ(),
+                SoundInit.REVIVED, SoundSource.PLAYERS, 1.0F, MathUtil.randomFloat(0.7F, 1.0F));
+
         if (!fallen.level().isClientSide) {
+            NetworkHandler.sendMessage(fallen.getDisplayName().copy().append(Component.translatable("revive-me.commands.revive_pass")),
+                    isCommand, fallen);
+
             NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> fallen),
                     new SyncClientCapMsg(nbt));
         }

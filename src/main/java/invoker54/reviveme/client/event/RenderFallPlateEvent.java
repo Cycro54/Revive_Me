@@ -24,7 +24,7 @@ import org.apache.logging.log4j.Logger;
 import java.awt.*;
 import java.text.DecimalFormat;
 
-import static invoker54.invocore.client.ClientUtil.getMinecraft;
+import static invoker54.invocore.client.ClientUtil.*;
 import static invoker54.reviveme.client.event.FallScreenEvent.timerIMG;
 import static invoker54.reviveme.client.event.ReviveScreenEvent.bgColor;
 import static invoker54.reviveme.client.event.ReviveScreenEvent.progressColor;
@@ -45,12 +45,15 @@ public class RenderFallPlateEvent {
         for (Entity entity : inst.level.entitiesForRendering()) {
             if (!(entity instanceof Player player)) continue;
             if (entity.equals(getMinecraft().player)) continue;
-            if (entity.distanceTo(getMinecraft().player) > 20) continue;
+            float distance = entity.distanceTo(getMinecraft().player);
+            if (distance > 25) continue;
 
             FallenCapability cap = FallenCapability.GetFallCap(player);
             PoseStack stack = event.getPoseStack();
 
             if (!cap.isFallen()) continue;
+            if (!cap.isCallingForHelp() && distance > 10) continue;
+
             float f = entity.getBbHeight() * 0.40f;
             stack.pushPose();
 
@@ -93,7 +96,7 @@ public class RenderFallPlateEvent {
                             .withStyle(cap.hasEnough(inst.player) ? ChatFormatting.GREEN : ChatFormatting.RED);
 
                     float scaleFactor = (timerIMG.getWidth() / 64F);
-                    TextUtil.renderText( stack,penaltyAmount, 1,false, timerIMG.x0 + (17 * scaleFactor), 30 * scaleFactor,
+                    TextUtil.renderText(stack, penaltyAmount, 1, false, timerIMG.x0 + (17 * scaleFactor), 30 * scaleFactor,
                             timerIMG.y0 + (17 * scaleFactor), 30 * scaleFactor, 0, TextUtil.txtAlignment.MIDDLE);
                 }
                 //This txt is for showing if the player wishes to kill the fallen player
@@ -116,39 +119,57 @@ public class RenderFallPlateEvent {
                             timerIMG.y0 + (17 * scaleFactor), 30 * scaleFactor, 0, TextUtil.txtAlignment.MIDDLE);
                 }
 
-                if (getMinecraft().crosshairPickEntity == player && !player.isDeadOrDying()) {
-                    int radius = 30;
+                MutableComponent message = null;
+                int radius = 30;
 
-                    MutableComponent message = null;
-                    if (getMinecraft().player.isCrouching()){
-                        if (cap.getKillTime() > 0){
+                if (getMinecraft().crosshairPickEntity == player && !player.isDeadOrDying()) {
+
+                    if (getPlayer().isCrouching()) {
+                        if (cap.getKillTime() > 0) {
                             message = Component.translatable("revive-me.fall_plate.cant_kill");
-                        }
-                        else {
+                        } else {
                             message = Component.translatable("revive-me.fall_plate.kill");
                             message = Component.literal(message.getString()
                                     .replace("{attack}", inst.options.keyAttack.getKey().getDisplayName().getString()));
                         }
-                    }
-                    else if (cap.hasEnough(getMinecraft().player)) {
+                    } else if (cap.hasEnough(getPlayer())) {
                         message = Component.translatable("revive-me.fall_plate.revive");
                         message = Component.literal(message.getString()
                                 .replace("{use}", inst.options.keyUse.getKey().getDisplayName().getString()));
 
                     }
+                }
+                if (message == null && cap.isCallingForHelp()) {
+                    message = Component.literal("").append(Component.literal("ABBA ")
+                                    .withStyle(ChatFormatting.BOLD, ChatFormatting.RED, ChatFormatting.OBFUSCATED))
+                            .append(Component.translatable("[").withStyle(ChatFormatting.BOLD))
+                            .append(Component.translatable("revive-me.call_for_help")
+                                    .withStyle(ChatFormatting.BOLD, ChatFormatting.GOLD))
+                            .append(Component.literal("]").withStyle(ChatFormatting.BOLD))
+                            .append(Component.literal(" ABBA")
+                                    .withStyle(ChatFormatting.BOLD, ChatFormatting.RED, ChatFormatting.OBFUSCATED));
+//                    message = (new TranslationTextComponent("revive-me.call_for_help")
+//                            .withStyle(ChatFormatting.GOLD));
+                }
 
-                    if (message != null) {
-                        int txtWidth = getMinecraft().font.width(message);
-                        int padding = 2;
+                if (message != null) {
+                    int txtWidth = getMinecraft().font.width(message);
+                    int padding = 2;
 
-                        int width = txtWidth + (padding * 2);
-                        int height = (getMinecraft().font.lineHeight + (padding * 2));
+                    int width = txtWidth + (padding * 2);
+                    int height = (getMinecraft().font.lineHeight + (padding * 2));
+                    int x0 = (-(width) / 2);
+                    int y0 = -(height + radius);
 
-                        ClientUtil.blitColor( stack,-(width) / 2, width, -(height + radius), height, blackBg);
+//                    ClientUtil.blitColor(stack,   x0- 1, width + 2, y0 - 1, 1, whiteBg);
+//                    ClientUtil.blitColor(stack,   x0- 1, width + 2, y0 + height, 1, whiteBg);
+//                    ClientUtil.blitColor(stack,   x0- 1, 1, y0, height + 1, whiteBg);
+//                    ClientUtil.blitColor(stack,   x0+width, 1, y0, height + 1, whiteBg);
+                    ClientUtil.blitColor(stack, x0, width, y0, height, blackBg);
 
-                        height = getMinecraft().font.lineHeight;
-                        TextUtil.renderText(message, stack, -txtWidth / 2F, -(height + radius + padding), false);
-                    }
+                    TextUtil.renderText(stack, message, false, x0, width, y0, height,
+                            2, TextUtil.txtAlignment.MIDDLE);
+//                    TextUtil.renderText(message, stack, -txtWidth / 2F, -(height + radius + padding), false);
                 }
             }
             else if (!getMinecraft().player.getUUID().equals(cap.getOtherPlayer())){

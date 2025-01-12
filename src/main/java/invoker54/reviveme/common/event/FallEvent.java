@@ -10,6 +10,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
@@ -21,6 +22,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -41,13 +43,13 @@ public class FallEvent {
 //        LOGGER.info("WAS IT CANCELLED? " + event.isCanceled());
         if (event.isCanceled()) return;
 //        LOGGER.info("IS IT A PLAYER? " + (event.getEntityLiving() instanceof Player));
-        if (!(event.getEntity() instanceof Player player)) return;
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
 
         //If they are in creative mode, don't bother with any of this.
-        if (player.isCreative()) return;
+        if (player.gameMode.getGameModeForPlayer() == GameType.CREATIVE) return;
 
         //If they have a totem of undying in their InteractionHand, don't cancel the events
-        for(net.minecraft.world.InteractionHand InteractionHand : InteractionHand.values()) {
+        for (InteractionHand InteractionHand : InteractionHand.values()) {
             ItemStack itemstack1 = player.getItemInHand(InteractionHand);
             if (itemstack1.getItem() == Items.TOTEM_OF_UNDYING) {
                 return;
@@ -58,7 +60,7 @@ public class FallEvent {
         event.setCanceled(cancelEvent(player, event.getSource()));
     }
 
-    public static boolean cancelEvent(Player player, DamageSource source){
+    public static boolean cancelEvent(Player player, DamageSource source) {
         FallenCapability instance = FallenCapability.GetFallCap(player);
 
         //Generate a sacrificial item list
@@ -77,15 +79,13 @@ public class FallEvent {
         //If they used both self-revive options, and they are not on a server, they should die immediately
         if (instance.usedChance() &&
                 (instance.usedSacrificedItems() || playerItems.isEmpty()) &&
-                player.getServer() != null && player.getServer().isSingleplayer()) return false;
+                (player.getServer() != null && player.getServer().getPlayerCount() < 2)) return false;
 
 //        LOGGER.info("Are they fallen? " + instance.isFallen());
         if (!instance.isFallen()) {
 //            LOGGER.info("MAKING THEM FALLEN");
-            for(Player player1 : ((ServerLevel)player.level()).players()){
-                player1.sendSystemMessage(Component.literal(player.getName().getString())
-                        .append(Component.translatable("revive-me.chat.player_fallen")));
-            }
+            NetworkHandler.sendMessage(Component.literal(player.getName().getString())
+                    .append(Component.translatable("revive-me.chat.player_fallen")), false, player);
 
             //Set to fallen state
             instance.setFallen(true);
@@ -100,7 +100,7 @@ public class FallEvent {
             instance.setDamageSource(source);
 
             //Set time left to whatever is in config file
-            instance.SetTimeLeft((int) player.level().getGameTime(), ReviveMeConfig.timeLeft);
+            instance.SetTimeLeft(player.level().getGameTime(), ReviveMeConfig.timeLeft);
 
             //Set penalty type and amount
             instance.setPenalty(ReviveMeConfig.penaltyType, ReviveMeConfig.penaltyAmount, ReviveMeConfig.penaltyItem);
@@ -155,16 +155,18 @@ public class FallEvent {
             }
             nbt.put(player.getStringUUID(), instance.writeNBT());
 
-            //Make all aggressive enemies nearby forgive the player.
+            player.setHealth(0);
+            //Make all angerable enemies nearby forgive the player.
             for (Entity entity : ((ServerLevel) player.level()).getAllEntities()) {
                 if (!(entity instanceof Mob mob)) continue;
-
-                if (mob instanceof NeutralMob neutralMob){
-                    neutralMob.playerDied(player);
-                }
                 if (mob.getTarget() == null) continue;
-                if (mob.getTarget().getId() == player.getId()) mob.setTarget(null);
+                if (mob.getTarget().getId() != player.getId()) continue;
+                if (mob instanceof NeutralMob){
+                    ((NeutralMob)mob).playerDied(player);
+                }
+                mob.aiStep();
             }
+            player.setHealth(1);
 
 
             NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player),

@@ -50,9 +50,9 @@ public class ForgeHooksMixin {
         if (!targCap.hasEnough(player)) return;
 
         //Now add the player to the targets fallencapability and vice versa.
-        targCap.setProgress((int) player.level().getGameTime(), ReviveMeConfig.reviveTime);
+        targCap.setProgress(player.level().getGameTime(), ReviveMeConfig.reviveTime);
         targCap.setOtherPlayer(player.getUUID());
-        myCap.setProgress((int) player.level().getGameTime(), ReviveMeConfig.reviveTime);
+        myCap.setProgress(player.level().getGameTime(), ReviveMeConfig.reviveTime);
         myCap.setOtherPlayer(targPlayer.getUUID());
 
         //Make sure the fallen client has this data too
