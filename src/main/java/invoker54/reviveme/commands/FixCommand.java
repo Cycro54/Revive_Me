@@ -6,14 +6,13 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.event.FallEvent;
 import invoker54.reviveme.common.event.FallenTimerEvent;
-import net.minecraft.Util;
+import invoker54.reviveme.common.network.NetworkHandler;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.player.Player;
 
 public class FixCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -46,14 +45,12 @@ public class FixCommand {
 
         //TODO: Remove this in future versions.
         caller.setInvulnerable(false);
+
+        NetworkHandler.sendMessage((new TranslatableComponent("revive-me.commands.fix")),
+                true, caller);
         
         //This should fix the player if they are downed
         if (cap.isFallen()){
-            for(Player player1 : caller.server.getPlayerList().getPlayers()){
-                player1.sendMessage(caller.getDisplayName().copy().append
-                        (new TranslatableComponent("revive-me.commands.fix").getString()), Util.NIL_UUID);
-            }
-
             DamageSource damageSource = cap.getDamageSource();
             if (damageSource == null) damageSource = DamageSource.OUT_OF_WORLD;
 
@@ -69,12 +66,7 @@ public class FixCommand {
         
         //This should fix the player if they are no longer fallen
         else {
-            FallenTimerEvent.revivePlayer(caller);
-
-            for(Player player1 : caller.server.getPlayerList().getPlayers()){
-                player1.sendMessage(caller.getDisplayName().copy().append
-                        (new TranslatableComponent("revive-me.commands.fix").getString()), Util.NIL_UUID);
-            }
+            FallenTimerEvent.revivePlayer(caller, true);
         }
         
         return 1;

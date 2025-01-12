@@ -1,0 +1,45 @@
+{
+  "fallen_state_heart_beat": {
+    "subtitle": "sounds.reviveme.fallen_state_heart_beat",
+    "sounds": [
+      "reviveme:fallen_state/heart_beat"
+    ]
+  },
+  "fallen_state_tick_tock": {
+    "subtitle": "sounds.reviveme.fallen_state_tick_tock",
+    "sounds": [
+      "reviveme:fallen_state/tick_tock_1",
+      "reviveme:fallen_state/tick_tock_2"
+    ]
+  },
+  "revive_main":{
+    "subtitle": "sounds.reviveme.revive_main",
+    "sounds": [
+      "reviveme:revive/revive_main"
+    ]
+  },
+  "revive_background": {
+    "subtitle": "sounds.reviveme.revive_background",
+    "sounds": [
+      "reviveme:revive/revive_background_1",
+      "reviveme:revive/revive_background_2",
+      "reviveme:revive/revive_background_3",
+      "reviveme:revive/revive_background_4"
+    ]
+  },
+  "revived": {
+    "subtitle": "sounds.reviveme.revived",
+    "sounds": [
+      "reviveme:revive/revived_1",
+      "reviveme:revive/revived_2"
+    ]
+  },
+  "call_for_help": {
+    "subtitle": "sounds.reviveme.call_for_help",
+    "sounds": [
+      "reviveme:help_sound/call_for_help_modified_1",
+      "reviveme:help_sound/call_for_help_modified_2",
+      "reviveme:help_sound/call_for_help_modified_3"
+    ]
+  }
+}

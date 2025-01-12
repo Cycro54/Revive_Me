@@ -16,7 +16,7 @@ apply plugin: 'maven-publish'
 apply from: 'https://raw.githubusercontent.com/SizableShrimp/Forge-Class-Remapper/main/classremapper.gradle'
 apply plugin: 'org.spongepowered.mixin'
 
-version = '2.6.12'
+version = '2.7.0'
 group = 'invoker54' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'revive-me-1.18.2'
 
@@ -133,7 +133,7 @@ dependencies {
     // compile "some.group:artifact:version:classifier"
     // compile "some.group:artifact:version"
 
-    implementation fg.deobf("invoker54:invocore-1.18.2:2.1.0")
+    implementation fg.deobf("invoker54:invocore-1.18.2:2.2.0")
     // Real examples
     // compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
     // compile 'com.googlecode.efficient-java-matrix-library:ejml:0.24' // adds ejml to the dev env

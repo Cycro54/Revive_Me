@@ -6,12 +6,12 @@ import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
 import invoker54.reviveme.init.MobEffectInit;
-import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
@@ -23,6 +23,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -43,10 +44,10 @@ public class FallEvent {
 //        LOGGER.info("WAS IT CANCELLED? " + event.isCanceled());
         if (event.isCanceled()) return;
 //        LOGGER.info("IS IT A PLAYER? " + (event.getEntityLiving() instanceof Player));
-        if (!(event.getEntityLiving() instanceof Player player)) return;
+        if (!(event.getEntityLiving() instanceof ServerPlayer player)) return;
 
         //If they are in creative mode, don't bother with any of this.
-        if (player.isCreative()) return;
+        if (player.gameMode.getGameModeForPlayer() == GameType.CREATIVE) return;
 
         //If they have a totem of undying in their InteractionHand, don't cancel the events
         for (InteractionHand InteractionHand : InteractionHand.values()) {
@@ -84,10 +85,8 @@ public class FallEvent {
 //        LOGGER.info("Are they fallen? " + instance.isFallen());
         if (!instance.isFallen()) {
 //            LOGGER.info("MAKING THEM FALLEN");
-            for (Player player1 : ((ServerLevel) player.level).getServer().getPlayerList().getPlayers()) {
-                player1.sendMessage(new TextComponent(player.getName().getString())
-                        .append(new TranslatableComponent("revive-me.chat.player_fallen")), Util.NIL_UUID);
-            }
+            NetworkHandler.sendMessage(new TextComponent(player.getName().getString())
+                    .append(new TranslatableComponent("revive-me.chat.player_fallen")), false, player);
 
             //Set to fallen state
             instance.setFallen(true);
@@ -102,7 +101,7 @@ public class FallEvent {
             instance.setDamageSource(source);
 
             //Set time left to whatever is in config file
-            instance.SetTimeLeft((int) player.level.getGameTime(), ReviveMeConfig.timeLeft);
+            instance.SetTimeLeft(player.level.getGameTime(), ReviveMeConfig.timeLeft);
 
             //Set penalty type and amount
             instance.setPenalty(ReviveMeConfig.penaltyType, ReviveMeConfig.penaltyAmount, ReviveMeConfig.penaltyItem);
@@ -157,16 +156,18 @@ public class FallEvent {
             }
             nbt.put(player.getStringUUID(), instance.writeNBT());
 
+            player.setHealth(0);
             //Make all angerable enemies nearby forgive the player.
             for (Entity entity : ((ServerLevel) player.level).getAllEntities()) {
                 if (!(entity instanceof Mob mob)) continue;
-
-                if (mob instanceof NeutralMob neutralMob){
-                    neutralMob.playerDied(player);
-                }
                 if (mob.getTarget() == null) continue;
-                if (mob.getTarget().getId() == player.getId()) mob.setTarget(null);
+                if (mob.getTarget().getId() != player.getId()) continue;
+                if (mob instanceof NeutralMob){
+                    ((NeutralMob)mob).playerDied(player);
+                }
+                mob.aiStep();
             }
+            player.setHealth(1);
 
 
             NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player),

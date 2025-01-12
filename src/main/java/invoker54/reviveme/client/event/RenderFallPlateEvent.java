@@ -47,12 +47,15 @@ public class RenderFallPlateEvent {
         for (Entity entity : inst.level.entitiesForRendering()) {
             if (!(entity instanceof Player player)) continue;
             if (entity.equals(mC.player)) continue;
-            if (entity.distanceTo(mC.player) > 20) continue;
+            float distance = entity.distanceTo(mC.player);
+            if (distance > 25) continue;
 
             FallenCapability cap = FallenCapability.GetFallCap(player);
             PoseStack stack = event.getPoseStack();
 
             if (!cap.isFallen()) continue;
+            if (!cap.isCallingForHelp() && distance > 10) continue;
+
             float f = entity.getBbHeight() * 0.40f;
             stack.pushPose();
 
@@ -92,7 +95,7 @@ public class RenderFallPlateEvent {
                             .withStyle(cap.hasEnough(inst.player) ? ChatFormatting.GREEN : ChatFormatting.RED);
 
                     float scaleFactor = (timerIMG.getWidth() / 64F);
-                    TextUtil.renderText(stack, penaltyAmount, 1,false, timerIMG.x0 + (17 * scaleFactor), 30 * scaleFactor,
+                    TextUtil.renderText(stack, penaltyAmount, 1, false, timerIMG.x0 + (17 * scaleFactor), 30 * scaleFactor,
                             timerIMG.y0 + (17 * scaleFactor), 30 * scaleFactor, 0, TextUtil.txtAlignment.MIDDLE);
                 }
                 //This txt is for showing if the player wishes to kill the fallen player
@@ -115,39 +118,57 @@ public class RenderFallPlateEvent {
                             timerIMG.y0 + (17 * scaleFactor), 30 * scaleFactor, 0, TextUtil.txtAlignment.MIDDLE);
                 }
 
-                if (mC.crosshairPickEntity == player && !player.isDeadOrDying()) {
-                    int radius = 30;
+                MutableComponent message = null;
+                int radius = 30;
 
-                    MutableComponent message = null;
-                    if (mC.player.isCrouching()){
-                        if (cap.getKillTime() > 0){
+                if (mC.crosshairPickEntity == player && !player.isDeadOrDying()) {
+
+                    if (mC.player.isCrouching()) {
+                        if (cap.getKillTime() > 0) {
                             message = new TranslatableComponent("revive-me.fall_plate.cant_kill");
-                        }
-                        else {
+                        } else {
                             message = new TranslatableComponent("revive-me.fall_plate.kill");
                             message = new TextComponent(message.getString()
                                     .replace("{attack}", inst.options.keyAttack.getKey().getDisplayName().getString()));
                         }
-                    }
-                    else if (cap.hasEnough(mC.player)) {
+                    } else if (cap.hasEnough(mC.player)) {
                         message = new TranslatableComponent("revive-me.fall_plate.revive");
                         message = new TextComponent(message.getString()
                                 .replace("{use}", inst.options.keyUse.getKey().getDisplayName().getString()));
 
                     }
+                }
+                if (message == null && cap.isCallingForHelp()) {
+                    message = new TextComponent("").append(new TextComponent("ABBA ")
+                                    .withStyle(ChatFormatting.BOLD, ChatFormatting.RED, ChatFormatting.OBFUSCATED))
+                            .append(new TextComponent("[").withStyle(ChatFormatting.BOLD))
+                            .append(new TranslatableComponent("revive-me.call_for_help")
+                                    .withStyle(ChatFormatting.BOLD, ChatFormatting.GOLD))
+                            .append(new TextComponent("]").withStyle(ChatFormatting.BOLD))
+                            .append(new TextComponent(" ABBA")
+                                    .withStyle(ChatFormatting.BOLD, ChatFormatting.RED, ChatFormatting.OBFUSCATED));
+//                    message = (new TranslationTextComponent("revive-me.call_for_help")
+//                            .withStyle(ChatFormatting.GOLD));
+                }
 
-                    if (message != null) {
-                        int txtWidth = mC.font.width(message);
-                        int padding = 2;
+                if (message != null) {
+                    int txtWidth = mC.font.width(message);
+                    int padding = 2;
 
-                        int width = txtWidth + (padding * 2);
-                        int height = (mC.font.lineHeight + (padding * 2));
+                    int width = txtWidth + (padding * 2);
+                    int height = (mC.font.lineHeight + (padding * 2));
+                    int x0 = (-(width) / 2);
+                    int y0 = -(height + radius);
 
-                        ClientUtil.blitColor(stack, -(width) / 2, width, -(height + radius), height, blackBg);
+//                    ClientUtil.blitColor(stack,   x0- 1, width + 2, y0 - 1, 1, whiteBg);
+//                    ClientUtil.blitColor(stack,   x0- 1, width + 2, y0 + height, 1, whiteBg);
+//                    ClientUtil.blitColor(stack,   x0- 1, 1, y0, height + 1, whiteBg);
+//                    ClientUtil.blitColor(stack,   x0+width, 1, y0, height + 1, whiteBg);
+                    ClientUtil.blitColor(stack, x0, width, y0, height, blackBg);
 
-                        height = mC.font.lineHeight;
-                        TextUtil.renderText(message, stack, -txtWidth / 2F, -(height + radius + padding), false);
-                    }
+                    TextUtil.renderText(stack, message, false, x0, width, y0, height,
+                            2, TextUtil.txtAlignment.MIDDLE);
+//                    TextUtil.renderText(message, stack, -txtWidth / 2F, -(height + radius + padding), false);
                 }
             }
             else if (!mC.player.getUUID().equals(cap.getOtherPlayer())){
