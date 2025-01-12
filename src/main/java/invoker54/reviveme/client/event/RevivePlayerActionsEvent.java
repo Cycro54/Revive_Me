@@ -44,7 +44,7 @@ public class RevivePlayerActionsEvent {
 
         //Check if that player is being revived by them
         if (!cancelEvent) {
-//            //System.out.println("Someone I'm reviving? : " + (FallenCapability.GetFallCap((Player)inst.crosshairPickEntity).
+//            //System.out.println("Someone I'm reviving? : " + (FallenData.get((Player)inst.crosshairPickEntity).
 //                    compareUUID(myUUID)));
             cancelEvent = !(FallenData.get((Player) inst.crosshairPickEntity).
                     isReviver(myUUID));

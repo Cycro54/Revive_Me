@@ -1,7 +1,12 @@
 package invoker54.reviveme.init;
 
 import invoker54.reviveme.ReviveMe;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.payload.*;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
+import net.minecraft.server.level.ServerChunkCache;
+import net.minecraft.world.entity.Entity;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -19,13 +24,14 @@ public class NetworkInit {
 
     @SubscribeEvent
     public static void registerNetwork(final RegisterPayloadHandlersEvent event){
-        PayloadRegistrar registrar = event.registrar("6");
+        PayloadRegistrar registrar = event.registrar("7");
         InstaKillMsg.register(registrar);
         RestartDeathTimerMsg.register(registrar);
         ReviveChanceMsg.register(registrar);
         SacrificeItemsMsg.register(registrar);
         SyncClientCapMsg.register(registrar);
         SyncConfigMsg.register(registrar);
+        CallForHelpMsg.register(registrar);
     }
 
     public static String createID(Class<?> msgClass){
@@ -36,5 +42,19 @@ public class NetworkInit {
             id.append(s);
         }
         return id.toString().toLowerCase(Locale.ROOT);
+    }
+
+
+    public static void sendMessage(MutableComponent component, boolean isCommand, Entity trackedEntity){
+        if (ReviveMeConfig.silenceCommandMessages && isCommand) return;
+        if (ReviveMeConfig.silenceRegularMessages && !isCommand) return;
+
+        if (ReviveMeConfig.universalChatMessages) {
+            trackedEntity.getServer().getPlayerList().broadcastSystemMessage(component, false);
+        }
+        else {
+            ((ServerChunkCache) trackedEntity.level().getChunkSource()).broadcastAndSend(trackedEntity, new ClientboundSystemChatPacket(component, false));
+        }
+
     }
 }

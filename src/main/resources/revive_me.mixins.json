@@ -8,7 +8,7 @@
     "CommonHooksMixin",
     "EntityMixin",
     "FoodMixin",
-    "PlayerMixin",
+    "ServerPlayerMixin",
     "SlotMixin"
   ],
   "client": [

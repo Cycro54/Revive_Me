@@ -48,10 +48,10 @@ public class CommonHooksMixin {
         //Make sure the player reviving has enough of whatever is required
         if (!targCap.hasEnough(player)) return;
 
-        //Now add the player to the targets fallencapability and vice versa.
-        targCap.setProgress((int) player.level().getGameTime(), ReviveMeConfig.reviveTime);
+        //Now add the player to the targets FallenData and vice versa.
+        targCap.setProgress(player.level().getGameTime(), ReviveMeConfig.reviveTime);
         targCap.setOtherPlayer(player.getUUID());
-        reviverCap.setProgress((int) player.level().getGameTime(), ReviveMeConfig.reviveTime);
+        reviverCap.setProgress(player.level().getGameTime(), ReviveMeConfig.reviveTime);
         reviverCap.setOtherPlayer(targPlayer.getUUID());
 
         //Make sure the fallen client has this data too

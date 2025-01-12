@@ -120,7 +120,7 @@ dependencies {
     // Example mod dependency using a file as dependency
     // implementation files("libs/coolmod-${mc_version}-${coolmod_version}.jar")
 
-    implementation "invoker54:invocore-${minecraft_version}:5.0.1"
+    implementation "invoker54:invocore-${minecraft_version}:5.1.0"
 
     // Example project dependency using a sister or child project:
     // implementation project(":myproject")

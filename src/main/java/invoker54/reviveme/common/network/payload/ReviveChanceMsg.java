@@ -36,7 +36,7 @@ public record ReviveChanceMsg() implements CustomPacketPayload {
                     //And set the revive chance as used
                     cap.setReviveChanceUsed(true);
                     //Revive the player.
-                    FallenTimerEvent.revivePlayer(player);
+                    FallenTimerEvent.revivePlayer(player,  false);
                 }
             });
         }

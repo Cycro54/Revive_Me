@@ -33,6 +33,8 @@ public final class ReviveMeConfig {
     public static Double fallenPenaltyTimer;
     public static boolean selfReviveMultiplayer;
     public static boolean canGiveUp;
+    public static Double reviveHelpCooldown;
+    public static Double reviveHelpDuration;
     public enum FALLEN_POSE{
         CROUCH,
         PRONE,
@@ -57,6 +59,9 @@ public final class ReviveMeConfig {
     public static Integer pvpTimer;
     public static List<String> downedEffects;
     public static List<String> blockedCommands;
+    public static boolean silenceRegularMessages;
+    public static boolean silenceCommandMessages;
+    public static boolean universalChatMessages;
     //Client settings
     public static Boolean compactReviveUI;
 
@@ -82,6 +87,8 @@ public final class ReviveMeConfig {
         fallenPenaltyTimer = COMMON.fallenPenaltyTimer.get();
         selfReviveMultiplayer = COMMON.selfReviveMultiplayer.get();
         canGiveUp = COMMON.canGiveUp.get();
+        reviveHelpCooldown = COMMON.reviveHelpCooldown.get();
+        reviveHelpDuration = COMMON.reviveHelpDuration.get();
         fallenPose = COMMON.fallenPose.get();
         canJump = COMMON.canJump.get();
         canMove = COMMON.canMove.get();
@@ -92,10 +99,15 @@ public final class ReviveMeConfig {
         downedEffects = (List<String>) COMMON.downedEffects.get();
         blockedCommands = (List<String>) COMMON.blockedCommands.get();
         compactReviveUI = COMMON.compactReviveUI.get();
+        silenceRegularMessages = COMMON.silenceRegularMessages.get();
+        silenceCommandMessages = COMMON.silenceCommandMessages.get();
+        universalChatMessages = COMMON.universalChatMessages.get();
     }
 
     public static CompoundTag serialize(){
         CompoundTag mainTag = new CompoundTag();
+        //Time Left
+        mainTag.putInt("timeLeft",timeLeft);
         //Revive Chance
         mainTag.putDouble("reviveChance", reviveChance);
         //Sacrificial Item Percentage
@@ -104,6 +116,10 @@ public final class ReviveMeConfig {
         mainTag.putBoolean("selfReviveMultiplayer", selfReviveMultiplayer);
         //is Give Up Disabled
         mainTag.putBoolean("canGiveUp", canGiveUp);
+        //How long before they can ask for help
+        mainTag.putDouble("reviveHelpCooldown", reviveHelpCooldown);
+        //How long the help effects last for
+        mainTag.putDouble("reviveHelpDuration", reviveHelpDuration);
         //Fallen pose
         mainTag.putString("fallenPose", fallenPose.toString());
         //can jump
@@ -126,6 +142,8 @@ public final class ReviveMeConfig {
     }
 
     public static void deserialize(CompoundTag mainTag){
+        //Time Left
+        timeLeft = mainTag.getInt("timeLeft");
         //Revive Chance
         reviveChance = mainTag.getDouble("reviveChance");
         //Sacrificial Item Percentage
@@ -134,6 +152,10 @@ public final class ReviveMeConfig {
         selfReviveMultiplayer = mainTag.getBoolean("selfReviveMultiplayer");
         //Is Give Up Disabled
         canGiveUp = mainTag.getBoolean("canGiveUp");
+        //How long before they can ask for help
+        reviveHelpCooldown = mainTag.getDouble("reviveHelpCooldown");
+        //How long the help effects last for
+        reviveHelpDuration = mainTag.getDouble("reviveHelpDuration");
         //Fallen Pose
         fallenPose = FALLEN_POSE.valueOf(mainTag.getString("fallenPose"));
         //Can Jump
@@ -155,7 +177,6 @@ public final class ReviveMeConfig {
         //System.out.println("What's the config type? " + eventConfig.getConfig().getType());
 
         if(eventConfig.getConfig().getSpec() == ReviveMeConfig.COMMON_SPEC){
-            //System.out.println("SYNCING CONFIG SHTUFF");
             bakeConfig();
             markDirty(true);
         }
@@ -186,6 +207,8 @@ public final class ReviveMeConfig {
         public final ModConfigSpec.ConfigValue<Double> fallenPenaltyTimer;
         public final ModConfigSpec.ConfigValue<Boolean> selfReviveMultiplayer;
         public final ModConfigSpec.ConfigValue<Boolean> canGiveUp;
+        public final ModConfigSpec.ConfigValue<Double> reviveHelpCooldown;
+        public final ModConfigSpec.ConfigValue<Double> reviveHelpDuration;
         public final ModConfigSpec.ConfigValue<FALLEN_POSE> fallenPose;
         public final ModConfigSpec.ConfigValue<JUMP> canJump;
         public final ModConfigSpec.ConfigValue<Boolean> canMove;
@@ -196,11 +219,14 @@ public final class ReviveMeConfig {
         public final ModConfigSpec.ConfigValue<List<? extends String>> downedEffects;
         public final ModConfigSpec.ConfigValue<List<? extends String>> blockedCommands;
         public final ModConfigSpec.ConfigValue<Boolean> compactReviveUI;
+        public final ModConfigSpec.ConfigValue<Boolean> silenceRegularMessages;
+        public final ModConfigSpec.ConfigValue<Boolean> silenceCommandMessages;
+        public final ModConfigSpec.ConfigValue<Boolean> universalChatMessages;
 
         public CommonConfig(ModConfigSpec.Builder builder) {
             builder.push("Fallen Player Settings");
             builder.push("Self-Revive Settings");
-            selfReviveMultiplayer = builder.comment("If you can use self-revive methods in multiplayer").define("Self_Revive_Multiplayer", false);
+            selfReviveMultiplayer = builder.comment("If you can use self-revive methods in multiplayer").define("Self_Revive_Multiplayer", true);
             reviveChance = builder.comment("How high your chance is to revive.").defineInRange("Revive Chance", 0.5F, 0F, 1F);
             sacrificialItemPercent = builder.comment("Percentage to lose for sacrificial items.").defineInRange("Sacrificial item percentage", 0.5F, 0F, 1F);
             builder.pop();
@@ -208,6 +234,7 @@ public final class ReviveMeConfig {
             builder.push("Timer Settings");
             timeLeft = builder.comment("How long you have before death. Default is 30 seconds. Setting to 0 will disable the timer").defineInRange("Time Left", 30,0, Integer.MAX_VALUE);
             timeReductionPenalty = builder.comment("How much time (in seconds) your death timer loses each time you fall. (Less than 1 is a percentage of max death time, -1 will take away the max)").defineInRange("Time_Reduction_Penalty", 0.2, -1F, Double.MAX_VALUE);
+            fallenPenaltyTimer = builder.comment("how long the revive penalty effects will last in SECONDS").defineInRange("Revive_Penalty_Timer", 45, 0F, Double.MAX_VALUE);
             pvpTimer = builder.comment("How much time (in seconds) must pass before you may be killed by other players. Affected by time reduction penalty. Setting to -1 will disable this").defineInRange("PVP_Timer", 10, -1, Integer.MAX_VALUE);
             builder.pop();
 
@@ -223,6 +250,8 @@ public final class ReviveMeConfig {
             fallenXpPenalty = builder.comment("How many xp levels a player loses when downed (Less than 1 is a percentage)").defineInRange("Fallen_Xp_Penalty", 0, 0, Double.MAX_VALUE);
             downedEffects = builder.comment("Potion effects the player has while fallen (ModId:PotionEffect:Tier)(minecraft:slowness:0)").define("Downed_Effects", new ArrayList<String>(ImmutableList.of("minecraft:slowness:3")));
             blockedCommands = builder.comment("Commands the player isn't allowed to use while fallen. Type \"/\" to block all commands.").define("Blocked_Commands", new ArrayList<>());
+            reviveHelpCooldown = builder.comment("How long before you can call for help again in SECONDS").defineInRange("Revive_Help_Call_Cooldown", 0.75f, 0, Double.MAX_VALUE);
+            reviveHelpDuration = builder.comment("How long the Help call effects will last in SECONDS").defineInRange("Revive_Help_Duration", 8F, 0, Double.MAX_VALUE);
             builder.pop();
             builder.pop();
 
@@ -231,7 +260,6 @@ public final class ReviveMeConfig {
             revivedHealth = builder.comment("How much health you will be revived with, -1 is max health, Less than 1 is percentage").defineInRange("Revive Health", 10F, -1F, Integer.MAX_VALUE);
             revivedFood = builder.comment("How much food you will be revived with, -1 is max food, Less than 1 is percentage").defineInRange("Revive Food", 6F, -1F, Integer.MAX_VALUE);
             reviveInvulnTime = builder.comment("How many seconds of invulnerability you have on revive").defineInRange("Revive_Invuln_Time", 5F, 0F, Float.MAX_VALUE);
-            fallenPenaltyTimer = builder.comment("how long the revive penalty effects will last in SECONDS").defineInRange("Revive_Penalty_Timer", 45, 0F, Double.MAX_VALUE);
             builder.pop();
 
             builder.push("Reviver Settings");
@@ -240,6 +268,12 @@ public final class ReviveMeConfig {
             penaltyAmount = builder.comment("Amount that will be taken from reviver, Numbers below 1 and greater than 0 will turn it into a percentage").define("Penalty Amount", 10D);
             penaltyItem = builder.comment("Item used to revive fallen players (Only if you selected ITEM as penalty type). Usage: MODID:ITEM").define("Revive Item", "minecraft:golden_apple");
             builder.pop();
+            builder.pop();
+
+            builder.push("Chat Settings");
+            silenceRegularMessages = builder.comment("Silence the revive and fallen chat messages").define("Silence_Regular_Messages", false);
+            silenceCommandMessages = builder.comment("Silence command chat messages").define("Silence_Command_Messages", false);
+            universalChatMessages = builder.comment("If chat messages from this mod should be sent to everyone. If false, will only send to those nearby").define("Universal_Chat_Messages", true);
             builder.pop();
 
             builder.push("Client Settings");

@@ -54,7 +54,7 @@ public record SacrificeItemsMsg() implements CustomPacketPayload {
                     //Make sure the capability know this path has been used
                     cap.setSacrificedItemsUsed(true);
                     //Revive the player.
-                    FallenTimerEvent.revivePlayer(player);
+                    FallenTimerEvent.revivePlayer(player, false);
                 }
                 else if (ReviveMeConfig.canGiveUp){
                     cap.kill(player);

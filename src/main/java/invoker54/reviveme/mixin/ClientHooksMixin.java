@@ -2,6 +2,7 @@ package invoker54.reviveme.mixin;
 
 import invoker54.invocore.client.ClientUtil;
 import invoker54.reviveme.common.capability.FallenData;
+import invoker54.reviveme.init.KeyInit;
 import net.neoforged.neoforge.client.ClientHooks;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -25,6 +26,7 @@ public class ClientHooksMixin {
 
             if (cap.isFallen()) {
                 cir.setReturnValue(false);
+                if (button == KeyInit.callForHelpKey.keyBind.getKey().getValue()) KeyInit.callForHelpKey.pressed(action);
             }
         }
     }
@@ -59,6 +61,7 @@ public class ClientHooksMixin {
 
             if (cap.isFallen()) {
                 ci.cancel();
+                if (key == KeyInit.callForHelpKey.keyBind.getKey().getValue()) KeyInit.callForHelpKey.pressed(action);
             }
         }
     }
