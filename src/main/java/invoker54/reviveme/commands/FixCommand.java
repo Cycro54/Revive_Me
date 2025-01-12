@@ -6,6 +6,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.event.FallEvent;
 import invoker54.reviveme.common.event.FallenTimerEvent;
+import invoker54.reviveme.common.network.NetworkHandler;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -48,12 +49,12 @@ public class FixCommand {
 
         //TODO: Remove this in future versions.
         caller.setInvulnerable(false);
+
+        NetworkHandler.sendMessage((Component.translatable("revive-me.commands.fix")),
+                true, caller);
         
         //This should fix the player if they are downed
         if (cap.isFallen()){
-            caller.server.getPlayerList().broadcastSystemMessage(
-                    caller.getDisplayName().copy().append(Component.translatable("revive-me.commands.fix")), false);
-
             DamageSource damageSource = cap.getDamageSource();
             if (damageSource == null) damageSource = DamageSource.OUT_OF_WORLD;
 
@@ -69,10 +70,7 @@ public class FixCommand {
         
         //This should fix the player if they are no longer fallen
         else {
-            FallenTimerEvent.revivePlayer(caller);
-
-            caller.server.getPlayerList().broadcastSystemMessage(
-                    caller.getDisplayName().copy().append(Component.translatable("revive-me.commands.fix")), false);
+            FallenTimerEvent.revivePlayer(caller, true);
         }
         
         return 1;

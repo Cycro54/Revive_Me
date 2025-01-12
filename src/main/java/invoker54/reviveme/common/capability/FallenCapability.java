@@ -25,9 +25,9 @@ public class FallenCapability {
     private static final Logger LOGGER = LogManager.getLogger();
 
     public static final String FALLEN_BOOL = "isFallenREVIVE";
-    public static final String FELL_START_INT = "fellStartREVIVE";
-    public static final String FELL_END_FLOAT = "fellEndREVIVE";
-    public static final String REVIVE_START_INT = "revStartREVIVE";
+    public static final String FELL_START_LONG = "fellStartREVIVE";
+    public static final String FELL_END_DOUBLE = "fellEndREVIVE";
+    public static final String REVIVE_START_LONG = "revStartREVIVE";
     public static final String REVIVE_END_INT = "revEndREVIVE";
     public static final String PENALTY_ENUM = "penaltyTypeREVIVE";
     public static final String PENALTY_DOUBLE = "penaltyDoubleREVIVE";
@@ -37,6 +37,7 @@ public class FallenCapability {
     public static final String SACRIFICEITEMS_BOOL = "sacrificeItemsBoolREVIVE";
     public static final String REVIVECHANCE_BOOL = "reviveChanceBoolREVIVE";
     public static final String PENALTY_MULTIPLIER_INT = "penaltyMultiplierIntREVIVE";
+    public static final String CALLED_FOR_HELP_LONG = "calledForHelpLong";
     //endregion
 
     public FallenCapability(Level level){
@@ -47,10 +48,10 @@ public class FallenCapability {
     }
 
     protected Level level;
-    protected int revStart = 0;
+    protected long revStart = 0;
     protected int revEnd = 0;
-    protected int fellStart = 0;
-    protected float fellEnd = 0;
+    protected long fellStart = 0;
+    protected double fellEnd = 0;
     protected DamageSource damageSource = DamageSource.OUT_OF_WORLD;
     protected boolean isFallen = false;
     protected boolean isDying = false;
@@ -58,11 +59,13 @@ public class FallenCapability {
     protected Double penaltyAmount = 0D;
     protected ItemStack penaltyItem = ItemStack.EMPTY;
     protected PENALTYPE penaltyType = PENALTYPE.HEALTH;
+    protected long calledForHelpTime = 0;
 
     protected List<Item> sacrificialItems = new ArrayList<>();
     protected boolean sacrificedItemsUsed = false;
     protected boolean reviveChanceUsed = false;
     protected int penaltyMultiplier = 0;
+
     public enum PENALTYPE  {
         NONE,
         HEALTH,
@@ -73,6 +76,18 @@ public class FallenCapability {
 
     public static FallenCapability GetFallCap(LivingEntity player){
         return player.getCapability(FallenProvider.FALLENDATA).orElseGet(FallenCapability::new);
+    }
+
+    public void callForHelp(){
+        this.calledForHelpTime = this.level.getGameTime();
+    }
+    public boolean isCallingForHelp(){
+        return this.level.getGameTime() < (this.calledForHelpTime + (ReviveMeConfig.reviveHelpDuration*20));
+    }
+
+    public double callForHelpCooldown(){
+        long timePassed = this.level.getGameTime() - this.calledForHelpTime;
+        return Math.min(timePassed/(ReviveMeConfig.reviveHelpCooldown*20),1);
     }
 
     public void setPenalty(PENALTYPE type, Double amount, String penaltyItem){
@@ -133,14 +148,14 @@ public class FallenCapability {
     }
 
     public float GetTimeLeft(boolean divideByMax) {
-        float maxSeconds = getPenaltyTicks(fellEnd);
+        double maxSeconds = getPenaltyTicks(fellEnd);
         if (ReviveMeConfig.timeLeft == 0) maxSeconds = 0;
         getKillTime();
 
         if (divideByMax)
-            return 1 - ((level.getGameTime() - fellStart)/ maxSeconds);
+            return (float) (1 - ((level.getGameTime() - fellStart)/ maxSeconds));
 
-        return ((fellStart + maxSeconds) - level.getGameTime())/20f;
+        return (float) (((fellStart + maxSeconds) - level.getGameTime())/20);
     }
 
     public int getKillTime(){
@@ -154,14 +169,14 @@ public class FallenCapability {
         return ReviveMeConfig.timeLeft != 0 && GetTimeLeft(false) <= 0;
     }
 
-    public void SetTimeLeft(int timeStart, float maxSeconds) {
+    public void SetTimeLeft(long timeStart, double maxSeconds) {
         this.fellStart = timeStart;
-        this.fellEnd = maxSeconds * 20;
+        this.fellEnd = (long) (maxSeconds * 20);
         //System.out.println("Time left is!: " + (a/20f));
     }
 
     public void resumeFallTimer(){
-        fellStart = (int) (level.getGameTime() - (revStart - fellStart));
+        fellStart = (level.getGameTime() - (revStart - fellStart));
     }
 
     public boolean isFallen() {
@@ -201,13 +216,13 @@ public class FallenCapability {
         otherPlayer = playerID;
     }
 
-    public void setProgress(int timeStart, int seconds){
+    public void setProgress(long timeStart, int seconds){
         this.revStart = timeStart;
         this.revEnd = seconds * 20;
     }
 
     public float getProgress() {
-        return (level.getGameTime() - revStart) /(float)revEnd;
+        return Math.min (1, (level.getGameTime() - revStart) /(float) revEnd);
     }
 
     public void setSacrificialItems(@Nonnull ArrayList<Item> itemList){
@@ -233,13 +248,13 @@ public class FallenCapability {
     public int getPenaltyMultiplier(){
         return this.penaltyMultiplier;
     }
-    public int getPenaltyTicks(float ticks){
-        float multiplier = (float) (getPenaltyMultiplier() * ReviveMeConfig.timeReductionPenalty);
-        if (ReviveMeConfig.timeReductionPenalty == -1) multiplier = (float) (getPenaltyMultiplier() * ticks);
+    public long getPenaltyTicks(double ticks){
+        double multiplier = getPenaltyMultiplier() * ReviveMeConfig.timeReductionPenalty;
+        if (ReviveMeConfig.timeReductionPenalty == -1) multiplier = getPenaltyMultiplier() * ticks;
         else if (ReviveMeConfig.timeReductionPenalty < 1) multiplier *= ticks;
         else if (ReviveMeConfig.timeReductionPenalty >= 1) multiplier *= 20F;
 
-        return Math.max(0, (int) (ticks - multiplier));
+        return (long) Math.max(0, ticks - multiplier);
     }
     public void setPenaltyMultiplier(int newMultiplier){
         this.penaltyMultiplier = newMultiplier;
@@ -247,10 +262,10 @@ public class FallenCapability {
 
     public Tag writeNBT(){
         CompoundTag cNBT = new CompoundTag();
-        cNBT.putInt(FELL_START_INT, this.fellStart);
-        cNBT.putFloat(FELL_END_FLOAT, this.fellEnd/20);
+        cNBT.putLong(FELL_START_LONG, this.fellStart);
+        cNBT.putDouble(FELL_END_DOUBLE, this.fellEnd/20);
         cNBT.putBoolean(FALLEN_BOOL, this.isFallen);
-        cNBT.putInt(REVIVE_START_INT, this.revStart);
+        cNBT.putLong(REVIVE_START_LONG, this.revStart);
         cNBT.putInt(REVIVE_END_INT, this.revEnd/20);
         cNBT.putString(PENALTY_ENUM, this.penaltyType.name());
         cNBT.putDouble(PENALTY_DOUBLE, this.penaltyAmount);
@@ -269,15 +284,17 @@ public class FallenCapability {
         //How many times the player fell with penalty timer active
         cNBT.putInt(PENALTY_MULTIPLIER_INT, this.penaltyMultiplier);
 
+        cNBT.putLong(CALLED_FOR_HELP_LONG, this.calledForHelpTime);
+
         if(this.otherPlayer != null)
             cNBT.putUUID(OTHERPLAYER_UUID, this.otherPlayer);
         return cNBT;
     }
     public void readNBT(Tag nbt){
         CompoundTag cNBT = (CompoundTag) nbt;
-        this.SetTimeLeft(cNBT.getInt(FELL_START_INT), cNBT.getInt(FELL_END_FLOAT));
+        this.SetTimeLeft(cNBT.getLong(FELL_START_LONG), cNBT.getDouble(FELL_END_DOUBLE));
         this.setFallen(cNBT.getBoolean(FALLEN_BOOL));
-        this.setProgress(cNBT.getInt(REVIVE_START_INT), cNBT.getInt(REVIVE_END_INT));
+        this.setProgress(cNBT.getLong(REVIVE_START_LONG), cNBT.getInt(REVIVE_END_INT));
         this.setPenalty(PENALTYPE.valueOf(cNBT.getString(PENALTY_ENUM)), cNBT.getDouble(PENALTY_DOUBLE), cNBT.getString(PENALTY_ITEM));
 
         sacrificialItems.clear();
@@ -290,6 +307,8 @@ public class FallenCapability {
         this.sacrificedItemsUsed = cNBT.getBoolean(SACRIFICEITEMS_BOOL);
         this.reviveChanceUsed = cNBT.getBoolean(REVIVECHANCE_BOOL);
         this.penaltyMultiplier = cNBT.getInt(PENALTY_MULTIPLIER_INT);
+
+        this.calledForHelpTime = cNBT.getLong(CALLED_FOR_HELP_LONG);
 
         if(cNBT.hasUUID(OTHERPLAYER_UUID)) {
             this.setOtherPlayer(cNBT.getUUID(OTHERPLAYER_UUID));

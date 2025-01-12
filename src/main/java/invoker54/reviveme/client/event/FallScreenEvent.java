@@ -6,6 +6,7 @@ import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.gui.render.CircleRender;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
+import invoker54.reviveme.init.KeyInit;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -46,6 +47,8 @@ public class FallScreenEvent {
             ResourceLocation(ReviveMe.MOD_ID,"textures/revive_types/experience_bottle.png");
     public static final ResourceLocation MOUSE_TEXTURE = new
             ResourceLocation(ReviveMe.MOD_ID, "textures/mouse_icons.png");
+    public static final ResourceLocation REVIVE_HELP_BUTTON_TEXTURE = new
+            ResourceLocation(ReviveMe.MOD_ID, "textures/revive_help_button.png");
 
     //Images
     public static ClientUtil.Image timerIMG = new ClientUtil.Image(Timer_TEXTURE, 0, 64, 0, 64, 64);
@@ -55,6 +58,7 @@ public class FallScreenEvent {
     public static ClientUtil.Image mouse_idle_IMG = new ClientUtil.Image(MOUSE_TEXTURE, 0, 22, 0, 28,64);
     public static ClientUtil.Image mouse_left_IMG = new ClientUtil.Image(MOUSE_TEXTURE, 0, 22, 28, 28,64);
     public static ClientUtil.Image mouse_right_IMG = new ClientUtil.Image(MOUSE_TEXTURE, 22, 22, 28, 28,64);
+    public static ClientUtil.Image revive_help_button_IMG = new ClientUtil.Image(REVIVE_HELP_BUTTON_TEXTURE, 0, 31, 0, 31,32);
 
     private static final MutableComponent titleText = Component.translatable("fallenScreen.fallen_text");
     private static final MutableComponent waitText = Component.translatable("fallenScreen.wait_text");
@@ -62,9 +66,35 @@ public class FallScreenEvent {
     private static final MutableComponent cantForceDeathText = Component.translatable("fallenScreen.cant_force_death_text");
     private static final DecimalFormat df = new DecimalFormat("0.0");
     private static final int greenColor = new Color(39, 235, 86, 255).getRGB();
+    private static final int whiteColor = new Color(255, 255, 255, 255).getRGB();
+    private static final int blackFadeColor = new Color(0, 0, 0, 71).getRGB();
 
     @SubscribeEvent
     public static void registerFallenScreen(RegisterGuiOverlaysEvent event){
+
+        event.registerAbove(VanillaGuiOverlay.CHAT_PANEL.id(), "revive_button", ((gui, stack, partialTick, width, height) ->
+        {
+            if (mC.screen instanceof ChatScreen) return;
+            FallenCapability cap = FallenCapability.GetFallCap(inst.player);
+            if (!cap.isFallen()) return;
+
+            MutableComponent message = Component.literal("[").append(KeyInit.callForHelpKey.keyBind.getKey().getDisplayName())
+                    .append(Component.literal("]")).withStyle(ChatFormatting.BOLD);
+            if (cap.callForHelpCooldown() < 1) message.withStyle(ChatFormatting.BLACK);
+
+            revive_help_button_IMG.moveTo(width - (revive_help_button_IMG.getWidth() + 16), height - (revive_help_button_IMG.getHeight() + 16));
+            ClientUtil.blitColor(stack, revive_help_button_IMG.x0 + 1, revive_help_button_IMG.getWidth()-2,
+                    revive_help_button_IMG.y0 + 1 + (30 - (30 * (float)cap.callForHelpCooldown())),  30 * (float)cap.callForHelpCooldown(), whiteColor);
+
+            revive_help_button_IMG.RenderImage(stack);
+            TextUtil.renderText(stack, message, 1, false, revive_help_button_IMG.x0 + 3, revive_help_button_IMG.getWidth() - 6,
+                    revive_help_button_IMG.y0 + 19, 8, 0, TextUtil.txtAlignment.MIDDLE);
+
+            if (cap.callForHelpCooldown() != 1){
+                ClientUtil.blitColor(stack, revive_help_button_IMG.x0, revive_help_button_IMG.getWidth(),
+                        revive_help_button_IMG.y0, revive_help_button_IMG.getHeight(), blackFadeColor);
+            }
+        }));
 
         //if (true) return;
         event.registerAbove(VanillaGuiOverlay.CHAT_PANEL.id(),"fallen_screen", (gui, stack, partialTicks, width, height) -> {

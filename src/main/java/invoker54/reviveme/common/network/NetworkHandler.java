@@ -1,9 +1,14 @@
 package invoker54.reviveme.common.network;
 
 import invoker54.reviveme.ReviveMe;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.message.*;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
@@ -37,10 +42,24 @@ public class NetworkHandler {
         INSTANCE.registerMessage(3, ReviveChanceMsg.class, (message, buf) -> {}, it -> new ReviveChanceMsg(), ReviveChanceMsg::handle);
         INSTANCE.registerMessage(4, SacrificeItemsMsg.class, (message, buf) -> {}, it -> new SacrificeItemsMsg(), SacrificeItemsMsg::handle);
         INSTANCE.registerMessage(5, SyncConfigMsg.class, SyncConfigMsg::Encode, SyncConfigMsg::Decode, SyncConfigMsg::handle);
+        INSTANCE.registerMessage(6, CallForHelpMsg.class, (msg,buf)->{}, it -> new CallForHelpMsg(), CallForHelpMsg::handle);
     }
 
     //Custom method used to send data to players
     public static void sendToPlayer(Player player, Object message) {
         NetworkHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), message);
+    }
+
+    public static void sendMessage(MutableComponent component, boolean isCommand, Entity trackedEntity){
+        if (ReviveMeConfig.silenceCommandMessages && isCommand) return;
+        if (ReviveMeConfig.silenceRegularMessages && !isCommand) return;
+
+        if (ReviveMeConfig.universalChatMessages) {
+            trackedEntity.getServer().getPlayerList().broadcastSystemMessage(component, false);
+        }
+        else {
+            ((ServerChunkCache) trackedEntity.level.getChunkSource()).broadcastAndSend(trackedEntity, new ClientboundSystemChatPacket(component, false));
+        }
+
     }
 }
