@@ -1,7 +1,9 @@
 package invoker54.reviveme.common.potion;
 
+import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenData;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -14,9 +16,11 @@ import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 
 import java.awt.*;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FallenPotionEffect extends MobEffect {
     public static final int effectColor = new Color(35, 5, 5,255).getRGB();
+    public static ModLogger LOGGER = ModLogger.getLogger(new AtomicBoolean(true));
 
     public FallenPotionEffect(MobEffectCategory category){
         super(category, effectColor);
@@ -34,6 +38,7 @@ public class FallenPotionEffect extends MobEffect {
         //This will set the used reviveMethod to none in the fallen capability (unless the player has been downed again)
         @SubscribeEvent
         public static void removeFallMethod(MobEffectEvent.Expired event){
+
             removePenalties(event.getEntity(), event.getEffectInstance());
         }
 
@@ -44,7 +49,7 @@ public class FallenPotionEffect extends MobEffect {
 
         public static void removePenalties(LivingEntity entity, MobEffectInstance effect){
             if (effect == null) return;
-            if (!(effect.getEffect() instanceof FallenPotionEffect)) return;
+            if (!(effect.getEffect().value() instanceof FallenPotionEffect)) return;
             if (!(entity instanceof Player player)) return;
 
             FallenData cap = FallenData.get(player);

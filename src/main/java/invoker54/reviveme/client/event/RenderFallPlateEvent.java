@@ -68,7 +68,7 @@ public class RenderFallPlateEvent {
             Vec3 difference = entity.position().subtract(getMinecraft().gameRenderer.getMainCamera().getPosition());
             stack.translate(difference.x, difference.y + f, difference.z);
             stack.mulPose(getMinecraft().getEntityRenderDispatcher().cameraOrientation());
-            stack.scale(-0.025F, -0.025F, 0.025F);
+            stack.scale(0.025F, -0.025F, 0.025F);
             stack.scale(0.5F, 0.5F, 0.5F);
 
             if (cap.getOtherPlayer() == null) {
@@ -84,7 +84,7 @@ public class RenderFallPlateEvent {
                     //Timer texture
                     timerIMG.setActualSize(40, 40);
                     timerIMG.moveTo(-(timerIMG.getWidth() / 2), -(timerIMG.getHeight() / 2));
-                    
+
                     timerIMG.RenderImage(stack);
                     
 
