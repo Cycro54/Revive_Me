@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import invoker54.invocore.client.ClientUtil;
 import invoker54.invocore.client.TextUtil;
 import invoker54.reviveme.ReviveMe;
+import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.client.gui.render.CircleRender;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
@@ -266,7 +267,7 @@ public class FallScreenEvent {
             ClientUtil.Image chosenMouse = mouse_idle_IMG;
 
             //This will be chance
-            if (inst.options.keyAttack.isDown()) {
+            if (VanillaKeybindHandler.attackHeld) {
                 ClientUtil.blitColor( stack,halfWidth, halfWidth, fifthHeight, height,
                         new Color(0,0,0, Math.min((int) (255 * (FallenPlayerActionsEvent.timeHeld/40F)), 255)).getRGB());
 
@@ -274,7 +275,7 @@ public class FallScreenEvent {
             }
 
             //This will use items
-            else if (inst.options.keyUse.isDown()) {
+            else if (VanillaKeybindHandler.useHeld) {
                 ClientUtil.blitColor( stack,0, halfWidth, fifthHeight, height,
                         new Color(0,0,0, Math.min((int) (255 * (FallenPlayerActionsEvent.timeHeld/40F)), 255)).getRGB());
 
@@ -402,13 +403,13 @@ public class FallScreenEvent {
             //region This will be if the player is holding a button
 
             //This will be chance
-            if (inst.options.keyAttack.isDown()) {
+            if (VanillaKeybindHandler.attackHeld) {
                 ClientUtil.blitColor( stack,halfWidth - txtRoomWidth - 1, txtRoomWidth + 1, mouse_idle_IMG.y0 - 1,
                         txtRoomHeight + 2, new Color(255, 255, 255, 255).getRGB());
             }
 
             //This will be for items
-            else if (inst.options.keyUse.isDown()) {
+            else if (VanillaKeybindHandler.useHeld) {
                 ClientUtil.blitColor( stack,halfWidth, txtRoomWidth + 1, mouse_idle_IMG.y0 - 1,
                         txtRoomHeight + 2, new Color(255, 255, 255, 255).getRGB());
             }
@@ -502,7 +503,7 @@ public class FallScreenEvent {
             ClientUtil.Image chosenMouse = mouse_idle_IMG;
 
             //This will be chance
-            if (inst.options.keyAttack.isDown()) {
+            if (VanillaKeybindHandler.attackHeld) {
                 ClientUtil.blitColor( stack,halfWidth, txtRoomWidth, mouse_idle_IMG.y0, txtRoomHeight,
                         new Color(0,0,0, Math.min((int) (255 * (FallenPlayerActionsEvent.timeHeld/40F)), 255)).getRGB());
 
@@ -510,7 +511,7 @@ public class FallScreenEvent {
             }
 
             //This will use items
-            else if (inst.options.keyUse.isDown()) {
+            else if (VanillaKeybindHandler.useHeld) {
                 ClientUtil.blitColor( stack,halfWidth - txtRoomWidth, txtRoomWidth, mouse_idle_IMG.y0, txtRoomHeight,
                         new Color(0,0,0, Math.min((int) (255 * (FallenPlayerActionsEvent.timeHeld/40F)), 255)).getRGB());
 
