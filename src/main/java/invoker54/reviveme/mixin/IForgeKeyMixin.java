@@ -8,11 +8,13 @@ import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.client.extensions.IForgeKeyMapping;
+import net.minecraftforge.client.settings.KeyBindingMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Map;
@@ -20,11 +22,16 @@ import java.util.Map;
 @Pseudo
 @Mixin(KeyMapping.class)
 public abstract class IForgeKeyMixin implements IForgeKeyMapping {
-    @Shadow @Final private static Map<String, KeyMapping> ALL;
-    @Shadow @Final private String name;
-    @Shadow private int clickCount;
     @Shadow
-    boolean isDown;
+    @Final
+    private static Map<String, KeyMapping> ALL;
+    @Shadow
+    @Final
+    private String name;
+    @Shadow
+    private int clickCount;
+
+    @Shadow @Final private static KeyBindingMap MAP;
     @Unique
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -48,7 +55,31 @@ public abstract class IForgeKeyMixin implements IForgeKeyMapping {
         return IForgeKeyMapping.super.isActiveAndMatches(keyCode);
     }
 
+    @Inject(
+            method = "set(Lcom/mojang/blaze3d/platform/InputConstants$Key;Z)V",
+            at = {
+                    @At(value = "HEAD")
+            },
+            cancellable = true
+    )
+    private static void set(InputConstants.Key input, boolean isDown, CallbackInfo ci) {
+        if (ClientUtil.getWorld() == null) return;
+        if (ClientUtil.getPlayer() == null) return;
+        if (ClientUtil.mC.options.keyUse.getKey().equals(input)) VanillaKeybindHandler.useHeld = isDown;
+        if (ClientUtil.mC.options.keyAttack.getKey().equals(input)) VanillaKeybindHandler.attackHeld = isDown;
+        FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
+        if (!cap.isFallen()) return;
 
+        for (KeyMapping keybinding : MAP.lookupAll(input)) {
+            if (keybinding == null) continue;
+
+            if (!VanillaKeybindHandler.isVanillaKeybind(keybinding)) continue;
+            keybinding.setDown(isDown);
+
+        }
+        ci.cancel();
+
+    }
 
     @Inject(
             method = "isDown()Z",
@@ -63,14 +94,13 @@ public abstract class IForgeKeyMixin implements IForgeKeyMapping {
         FallenCapability cap = FallenCapability.GetFallCap(player);
 
 
-        KeyMapping KeyBinding = ALL.get(this.name);
-        if (cap.isFallen()){
-            //This will disable move keybinds if they are disallowed in the config
-            if (!ReviveMeConfig.canMove && VanillaKeybindHandler.isMovementKeybind(KeyBinding)){
-                cir.setReturnValue(false);
-            }
+        KeyMapping keyBinding = ALL.get(this.name);
+        if (cap.isFallen()) {
+            if (!VanillaKeybindHandler.isVanillaKeybind(keyBinding)) cir.setReturnValue(false);
+            if ((!ReviveMeConfig.canMove && VanillaKeybindHandler.isMovementKeybind(keyBinding))) cir.setReturnValue(false);
+
             //This is for jumping
-            if (KeyBinding.equals(ClientUtil.mC.options.keyJump)) {
+            if (keyBinding.equals(ClientUtil.mC.options.keyJump)) {
                 switch (ReviveMeConfig.canJump) {
                     case YES:
                         return;
@@ -85,9 +115,7 @@ public abstract class IForgeKeyMixin implements IForgeKeyMapping {
         }
 
         //This is strictly for the use key when reviving or being revived
-        if (KeyBinding.equals(ClientUtil.mC.options.keyUse)) {
-            VanillaKeybindHandler.useKeyDown = isDown;
-
+        if (keyBinding.equals(ClientUtil.mC.options.keyUse)) {
             if (cap.getOtherPlayer() != null) {
                 this.clickCount = 0;
                 cir.setReturnValue(false);
