@@ -23,37 +23,11 @@ import java.util.Map;
 @Mixin(KeyBinding.class)
 public abstract class IForgeKeyMixin implements IForgeKeybinding {
     @Shadow
-    @Final
-    private static Map<String, KeyBinding> ALL;
-    @Shadow
-    @Final
-    private String name;
-    @Shadow
     private int clickCount;
-
     @Shadow @Final private static KeyBindingMap MAP;
+    @Shadow private boolean isDown;
     @Unique
     private static final Logger LOGGER = LogManager.getLogger();
-
-
-    @Override
-    public boolean isActiveAndMatches(InputMappings.Input keyCode) {
-        if (ClientUtil.getWorld() != null) {
-            FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
-            KeyBinding keyMapping = ALL.get(this.name);
-
-            if (cap.isFallen()) {
-                if (!VanillaKeybindHandler.isVanillaKeybind(keyMapping)) {
-                    return false;
-                }
-                if (ReviveMeConfig.interactWithInventory == ReviveMeConfig.INTERACT_WITH_INVENTORY.NO
-                        && keyMapping.same(ClientUtil.mC.options.keyInventory) && ClientUtil.mC.screen == null) {
-                    return false;
-                }
-            }
-        }
-        return IForgeKeybinding.super.isActiveAndMatches(keyCode);
-    }
 
     @Inject(
             method = "set(Lnet/minecraft/client/util/InputMappings$Input;Z)V",
@@ -69,16 +43,52 @@ public abstract class IForgeKeyMixin implements IForgeKeybinding {
         if (ClientUtil.mC.options.keyAttack.getKey().equals(input)) VanillaKeybindHandler.attackHeld = isDown;
         FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
         if (!cap.isFallen()) return;
+        if (!isDown) return;
 
         for (KeyBinding keybinding : MAP.lookupAll(input)) {
             if (keybinding == null) continue;
 
-            if (!VanillaKeybindHandler.isVanillaKeybind(keybinding)) continue;
-            keybinding.setDown(isDown);
-
+            keybinding.setDown(revive_Me_1_16_5$shouldPass(keybinding));
         }
         ci.cancel();
 
+    }
+
+    @Unique
+    private static boolean revive_Me_1_16_5$shouldPass(KeyBinding keybinding){
+        PlayerEntity player = ClientUtil.getPlayer();
+
+        boolean isVanilla = VanillaKeybindHandler.isVanillaKeybind(keybinding);
+        boolean isKeyInventory = keybinding.same(ClientUtil.mC.options.keyInventory);
+        boolean isKeyDrop = keybinding.same(ClientUtil.mC.options.keyDrop);
+        boolean isSacrificalItem = FallenCapability.GetFallCap(player).getItemList().contains(player.getMainHandItem().getItem());
+        ReviveMeConfig.INTERACT_WITH_INVENTORY inventoryRule = ReviveMeConfig.interactWithInventory;
+
+        if (!isVanilla) return false;
+        else if (inventoryRule == ReviveMeConfig.INTERACT_WITH_INVENTORY.NO && (isKeyInventory || isKeyDrop)) return false;
+        else if (inventoryRule == ReviveMeConfig.INTERACT_WITH_INVENTORY.LOOK_ONLY && isKeyDrop) return false;
+        else if (isKeyDrop && isSacrificalItem) return false;
+
+        return true;
+    }
+
+    @Inject(
+            method = "click",
+            at = {
+                    @At(value = "HEAD")
+            },
+            cancellable = true
+    )
+    private static void click(InputMappings.Input input, CallbackInfo ci){
+        if (ClientUtil.getWorld() == null) return;
+        if (ClientUtil.getPlayer() == null) return;
+        FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
+        if (!cap.isFallen()) return;
+
+        KeyBinding keybinding = MAP.lookupActive(input);
+        if (keybinding == null) return;
+
+        if (!revive_Me_1_16_5$shouldPass(keybinding)) ci.cancel();
     }
 
     @Inject(
@@ -88,14 +98,15 @@ public abstract class IForgeKeyMixin implements IForgeKeybinding {
             },
             cancellable = true)
     private void isDown(CallbackInfoReturnable<Boolean> cir) {
+        if (!this.isDown) return;
         if (ClientUtil.getWorld() == null) return;
         PlayerEntity player = ClientUtil.getPlayer();
         if (player == null) return;
         FallenCapability cap = FallenCapability.GetFallCap(player);
 
-        KeyBinding keyBinding = ALL.get(this.name);
+        KeyBinding keyBinding = this.getKeyBinding();
         if (cap.isFallen()) {
-            if (!VanillaKeybindHandler.isVanillaKeybind(keyBinding)) cir.setReturnValue(false);
+            if (!revive_Me_1_16_5$shouldPass(keyBinding)) cir.setReturnValue(false);
             if ((!ReviveMeConfig.canMove && VanillaKeybindHandler.isMovementKeybind(keyBinding))) cir.setReturnValue(false);
 
             //This is for jumping
@@ -121,5 +132,4 @@ public abstract class IForgeKeyMixin implements IForgeKeybinding {
             }
         }
     }
-
 }

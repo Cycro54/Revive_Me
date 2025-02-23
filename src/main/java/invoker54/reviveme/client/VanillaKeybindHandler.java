@@ -21,7 +21,7 @@ public class VanillaKeybindHandler {
         GameSettings options = ClientUtil.mC.options;
 
         vanillaKeyBindings = Arrays.asList(ArrayUtils.addAll(new KeyBinding[]{
-                /*options.keyAttack, options.keyUse, */ options.keyUp, options.keyLeft, options.keyDown, options.keyRight, options.keyJump, options.keyShift, options.keySprint, /*options.keyDrop,*/ options.keyInventory, options.keyChat, options.keyPlayerList, options.keyPickItem, options.keyCommand, options.keySocialInteractions, options.keyScreenshot, options.keyTogglePerspective, options.keySmoothCamera, options.keyFullscreen, options.keySpectatorOutlines, options.keySwapOffhand, options.keySaveHotbarActivator, options.keyLoadHotbarActivator, options.keyAdvancements}, (KeyBinding[]) options.keyHotbarSlots));
+                /*options.keyAttack, options.keyUse, */ options.keyUp, options.keyLeft, options.keyDown, options.keyRight, options.keyJump, options.keyShift, options.keySprint, options.keyDrop, options.keyInventory, options.keyChat, options.keyPlayerList, options.keyPickItem, options.keyCommand, options.keySocialInteractions, options.keyScreenshot, options.keyTogglePerspective, options.keySmoothCamera, options.keyFullscreen, options.keySpectatorOutlines, options.keySwapOffhand, options.keySaveHotbarActivator, options.keyLoadHotbarActivator, options.keyAdvancements}, (KeyBinding[]) options.keyHotbarSlots));
 
         movementMappings = Arrays.asList(options.keyShift, options.keyLeft, options.keyUp, options.keyRight, options.keyDown);
 //        LOGGER.error("Vanilla keybindings new size: " + vanillaKeyBindings.size());
