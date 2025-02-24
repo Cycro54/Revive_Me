@@ -22,7 +22,7 @@
   "revive-me.call_for_help": "REVIVE ME!",
 
   "__comment": "This is for mob effect names",
-  "effect.reviveme.fallen_effect": "Fallen Penalty",
+  "effect.revive_me.fallen_effect": "Fallen Penalty",
 
   "__comment":"This is for subtitles",
   "sounds.reviveme.fallen_state_heart_beat": "Heart Beat Ambience",
