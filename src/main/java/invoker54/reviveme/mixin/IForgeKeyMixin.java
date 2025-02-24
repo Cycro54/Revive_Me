@@ -7,6 +7,7 @@ import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.client.util.InputMappings;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.extensions.IForgeKeybinding;
 import net.minecraftforge.client.settings.KeyBindingMap;
 import org.apache.logging.log4j.LogManager;
@@ -16,8 +17,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import java.util.Map;
 
 @Pseudo
 @Mixin(KeyBinding.class)
@@ -61,13 +60,14 @@ public abstract class IForgeKeyMixin implements IForgeKeybinding {
         boolean isVanilla = VanillaKeybindHandler.isVanillaKeybind(keybinding);
         boolean isKeyInventory = keybinding.same(ClientUtil.mC.options.keyInventory);
         boolean isKeyDrop = keybinding.same(ClientUtil.mC.options.keyDrop);
-        boolean isSacrificalItem = FallenCapability.GetFallCap(player).getItemList().contains(player.getMainHandItem().getItem());
+        ItemStack mainStack = player.getMainHandItem();
+        boolean isSacrificialItem = FallenCapability.GetFallCap(player).isSacrificialItem(mainStack);
         ReviveMeConfig.INTERACT_WITH_INVENTORY inventoryRule = ReviveMeConfig.interactWithInventory;
 
         if (!isVanilla) return false;
         else if (inventoryRule == ReviveMeConfig.INTERACT_WITH_INVENTORY.NO && (isKeyInventory || isKeyDrop)) return false;
         else if (inventoryRule == ReviveMeConfig.INTERACT_WITH_INVENTORY.LOOK_ONLY && isKeyDrop) return false;
-        else if (isKeyDrop && isSacrificalItem) return false;
+        else if (isKeyDrop && isSacrificialItem) return false;
 
         return true;
     }

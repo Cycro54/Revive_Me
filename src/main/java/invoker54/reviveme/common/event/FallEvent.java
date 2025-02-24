@@ -11,7 +11,6 @@ import net.minecraft.entity.IAngerable;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
@@ -32,8 +31,6 @@ import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.util.ArrayList;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class FallEvent {
@@ -66,22 +63,11 @@ public class FallEvent {
     public static boolean cancelEvent(PlayerEntity player, DamageSource source) {
         FallenCapability instance = FallenCapability.GetFallCap(player);
 
-        //Generate a sacrificial item list
-        ArrayList<Item> playerItems = new ArrayList<>();
-        for (ItemStack itemStack : player.inventory.items) {
-            if (playerItems.contains(itemStack.getItem())) continue;
-            if (!itemStack.isStackable()) continue;
-            if (itemStack.isEmpty()) continue;
-            playerItems.add(itemStack.getItem());
-        }
-        //Remove all except 4
-        while (playerItems.size() > 4) {
-            playerItems.remove(player.level.random.nextInt(playerItems.size()));
-        }
+        if (!instance.usedSacrificedItems()) instance.setSacrificialItems(player.inventory);
 
         //If they used both self-revive options, and they are not on a server, they should die immediately
         if (instance.usedChance() &&
-                (instance.usedSacrificedItems() || playerItems.isEmpty()) &&
+                (instance.usedSacrificedItems() || instance.getItemList().isEmpty()) &&
                 (player.getServer() != null && player.getServer().getPlayerCount() < 2)) return false;
 
 //        LOGGER.info("Are they fallen? " + instance.isFallen());
@@ -133,11 +119,6 @@ public class FallEvent {
                 double xpToRemove = ReviveMeConfig.fallenXpPenalty;
                 if (xpToRemove < 1) xpToRemove = Math.round(player.experienceLevel * xpToRemove);
                 player.giveExperienceLevels((int) -xpToRemove);
-            }
-
-            //This will only happen if the player is in a single player world
-            if (!instance.usedSacrificedItems()) {
-                instance.setSacrificialItems(playerItems);
             }
 
             //Finally send capability code to all players

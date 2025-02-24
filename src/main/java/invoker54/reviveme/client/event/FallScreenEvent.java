@@ -13,7 +13,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.screen.ChatScreen;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.IFormattableTextComponent;
@@ -249,18 +248,18 @@ public class FallScreenEvent {
         int itemSize = 16;
 
         if (cap.getItemList().size() != 0){
-            ArrayList<Item> itemArrayList = cap.getItemList();
-            for (Item item : itemArrayList) {
+            ArrayList<ItemStack> itemArrayList = cap.getItemList();
+            for (ItemStack sacrificeStack : itemArrayList) {
                 //Draw the background
                 ClientUtil.blitColor(stack, (halfWidth / 4) + halfWidth, halfWidth / 2, (fifthHeight * 2) + offset,
                         itemSize + (padding * 2), new Color(0, 0, 0, 255).getRGB());
 
                 //Draw the item
-                mC.getItemRenderer().renderAndDecorateItem(new ItemStack(item),
+                mC.getItemRenderer().renderAndDecorateItem(sacrificeStack,
                         (int) ((halfWidth / 4) + halfWidth + padding), (int) ((fifthHeight * 2) + offset + padding));
 
                 //Draw the amount they have, then the amount they will have after reduction
-                int count = inst.player.inventory.countItem(item);
+                int count = FallenCapability.countItem(inst.player.inventory, sacrificeStack);
                 IFormattableTextComponent countComp = new StringTextComponent("" + count).withStyle(TextFormatting.BOLD).withStyle(TextFormatting.GREEN);
                 IFormattableTextComponent arrowComp = new StringTextComponent(" -> ").withStyle(TextFormatting.BOLD);
                 IFormattableTextComponent newCountComp =
@@ -479,8 +478,8 @@ public class FallScreenEvent {
         float itemSize = ((((txtRoomHeight/4) * 3)/4F) - (padding * 2));
 
         if (cap.getItemList().size() != 0){
-            ArrayList<Item> itemArrayList = cap.getItemList();
-            for (Item item : itemArrayList) {
+            ArrayList<ItemStack> itemArrayList = cap.getItemList();
+            for (ItemStack sacrificeStack : itemArrayList) {
                 float backgroundX = halfWidth + halfMouseSizeX + 5;
                 float backgroundW = txtRoomWidth - halfMouseSizeX - 5;
                 float backgroundY = mouse_idle_IMG.y0 + (txtRoomHeight/4) + offset;
@@ -494,12 +493,12 @@ public class FallScreenEvent {
 
                 //Draw the item
                 ClientUtil.blitItem(stack, backgroundX + (((backgroundW/4F) - smallestSize))/2F, smallestSize,
-                        backgroundY + padding, smallestSize, new ItemStack(item));
+                        backgroundY + padding, smallestSize, sacrificeStack);
 //                mC.getItemRenderer().renderAndDecorateItem(new ItemStack(item),
 //                        (int) (halfWidth + halfMouseSizeX + 5 + padding), (int) (mouse_idle_IMG.y0 + (txtRoomHeight/4) + offset + padding));
 
                 //Draw the amount they have, then the amount they will have after reduction
-                int count = inst.player.inventory.countItem(item);
+                int count = FallenCapability.countItem(inst.player.inventory, sacrificeStack);
                 IFormattableTextComponent countComp = new StringTextComponent("" + count).withStyle(TextFormatting.BOLD).withStyle(TextFormatting.GREEN);
                 IFormattableTextComponent arrowComp = new StringTextComponent(" -> ").withStyle(TextFormatting.BOLD);
                 IFormattableTextComponent newCountComp =
