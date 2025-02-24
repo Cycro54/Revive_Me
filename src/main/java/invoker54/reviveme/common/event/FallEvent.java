@@ -65,21 +65,11 @@ public class FallEvent {
         FallenCapability instance = FallenCapability.GetFallCap(player);
 
         //Generate a sacrificial item list
-        ArrayList<Item> playerItems = new ArrayList<>();
-        for (ItemStack itemStack : player.getInventory().items) {
-            if (playerItems.contains(itemStack.getItem())) continue;
-            if (!itemStack.isStackable()) continue;
-            if (itemStack.isEmpty()) continue;
-            playerItems.add(itemStack.getItem());
-        }
-        //Remove all except 4
-        while (playerItems.size() > 4) {
-            playerItems.remove(player.level.random.nextInt(playerItems.size()));
-        }
+        if (!instance.usedSacrificedItems()) instance.setSacrificialItems(player.getInventory());
 
         //If they used both self-revive options, and they are not on a server, they should die immediately
         if (instance.usedChance() &&
-                (instance.usedSacrificedItems() || playerItems.isEmpty()) &&
+                (instance.usedSacrificedItems() || instance.getItemList().isEmpty()) &&
                 (player.getServer() != null && player.getServer().getPlayerCount() < 2)) return false;
 
 //        LOGGER.info("Are they fallen? " + instance.isFallen());
@@ -131,11 +121,6 @@ public class FallEvent {
                 double xpToRemove = ReviveMeConfig.fallenXpPenalty;
                 if (xpToRemove < 1) xpToRemove = Math.round(player.experienceLevel * xpToRemove);
                 player.giveExperienceLevels((int) -xpToRemove);
-            }
-
-            //This will only happen if the player is in a single player world
-            if (!instance.usedSacrificedItems()) {
-                instance.setSacrificialItems(playerItems);
             }
 
             //Finally send capability code to all players

@@ -1,5 +1,6 @@
 package invoker54.reviveme.common.capability;
 
+import invoker54.invocore.client.ClientUtil;
 import invoker54.reviveme.common.api.FallenProvider;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.nbt.CompoundTag;
@@ -7,6 +8,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -33,7 +35,7 @@ public class FallenCapability {
     public static final String PENALTY_DOUBLE = "penaltyDoubleREVIVE";
     public static final String PENALTY_ITEM = "penaltyItemREVIVE";
     public static final String OTHERPLAYER_UUID = "otherPlayerREVIVE";
-    public static final String SACRIFICEITEMS_STRING = "sacrificeItemStringREVIVE";
+    public static final String SACRIFICEITEMS_COMPOUND = "sacrificeItemCompoundREVIVE";
     public static final String SACRIFICEITEMS_BOOL = "sacrificeItemsBoolREVIVE";
     public static final String REVIVECHANCE_BOOL = "reviveChanceBoolREVIVE";
     public static final String PENALTY_MULTIPLIER_INT = "penaltyMultiplierIntREVIVE";
@@ -61,7 +63,7 @@ public class FallenCapability {
     protected PENALTYPE penaltyType = PENALTYPE.HEALTH;
     protected long calledForHelpTime = 0;
 
-    protected List<Item> sacrificialItems = new ArrayList<>();
+    protected List<ItemStack> sacrificialItems = new ArrayList<>();
     protected boolean sacrificedItemsUsed = false;
     protected boolean reviveChanceUsed = false;
     protected int penaltyMultiplier = 0;
@@ -225,12 +227,49 @@ public class FallenCapability {
         return Math.min (1, (level.getGameTime() - revStart) /(float) revEnd);
     }
 
-    public void setSacrificialItems(@Nonnull ArrayList<Item> itemList){
-        this.sacrificialItems = itemList;
+    public void setSacrificialItems(Inventory inventory){
+        if (inventory == null){
+            this.sacrificialItems.clear();
+            return;
+        }
+
+        //Generate a sacrificial item list
+        ArrayList<ItemStack> playerItems = new ArrayList<>();
+        for (ItemStack newStack : inventory.items) {
+            if (!newStack.isStackable()) continue;
+            if (playerItems.stream().anyMatch(listStack ->
+                    listStack.sameItem(newStack) && ItemStack.tagMatches(listStack, newStack))) continue;
+            if (newStack.isEmpty()) continue;
+            playerItems.add(this.level.random.nextInt(Math.max(1,playerItems.size())), newStack);
+        }
+        //Remove all except 4
+        while (playerItems.size() > 4) {
+            playerItems.remove(this.level.random.nextInt(playerItems.size()));
+        }
+
+        this.sacrificialItems = playerItems;
     }
 
-    public ArrayList<Item> getItemList(){
+    public ArrayList<ItemStack> getItemList(){
         return new ArrayList<>(this.sacrificialItems);
+    }
+
+    public boolean isSacrificialItem(ItemStack mainStack) {
+        return this.sacrificialItems.stream().anyMatch(
+                sacrificialStack -> sacrificialStack.sameItem(mainStack) &&
+                        ItemStack.tagMatches(mainStack, sacrificialStack));
+    }
+
+    public static int countItem(Inventory inventory, ItemStack sacrificialStack) {
+        int count = 0;
+
+        for (int a = 0; a < inventory.getContainerSize(); a++) {
+            ItemStack containerStack = inventory.getItem(a);
+            if (!sacrificialStack.sameItem(containerStack)) continue;
+            if (!ItemStack.tagMatches(sacrificialStack, containerStack)) continue;
+            count += containerStack.getCount();
+        }
+        return count;
     }
 
     public boolean usedSacrificedItems(){
@@ -272,11 +311,12 @@ public class FallenCapability {
         cNBT.putString(PENALTY_ITEM, ForgeRegistries.ITEMS.getKey(this.penaltyItem.getItem()).toString());
 
         //The saved sacrificial items
-        StringBuilder ItemList = new StringBuilder();
-        for (Item item : sacrificialItems){
-            ItemList.append(ForgeRegistries.ITEMS.getKey(item)).append(",");
+        CompoundTag itemCompound = new CompoundTag();
+        for (ItemStack item : sacrificialItems){
+            itemCompound.put(itemCompound.size()+"", item.serializeNBT());
+//            ItemList.append(ForgeRegistries.ITEMS.getKey(item)).append(",");
         }
-        cNBT.putString(SACRIFICEITEMS_STRING, ItemList.toString());
+        cNBT.put(SACRIFICEITEMS_COMPOUND, itemCompound);
         //If the player sacrificed items
         cNBT.putBoolean(SACRIFICEITEMS_BOOL, this.sacrificedItemsUsed);
         //If the player used the chance
@@ -298,10 +338,12 @@ public class FallenCapability {
         this.setPenalty(PENALTYPE.valueOf(cNBT.getString(PENALTY_ENUM)), cNBT.getDouble(PENALTY_DOUBLE), cNBT.getString(PENALTY_ITEM));
 
         sacrificialItems.clear();
-        for (String itemString : cNBT.getString(SACRIFICEITEMS_STRING).split(",")){
-            Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(itemString));
-            if (item != Items.AIR){
-                sacrificialItems.add(item);
+        CompoundTag itemCompound = cNBT.getCompound(SACRIFICEITEMS_COMPOUND);
+        if (!itemCompound.isEmpty()){
+            for (String key: itemCompound.getAllKeys()){
+                ItemStack sacrificeStack = ItemStack.of(itemCompound.getCompound(key));
+                if (sacrificeStack.isEmpty()) continue;
+                sacrificialItems.add(sacrificeStack);
             }
         }
         this.sacrificedItemsUsed = cNBT.getBoolean(SACRIFICEITEMS_BOOL);
