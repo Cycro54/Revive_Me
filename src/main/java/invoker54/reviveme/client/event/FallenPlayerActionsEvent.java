@@ -15,7 +15,6 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ComputeFovModifierEvent;
-import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
@@ -28,31 +27,22 @@ public class FallenPlayerActionsEvent {
     public static int timeHeld = 0;
 
     @SubscribeEvent
-    public static void onAttack(InputEvent.InteractionKeyMappingTriggered event){
-        if (FallenData.get(inst.player).isFallen()) {
-
-            event.setCanceled(true);
-            if (event.isAttack()){
-                event.setSwingHand(false);
-            }
-        }
-
-    }
-
-    @SubscribeEvent
     public static void forceDeath(PlayerTickEvent.Pre event) {
         if (!event.getEntity().level().isClientSide) return;
         if (event.getEntity() != ClientUtil.getPlayer()) return;
 
         FallenData cap = FallenData.get(inst.player);
 
-        if (!cap.isFallen()) return;
+        if (!cap.isFallen()) {
+            if (timeHeld != 0) timeHeld = 0;
+            return;
+        }
 
         boolean flag = (ReviveMeConfig.selfReviveMultiplayer || (ClientUtil.getMinecraft().hasSingleplayerServer() &&
                 ClientUtil.getMinecraft().getSingleplayerServer().getPlayerList().getPlayers().size() == 1));
 
         //This will be chance
-        if (inst.options.keyAttack.isDown()) {
+        if (VanillaKeybindHandler.attackHeld) {
             timeHeld++;
             if (!ClientUtil.getPlayer().swinging) {
                 ClientUtil.getPlayer().swing(InteractionHand.MAIN_HAND);
@@ -64,8 +54,9 @@ public class FallenPlayerActionsEvent {
             }
         }
         //This will use items
-        else if (VanillaKeybindHandler.useKeyDown && flag && (!cap.usedChance() || !cap.getItemList().isEmpty())) {
+        else if (VanillaKeybindHandler.useHeld && flag && (!cap.usedChance() || !cap.getItemList().isEmpty())) {
             timeHeld++;
+            ClientUtil.getPlayer().swing(InteractionHand.MAIN_HAND);
 
             if (timeHeld == 40) {
                 PacketDistributor.sendToServer(new SacrificeItemsMsg());

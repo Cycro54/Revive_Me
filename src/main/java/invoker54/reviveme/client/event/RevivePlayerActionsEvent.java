@@ -53,7 +53,7 @@ public class RevivePlayerActionsEvent {
         //Check if I'm holding the use button down
         if(!cancelEvent) {
             //System.out.println("Am I holding use down?: " + inst.options.keyUse.isDown());
-            cancelEvent = !VanillaKeybindHandler.useKeyDown;
+            cancelEvent = !VanillaKeybindHandler.useHeld;
         }
 
         if (cancelEvent){
