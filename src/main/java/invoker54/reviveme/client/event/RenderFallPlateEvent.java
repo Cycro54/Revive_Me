@@ -24,7 +24,8 @@ import org.apache.logging.log4j.Logger;
 import java.awt.*;
 import java.text.DecimalFormat;
 
-import static invoker54.invocore.client.ClientUtil.*;
+import static invoker54.invocore.client.ClientUtil.getMinecraft;
+import static invoker54.invocore.client.ClientUtil.getPlayer;
 import static invoker54.reviveme.client.event.FallScreenEvent.timerIMG;
 import static invoker54.reviveme.client.event.ReviveScreenEvent.bgColor;
 import static invoker54.reviveme.client.event.ReviveScreenEvent.progressColor;

@@ -5,11 +5,9 @@ import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.event.FallenTimerEvent;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.ArrayList;
 import java.util.function.Supplier;
 
 public class SacrificeItemsMsg {
