@@ -19,7 +19,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
@@ -32,14 +31,12 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
-
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class FallEvent {
     private static final Logger LOGGER = LogManager.getLogger();
 
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public static void StopDeath(LivingDeathEvent event){
+    public static void StopDeath(LivingDeathEvent event) {
 //        LOGGER.info("WAS IT CANCELLED? " + event.isCanceled());
         if (event.isCanceled()) return;
 //        LOGGER.info("IS IT A PLAYER? " + (event.getEntityLiving() instanceof Player));
@@ -64,21 +61,11 @@ public class FallEvent {
         FallenCapability instance = FallenCapability.GetFallCap(player);
 
         //Generate a sacrificial item list
-        ArrayList<Item> playerItems = new ArrayList<>();
-        for (ItemStack itemStack : player.getInventory().items) {
-            if (playerItems.contains(itemStack.getItem())) continue;
-            if (!itemStack.isStackable()) continue;
-            if (itemStack.isEmpty()) continue;
-            playerItems.add(itemStack.getItem());
-        }
-        //Remove all except 4
-        while (playerItems.size() > 4) {
-            playerItems.remove(player.level.random.nextInt(playerItems.size()));
-        }
+        if (!instance.usedSacrificedItems()) instance.setSacrificialItems(player.getInventory());
 
         //If they used both self-revive options, and they are not on a server, they should die immediately
         if (instance.usedChance() &&
-                (instance.usedSacrificedItems() || playerItems.isEmpty()) &&
+                (instance.usedSacrificedItems() || instance.getItemList().isEmpty()) &&
                 (player.getServer() != null && player.getServer().getPlayerCount() < 2)) return false;
 
 //        LOGGER.info("Are they fallen? " + instance.isFallen());
@@ -107,7 +94,7 @@ public class FallEvent {
             //System.out.println(ReviveMeConfig.penaltyType);
 
             //grab the FALLEN EFFECT amplifier for later use
-            if (player.hasEffect(MobEffectInit.FALLEN_EFFECT)){
+            if (player.hasEffect(MobEffectInit.FALLEN_EFFECT)) {
                 instance.setPenaltyMultiplier(player.getEffect(MobEffectInit.FALLEN_EFFECT).getAmplifier() + 1);
             }
 
@@ -126,15 +113,10 @@ public class FallEvent {
             player.closeContainer();
 
             //Take away xp levels
-            if (ReviveMeConfig.fallenXpPenalty > 0){
+            if (ReviveMeConfig.fallenXpPenalty > 0) {
                 double xpToRemove = ReviveMeConfig.fallenXpPenalty;
                 if (xpToRemove < 1) xpToRemove = Math.round(player.experienceLevel * xpToRemove);
                 player.giveExperienceLevels((int) -xpToRemove);
-            }
-
-            //This will only happen if the player is in a single player world
-            if (!instance.usedSacrificedItems()) {
-                instance.setSacrificialItems(playerItems);
             }
 
             //Finally send capability code to all players
@@ -161,8 +143,8 @@ public class FallEvent {
                 if (!(entity instanceof Mob mob)) continue;
                 if (mob.getTarget() == null) continue;
                 if (mob.getTarget().getId() != player.getId()) continue;
-                if (mob instanceof NeutralMob){
-                    ((NeutralMob)mob).playerDied(player);
+                if (mob instanceof NeutralMob) {
+                    ((NeutralMob) mob).playerDied(player);
                 }
                 mob.aiStep();
             }
@@ -178,16 +160,16 @@ public class FallEvent {
         return false;
     }
 
-    public static void applyDownedEffects(Player player){
-        for (String string : ReviveMeConfig.downedEffects){
+    public static void applyDownedEffects(Player player) {
+        for (String string : ReviveMeConfig.downedEffects) {
             try {
                 String[] array = string.split(":");
 //                LOGGER.info("The effect split into pieces: " + Arrays.toString(array));
-                ResourceLocation effectLocation = new ResourceLocation(array[0],array[1]);
+                ResourceLocation effectLocation = new ResourceLocation(array[0], array[1]);
                 int tier = Integer.parseInt(array[2]);
 //                LOGGER.info("The tier: " + tier);
                 MobEffect effect = ForgeRegistries.MOB_EFFECTS.getValue(effectLocation);
-                if (effect == null){
+                if (effect == null) {
                     LOGGER.error("Incorrect MOD ID or Potion Effect: " + string);
                     continue;
                 }
@@ -196,8 +178,7 @@ public class FallEvent {
                 if (effectInstance == null || effectInstance.getAmplifier() < tier) {
                     player.addEffect(new MobEffectInstance(effect, Integer.MAX_VALUE, tier));
                 }
-            }
-            catch (Exception e){
+            } catch (Exception e) {
                 LOGGER.error("This string couldn't be parsed: " + string);
             }
         }
