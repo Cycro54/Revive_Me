@@ -231,18 +231,18 @@ public class FallScreenEvent {
             int itemSize = 16;
 
             if (cap.getItemList().size() != 0){
-            ArrayList<Item> itemArrayList = cap.getItemList();
-            for (Item item : itemArrayList) {
+                ArrayList<ItemStack> itemArrayList = cap.getItemList();
+                for (ItemStack sacrificeStack : itemArrayList) {
                 //Draw the background
                 ClientUtil.blitColor( stack,(halfWidth / 4) + halfWidth, halfWidth / 2, (fifthHeight * 2) + offset,
                         itemSize + (padding * 2), new Color(0, 0, 0, 255).getRGB());
 
                 //Draw the item
                 ClientUtil.blitItem(stack, (int) ((halfWidth / 4) + halfWidth + padding), 16,
-                        (int) ((fifthHeight * 2) + offset + padding), 16, new ItemStack(item));
+                        (int) ((fifthHeight * 2) + offset + padding), 16, sacrificeStack);
 
                 //Draw the amount they have, then the amount they will have after reduction
-                int count = inst.player.getInventory().countItem(item);
+                int count = FallenCapability.countItem(inst.player.getInventory(), sacrificeStack);
                 MutableComponent countComp = Component.literal("" + count).withStyle(ChatFormatting.BOLD).withStyle(ChatFormatting.GREEN);
                 MutableComponent arrowComp = Component.literal(" -> ").withStyle(ChatFormatting.BOLD);
                 MutableComponent newCountComp =
@@ -458,8 +458,8 @@ public class FallScreenEvent {
             float itemSize = ((((txtRoomHeight/4) * 3)/4F) - (padding * 2));
 
             if (cap.getItemList().size() != 0){
-            ArrayList<Item> itemArrayList = cap.getItemList();
-            for (Item item : itemArrayList) {
+                ArrayList<ItemStack> itemArrayList = cap.getItemList();
+                for (ItemStack sacrificeStack : itemArrayList) {
                 float backgroundX = halfWidth + halfMouseSizeX + 5;
                 float backgroundW = txtRoomWidth - halfMouseSizeX - 5;
                 float backgroundY = mouse_idle_IMG.y0 + (txtRoomHeight/4) + offset;
@@ -473,12 +473,12 @@ public class FallScreenEvent {
 
                 //Draw the item
                 ClientUtil.blitItem( stack,backgroundX + (((backgroundW/4F) - smallestSize))/2F, smallestSize,
-                        backgroundY + padding, smallestSize, new ItemStack(item));
-//                getMinecraft().getItemRenderer().renderAndDecorateItem(new ItemStack(item),
+                        backgroundY + padding, smallestSize, sacrificeStack);
+//                getMinecraft().getItemRenderer().renderAndDecorateItem(sacrificeStack,
 //                        (int) (halfWidth + halfMouseSizeX + 5 + padding), (int) (mouse_idle_IMG.y0 + (txtRoomHeight/4) + offset + padding));
 
                 //Draw the amount they have, then the amount they will have after reduction
-                int count = inst.player.getInventory().countItem(item);
+                int count = FallenCapability.countItem(inst.player.getInventory(), sacrificeStack);
                 MutableComponent countComp = Component.literal("" + count).withStyle(ChatFormatting.BOLD).withStyle(ChatFormatting.GREEN);
                 MutableComponent arrowComp = Component.literal(" -> ").withStyle(ChatFormatting.BOLD);
                 MutableComponent newCountComp =
