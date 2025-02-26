@@ -27,9 +27,7 @@ public abstract class SlotMixin {
         FallenData cap = FallenData.get(player);
         if (!cap.isFallen()) return;
         if (!this.hasItem()) return;
-        if (!cap.usedSacrificedItems() && cap.getItemList().contains(getItem().getItem())){
-            cir.setReturnValue(false);
-        }
+        if (!cap.usedSacrificedItems() && cap.isSacrificialItem(getItem())) cir.setReturnValue(false);
         else {
             cir.setReturnValue(ReviveMeConfig.interactWithInventory == ReviveMeConfig.INTERACT_WITH_INVENTORY.YES);
         }

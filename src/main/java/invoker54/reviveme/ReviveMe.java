@@ -19,24 +19,16 @@ public class ReviveMe
 
     // Directly reference a log4j logger.
     private static final Logger LOGGER = LogManager.getLogger();
-    public static final ResourceLocation FALLEN_LOC = makeResource("fallen_data");
 
     public ReviveMe(IEventBus modEventBus, ModContainer modContainer) {
 
         AttachmentTypesInit.registerAttachments(modEventBus);
         MobEffectInit.registerEffects(modEventBus);
-//        NeoForge.EVENT_BUS.register(this);
         //This is for configs
         modContainer.registerConfig(ModConfig.Type.COMMON, ReviveMeConfig.COMMON_SPEC, "reviveme-common.toml");
-        // MinecraftForge.EVENT_BUS.register(new DeathEventHandler());
     }
 
     public static ResourceLocation makeResource(String id){
         return ResourceLocation.fromNamespaceAndPath(ReviveMe.MOD_ID, id);
     }
-//
-//    private void setup(final FMLCommonSetupEvent event)
-//    {
-//        NetworkHandler.init();
-//    }
 }
