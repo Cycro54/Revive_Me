@@ -10,11 +10,13 @@ import invoker54.reviveme.common.network.message.InstaKillMsg;
 import invoker54.reviveme.common.network.message.ReviveChanceMsg;
 import invoker54.reviveme.common.network.message.SacrificeItemsMsg;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screen.inventory.InventoryScreen;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Hand;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.FOVUpdateEvent;
+import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
@@ -95,5 +97,15 @@ public class FallenPlayerActionsEvent {
         f *= 1.0F - f1 * 0.15F;
 
         event.setNewfov(f);
+    }
+
+    @SubscribeEvent
+    public static void openInventory(GuiOpenEvent event){
+        if (ClientUtil.getWorld() == null) return;
+        if (ClientUtil.getPlayer() == null) return;
+        if (!FallenCapability.GetFallCap(ClientUtil.getPlayer()).isFallen()) return;
+        if (!(event.getGui() instanceof InventoryScreen)) return;
+        if (ReviveMeConfig.interactWithInventory != ReviveMeConfig.INTERACT_WITH_INVENTORY.NO) return;
+        event.setGui(null);
     }
 }

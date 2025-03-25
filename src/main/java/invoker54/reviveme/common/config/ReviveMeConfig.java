@@ -57,6 +57,7 @@ public final class ReviveMeConfig {
     public static double fallenXpPenalty;
     public static double timeReductionPenalty;
     public static Integer pvpTimer;
+    public static boolean revertEffectsOnRevive;
     public static List<String> downedEffects;
     public static List<String> blockedCommands;
     public static boolean silenceRegularMessages;
@@ -97,6 +98,7 @@ public final class ReviveMeConfig {
         fallenXpPenalty = COMMON.fallenXpPenalty.get();
         timeReductionPenalty = COMMON.timeReductionPenalty.get();
         pvpTimer = COMMON.pvpTimer.get();
+        revertEffectsOnRevive = COMMON.revertEffectsOnRevive.get();
         downedEffects = (List<String>) COMMON.downedEffects.get();
         blockedCommands = (List<String>) COMMON.blockedCommands.get();
         compactReviveUI = COMMON.compactReviveUI.get();
@@ -217,6 +219,7 @@ public final class ReviveMeConfig {
         public final ForgeConfigSpec.ConfigValue<Double> fallenXpPenalty;
         public final ForgeConfigSpec.ConfigValue<Double> timeReductionPenalty;
         public final ForgeConfigSpec.ConfigValue<Integer> pvpTimer;
+        public final ForgeConfigSpec.ConfigValue<Boolean> revertEffectsOnRevive;
         public final ForgeConfigSpec.ConfigValue<List<? extends String>> downedEffects;
         public final ForgeConfigSpec.ConfigValue<List<? extends String>> blockedCommands;
         public final ForgeConfigSpec.ConfigValue<Boolean> compactReviveUI;
@@ -249,6 +252,7 @@ public final class ReviveMeConfig {
             canGiveUp = builder.comment("If you can give up and die").define("Can_Give_Up", true);
             interactWithInventory = builder.comment("If the player can use their inventory while fallen").defineEnum("Interact_With_Inventory", INTERACT_WITH_INVENTORY.LOOK_ONLY);
             fallenXpPenalty = builder.comment("How many xp levels a player loses when downed (Less than 1 is a percentage)").defineInRange("Fallen_Xp_Penalty", 0, 0, Double.MAX_VALUE);
+            revertEffectsOnRevive = builder.comment("Give back all of the potion effects the player had before entering the fallen state").define("Revert_Effects_On_Revive", false);
             downedEffects = builder.comment("Potion effects the player has while fallen (ModId:PotionEffect:Tier)(minecraft:slowness:0)").define("Downed_Effects", new ArrayList<String>(ImmutableList.of("minecraft:slowness:3")));
             blockedCommands = builder.comment("Commands the player isn't allowed to use while fallen. Type \"/\" to block all commands.").define("Blocked_Commands", new ArrayList<>());
             reviveHelpCooldown = builder.comment("How long before you can call for help again in SECONDS").defineInRange("Revive_Help_Call_Cooldown", 0.75f, 0, Double.MAX_VALUE);

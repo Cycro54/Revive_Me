@@ -24,6 +24,7 @@ import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.GameType;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.PotionEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -98,12 +99,18 @@ public class FallEvent {
             //grab the FALLEN EFFECT amplifier for later use
             if (player.hasEffect(EffectInit.FALLEN_EFFECT)){
                 instance.setPenaltyMultiplier(player.getEffect(EffectInit.FALLEN_EFFECT).getAmplifier() + 1);
+                //Remove the FallenEffect so it doesn't get saved
+                player.removeEffect(EffectInit.FALLEN_EFFECT);
             }
 
+            //Save all of their potion effects
+            if (ReviveMeConfig.revertEffectsOnRevive){
+                instance.saveEffects(player);
+            }
             player.removeAllEffects();
 
             //Give them all the downed effects.
-            applyDownedEffects(player);
+            modifyPotionEffects(player);
 
             //Dismount the player if riding something
             player.stopRiding();
@@ -162,7 +169,7 @@ public class FallEvent {
         return false;
     }
 
-    public static void applyDownedEffects(PlayerEntity player){
+    public static void modifyPotionEffects(PlayerEntity player){
         for (String string : ReviveMeConfig.downedEffects){
             try {
                 String[] array = string.split(":");
@@ -177,7 +184,7 @@ public class FallEvent {
                 }
 
                 EffectInstance effectInstance = player.getEffect(effect);
-                if (effectInstance == null || effectInstance.getAmplifier() < tier) {
+                 if (effectInstance == null) {
                     player.addEffect(new EffectInstance(effect, Integer.MAX_VALUE, tier));
                 }
             }

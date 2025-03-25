@@ -69,7 +69,7 @@ public class FallenTimerEvent {
         event.player.getFoodData().setFoodLevel(0);
 
         //Finally make sure they have all the required effects.
-        FallEvent.applyDownedEffects(event.player);
+        FallEvent.modifyPotionEffects(event.player);
 
         if (!cap.shouldDie()) return;
 
@@ -195,8 +195,10 @@ public class FallenTimerEvent {
 
         //Remove all potion effects
         fallen.removeAllEffects();
+        //Load the saved effects
+        cap.loadEffects(fallen);
 
-        //Add the fallen potion effect if one of the two self revives were used
+        //Add the fallen potion effect
         fallen.addEffect(new EffectInstance(EffectInit.FALLEN_EFFECT, (int) (ReviveMeConfig.fallenPenaltyTimer * 20), cap.getPenaltyMultiplier()));
 
         //Add invulnerability if it isn't 0

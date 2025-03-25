@@ -17,6 +17,7 @@ import net.minecraftforge.fml.common.Mod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import static invoker54.invocore.client.ClientUtil.getPlayer;
 import static invoker54.invocore.client.ClientUtil.mC;
 import static invoker54.reviveme.client.event.FallScreenEvent.*;
 import static invoker54.reviveme.client.event.RenderFallPlateEvent.blackBg;
@@ -32,6 +33,7 @@ public class ReviveRequirementScreen {
         //if (true) return;
         if (!(mC.crosshairPickEntity instanceof PlayerEntity)) return;
         if (((PlayerEntity) mC.crosshairPickEntity).isDeadOrDying()) return;
+        if (getPlayer().isCrouching()) return;
         FallenCapability cap = FallenCapability.GetFallCap((LivingEntity) mC.crosshairPickEntity);
         if (!cap.isFallen()) return;
         if (cap.getOtherPlayer() != null) return;

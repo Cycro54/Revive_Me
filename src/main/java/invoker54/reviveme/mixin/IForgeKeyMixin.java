@@ -60,14 +60,16 @@ public abstract class IForgeKeyMixin implements IForgeKeybinding {
         boolean isVanilla = VanillaKeybindHandler.isVanillaKeybind(keybinding);
         boolean isKeyInventory = keybinding.same(ClientUtil.mC.options.keyInventory);
         boolean isKeyDrop = keybinding.same(ClientUtil.mC.options.keyDrop);
+        boolean isKeySwapOffhand = keybinding.same(ClientUtil.mC.options.keySwapOffhand);
+        boolean isSwapOrDrop = isKeyDrop || isKeySwapOffhand;
         ItemStack mainStack = player.getMainHandItem();
         boolean isSacrificialItem = FallenCapability.GetFallCap(player).isSacrificialItem(mainStack);
         ReviveMeConfig.INTERACT_WITH_INVENTORY inventoryRule = ReviveMeConfig.interactWithInventory;
 
         if (!isVanilla) return false;
-        else if (inventoryRule == ReviveMeConfig.INTERACT_WITH_INVENTORY.NO && (isKeyInventory || isKeyDrop)) return false;
-        else if (inventoryRule == ReviveMeConfig.INTERACT_WITH_INVENTORY.LOOK_ONLY && isKeyDrop) return false;
-        else if (isKeyDrop && isSacrificialItem) return false;
+        else if (inventoryRule == ReviveMeConfig.INTERACT_WITH_INVENTORY.NO && (isKeyInventory || isSwapOrDrop)) return false;
+        else if (inventoryRule == ReviveMeConfig.INTERACT_WITH_INVENTORY.LOOK_ONLY && isSwapOrDrop) return false;
+        else if (isSwapOrDrop && isSacrificialItem) return false;
 
         return true;
     }
