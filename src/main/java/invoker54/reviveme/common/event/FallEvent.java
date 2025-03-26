@@ -100,12 +100,18 @@ public class FallEvent {
             //grab the FALLEN EFFECT amplifier for later use
             if (player.hasEffect(MobEffectInit.FALLEN_EFFECT)){
                 instance.setPenaltyMultiplier(player.getEffect(MobEffectInit.FALLEN_EFFECT).getAmplifier() + 1);
+                //Remove the FallenEffect so it doesn't get saved
+                player.removeEffect(MobEffectInit.FALLEN_EFFECT);
             }
 
+            //Save all of their potion effects
+            if (ReviveMeConfig.revertEffectsOnRevive){
+                instance.saveEffects(player);
+            }
             player.removeAllEffects();
 
             //Give them all the downed effects.
-            applyDownedEffects(player);
+            modifyPotionEffects(player);
 
             //Dismount the player if riding something
             player.stopRiding();
@@ -164,7 +170,7 @@ public class FallEvent {
         return false;
     }
 
-    public static void applyDownedEffects(Player player){
+    public static void modifyPotionEffects(Player player){
         for (String string : ReviveMeConfig.downedEffects){
             try {
                 String[] array = string.split(":");
@@ -179,7 +185,7 @@ public class FallEvent {
                 }
 
                 MobEffectInstance effectInstance = player.getEffect(effect);
-                if (effectInstance == null || effectInstance.getAmplifier() < tier) {
+                if (effectInstance == null) {
                     player.addEffect(new MobEffectInstance(effect, Integer.MAX_VALUE, tier));
                 }
             }
