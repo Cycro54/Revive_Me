@@ -96,12 +96,18 @@ public class FallEvent {
             //grab the FALLEN EFFECT amplifier for later use
             if (player.hasEffect(MobEffectInit.FALLEN_EFFECT)) {
                 instance.setPenaltyMultiplier(player.getEffect(MobEffectInit.FALLEN_EFFECT).getAmplifier() + 1);
+                //Remove the FallenEffect so it doesn't get saved
+                player.removeEffect(MobEffectInit.FALLEN_EFFECT);
             }
 
+            //Save all of their potion effects
+            if (ReviveMeConfig.revertEffectsOnRevive){
+                instance.saveEffects(player);
+            }
             player.removeAllEffects();
 
             //Give them all the downed effects.
-            applyDownedEffects(player);
+            modifyPotionEffects(player);
 
             //Dismount the player if riding something
             player.stopRiding();
@@ -160,25 +166,26 @@ public class FallEvent {
         return false;
     }
 
-    public static void applyDownedEffects(Player player) {
-        for (String string : ReviveMeConfig.downedEffects) {
+    public static void modifyPotionEffects(Player player){
+        for (String string : ReviveMeConfig.downedEffects){
             try {
                 String[] array = string.split(":");
 //                LOGGER.info("The effect split into pieces: " + Arrays.toString(array));
-                ResourceLocation effectLocation = new ResourceLocation(array[0], array[1]);
+                ResourceLocation effectLocation = new ResourceLocation(array[0],array[1]);
                 int tier = Integer.parseInt(array[2]);
 //                LOGGER.info("The tier: " + tier);
                 MobEffect effect = ForgeRegistries.MOB_EFFECTS.getValue(effectLocation);
-                if (effect == null) {
+                if (effect == null){
                     LOGGER.error("Incorrect MOD ID or Potion Effect: " + string);
                     continue;
                 }
 
                 MobEffectInstance effectInstance = player.getEffect(effect);
-                if (effectInstance == null || effectInstance.getAmplifier() < tier) {
+                if (effectInstance == null) {
                     player.addEffect(new MobEffectInstance(effect, Integer.MAX_VALUE, tier));
                 }
-            } catch (Exception e) {
+            }
+            catch (Exception e){
                 LOGGER.error("This string couldn't be parsed: " + string);
             }
         }
