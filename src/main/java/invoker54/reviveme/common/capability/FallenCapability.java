@@ -6,6 +6,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -36,6 +37,7 @@ public class FallenCapability {
     public static final String REVIVECHANCE_BOOL = "reviveChanceBoolREVIVE";
     public static final String PENALTY_MULTIPLIER_INT = "penaltyMultiplierIntREVIVE";
     public static final String CALLED_FOR_HELP_LONG = "calledForHelpLong";
+    public static final String SAVED_EFFECTS_TAG = "savedEffectsTag";
     //endregion
 
     public FallenCapability(Level level){
@@ -64,6 +66,8 @@ public class FallenCapability {
     protected boolean sacrificedItemsUsed = false;
     protected boolean reviveChanceUsed = false;
     protected int penaltyMultiplier = 0;
+
+    protected CompoundTag savedEffectsTag = new CompoundTag();
 
     public enum PENALTYPE  {
         NONE,
@@ -294,6 +298,26 @@ public class FallenCapability {
         this.penaltyMultiplier = newMultiplier;
     }
 
+    public void saveEffects(Player player){
+        CompoundTag effectsTag = new CompoundTag();
+        for (MobEffectInstance effectInstance : player.getActiveEffects()){
+            if (effectInstance.getDuration() <= 1*20) continue;
+            CompoundTag savedEffectTag = new CompoundTag();
+            effectInstance.save(savedEffectTag);
+            effectsTag.put(effectsTag.size()+"", savedEffectTag);
+        }
+        this.savedEffectsTag = effectsTag;
+    }
+
+    public void loadEffects(Player player){
+        for (String key : this.savedEffectsTag.getAllKeys()){
+            MobEffectInstance instance = MobEffectInstance.load(this.savedEffectsTag.getCompound(key));
+            if (instance == null) continue;
+            player.addEffect(instance);
+        }
+        this.savedEffectsTag = new CompoundTag();
+    }
+
     public Tag writeNBT(){
         CompoundTag cNBT = new CompoundTag();
         cNBT.putLong(FELL_START_LONG, this.fellStart);
@@ -321,6 +345,7 @@ public class FallenCapability {
 
         cNBT.putLong(CALLED_FOR_HELP_LONG, this.calledForHelpTime);
 
+        cNBT.put(SAVED_EFFECTS_TAG, this.savedEffectsTag);
         if(this.otherPlayer != null)
             cNBT.putUUID(OTHERPLAYER_UUID, this.otherPlayer);
         return cNBT;
@@ -346,6 +371,8 @@ public class FallenCapability {
         this.penaltyMultiplier = cNBT.getInt(PENALTY_MULTIPLIER_INT);
 
         this.calledForHelpTime = cNBT.getLong(CALLED_FOR_HELP_LONG);
+
+        this.savedEffectsTag = cNBT.getCompound(SAVED_EFFECTS_TAG);
 
         if(cNBT.hasUUID(OTHERPLAYER_UUID)) {
             this.setOtherPlayer(cNBT.getUUID(OTHERPLAYER_UUID));

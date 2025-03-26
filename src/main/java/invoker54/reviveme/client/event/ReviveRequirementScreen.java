@@ -19,6 +19,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import static invoker54.invocore.client.ClientUtil.getMinecraft;
+import static invoker54.invocore.client.ClientUtil.getPlayer;
 import static invoker54.reviveme.client.event.FallScreenEvent.*;
 import static invoker54.reviveme.client.event.RenderFallPlateEvent.blackBg;
 
@@ -33,6 +34,7 @@ public class ReviveRequirementScreen {
             if (ClientUtil.getPlayer().isCreative() || ClientUtil.getPlayer().isSpectator()) return;
             if (!(getMinecraft().crosshairPickEntity instanceof Player)) return;
             if (((Player) getMinecraft().crosshairPickEntity).isDeadOrDying()) return;
+            if (getPlayer().isCrouching()) return;
             FallenCapability cap = FallenCapability.GetFallCap((LivingEntity) getMinecraft().crosshairPickEntity);
             if (!cap.isFallen()) return;
             if (cap.getOtherPlayer() != null) return;
