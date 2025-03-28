@@ -120,7 +120,8 @@ public class FallenCapability {
 
     public void kill(PlayerEntity player){
         this.setDying();
-        player.hurt(this.damageSource, Float.MAX_VALUE);
+        player.setHealth(0.00000001F);
+        player.hurt(this.damageSource, 1);
         if (!player.isDeadOrDying() || Float.isNaN(player.getHealth())) {
             player.getCombatTracker().recordDamage(this.getDamageSource(), 1,1);
             player.setHealth(0);
@@ -315,7 +316,9 @@ public class FallenCapability {
 
     public void loadEffects(PlayerEntity player){
         for (String key : this.savedEffectsTag.getAllKeys()){
-            player.addEffect(EffectInstance.load(this.savedEffectsTag.getCompound(key)));
+            EffectInstance instance = EffectInstance.load(this.savedEffectsTag.getCompound(key));
+            if (instance == null) continue;
+            player.addEffect(instance);
         }
         this.savedEffectsTag = new CompoundNBT();
     }

@@ -58,10 +58,10 @@ public class FallenTimerEvent {
         if (!cap.isFallen() || cap.getOtherPlayer() != null) return;
 
         //Make sure they aren't sprinting.
-        if(event.player.isSprinting()) event.player.setSprinting(false);
+        if (event.player.isSprinting()) event.player.setSprinting(false);
 
         //Make sure they aren't healing
-        if(event.player.getHealth() != 1){
+        if (event.player.getHealth() != 1) {
             event.player.setHealth(1);
         }
 
