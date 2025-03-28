@@ -9,12 +9,14 @@ import invoker54.reviveme.common.network.payload.InstaKillMsg;
 import invoker54.reviveme.common.network.payload.ReviveChanceMsg;
 import invoker54.reviveme.common.network.payload.SacrificeItemsMsg;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ComputeFovModifierEvent;
+import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
@@ -91,5 +93,15 @@ public class FallenPlayerActionsEvent {
         f *= 1.0F - f1 * 0.15F;
 
         event.setNewFovModifier(f);
+    }
+
+    @SubscribeEvent
+    public static void openInventory(ScreenEvent.Opening event){
+        if (ClientUtil.getWorld() == null) return;
+        if (ClientUtil.getPlayer() == null) return;
+        if (!FallenData.get(ClientUtil.getPlayer()).isFallen()) return;
+        if (!(event.getScreen() instanceof InventoryScreen)) return;
+        if (ReviveMeConfig.interactWithInventory != ReviveMeConfig.INTERACT_WITH_INVENTORY.NO) return;
+        event.setCanceled(true);
     }
 }

@@ -72,14 +72,16 @@ public abstract class KeyMappingMixin implements IKeyMappingExtension {
         boolean isVanilla = VanillaKeybindHandler.isVanillaKeybind(keybinding);
         boolean isKeyInventory = keybinding.same(ClientUtil.getMinecraft().options.keyInventory);
         boolean isKeyDrop = keybinding.same(ClientUtil.getMinecraft().options.keyDrop);
+        boolean isKeySwapOffhand = keybinding.same(ClientUtil.getMinecraft().options.keySwapOffhand);
+        boolean isSwapOrDrop = isKeyDrop || isKeySwapOffhand;
         ItemStack mainStack = player.getMainHandItem();
         boolean isSacrificialItem = FallenData.get(player).isSacrificialItem(mainStack);
         ReviveMeConfig.INTERACT_WITH_INVENTORY inventoryRule = ReviveMeConfig.interactWithInventory;
 
         if (!isVanilla) return false;
-        else if (inventoryRule == ReviveMeConfig.INTERACT_WITH_INVENTORY.NO && (isKeyInventory || isKeyDrop)) return false;
-        else if (inventoryRule == ReviveMeConfig.INTERACT_WITH_INVENTORY.LOOK_ONLY && isKeyDrop) return false;
-        else if (isKeyDrop && isSacrificialItem) return false;
+        else if (inventoryRule == ReviveMeConfig.INTERACT_WITH_INVENTORY.NO && (isKeyInventory || isSwapOrDrop)) return false;
+        else if (inventoryRule == ReviveMeConfig.INTERACT_WITH_INVENTORY.LOOK_ONLY && isSwapOrDrop) return false;
+        else if (isSwapOrDrop && isSacrificialItem) return false;
 
         return true;
     }

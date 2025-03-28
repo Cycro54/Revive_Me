@@ -63,7 +63,7 @@ public class FallenTimerEvent {
         event.getEntity().getFoodData().setFoodLevel(0);
 
         //Finally make sure they have all the required effects.
-        FallEvent.applyDownedEffects(event.getEntity());
+        FallEvent.modifyPotionEffects(event.getEntity());
 
         if (!cap.shouldDie()) return;
 
@@ -74,7 +74,7 @@ public class FallenTimerEvent {
     //Make sure this only runs for the person being revived
     @SubscribeEvent
     public static void TickProgress(PlayerTickEvent.Pre event) {
-       if (event.getEntity().level().isClientSide) return;
+        if (event.getEntity().level().isClientSide) return;
 
         FallenData cap = FallenData.get(event.getEntity());
 
@@ -184,8 +184,10 @@ public class FallenTimerEvent {
 
         //Remove all potion effects
         fallen.removeAllEffects();
+        //Load the saved effects
+        cap.loadEffects(fallen);
 
-        //Add the fallen potion effect if one of the two self revives were used
+        //Add the fallen potion effect
         fallen.addEffect(new MobEffectInstance(MobEffectInit.FALLEN_EFFECT, (int) (ReviveMeConfig.fallenPenaltyTimer * 20), cap.getPenaltyMultiplier()));
 
         //Add invulnerability if it isn't 0

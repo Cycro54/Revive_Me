@@ -15,7 +15,8 @@
     "ClientHooksMixin",
     "KeyMappingMixin",
     "LocalPlayerMixin",
-    "PlayerRendererMixin"
+    "PlayerRendererMixin",
+    "WidgetMixin"
   ],
   "injectors": {
     "defaultRequire": 1

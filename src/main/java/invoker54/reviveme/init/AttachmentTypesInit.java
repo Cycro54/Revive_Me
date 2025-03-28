@@ -15,7 +15,7 @@ public class AttachmentTypesInit {
 
     // Serialization via INBTSerializable
     public static final Supplier<AttachmentType<FallenData>> FALLEN_DATA = ATTACHMENT_TYPES.register(
-            "fallen_data", () -> AttachmentType.serializable(() -> new FallenData()).build()
+            "fallen_data", () -> AttachmentType.serializable(FallenData::new).build()
     );
 
     public static void registerAttachments(IEventBus bus){

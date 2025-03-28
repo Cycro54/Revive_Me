@@ -8,6 +8,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -16,10 +17,12 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.common.util.INBTSerializable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnknownNullability;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class FallenData implements INBTSerializable<CompoundTag> {
@@ -39,16 +42,10 @@ public class FallenData implements INBTSerializable<CompoundTag> {
     public static final String REVIVECHANCE_BOOL = "reviveChanceBoolREVIVE";
     public static final String PENALTY_MULTIPLIER_INT = "penaltyMultiplierIntREVIVE";
     public static final String CALLED_FOR_HELP_LONG = "calledForHelpLong";
+    public static final String SAVED_EFFECTS_TAG = "savedEffectsTag";
     //endregion
 
-    public FallenData(Level level){
-        this.level = level;
-        this.damageSource = this.level.damageSources().fellOutOfWorld();
-    }
-    public FallenData() {
-
-    }
-
+    protected HolderLookup.Provider provider;
     protected Level level;
     protected long revStart = 0;
     protected int revEnd = 0;
@@ -68,13 +65,17 @@ public class FallenData implements INBTSerializable<CompoundTag> {
     protected boolean reviveChanceUsed = false;
     protected int penaltyMultiplier = 0;
 
+    protected CompoundTag savedEffectsTag = new CompoundTag();
+
     @Override
-    public @UnknownNullability CompoundTag serializeNBT(HolderLookup.Provider provider) {
+    public @UnknownNullability CompoundTag serializeNBT(HolderLookup.@NotNull Provider provider) {
+        this.provider = provider;
         return this.writeNBT();
     }
 
     @Override
-    public void deserializeNBT(HolderLookup.Provider provider, CompoundTag compoundTag) {
+    public void deserializeNBT(HolderLookup.@NotNull Provider provider, @NotNull CompoundTag compoundTag) {
+        this.provider = provider;
         this.readNBT(compoundTag);
     }
 
@@ -89,6 +90,7 @@ public class FallenData implements INBTSerializable<CompoundTag> {
     public static FallenData get(LivingEntity player){
         FallenData cap = player.getData(AttachmentTypesInit.FALLEN_DATA);
         if (cap.level == null) cap.level = player.getCommandSenderWorld();
+        if (cap.provider == null) cap.provider = cap.level.registryAccess();
         if (cap.damageSource == null) cap.damageSource = cap.level.damageSources().fellOutOfWorld();
         return cap;
     }
@@ -130,7 +132,8 @@ public class FallenData implements INBTSerializable<CompoundTag> {
 
     public void kill(Player player){
         this.setDying();
-        player.hurt(this.getDamageSource(), Float.MAX_VALUE);
+        player.setHealth(0.00000001F);
+        player.hurt(this.damageSource, 1);
         if (!player.isDeadOrDying() || Float.isNaN(player.getHealth())) {
             player.getCombatTracker().recordDamage(this.getDamageSource(), 1);
             player.setHealth(0);
@@ -168,16 +171,16 @@ public class FallenData implements INBTSerializable<CompoundTag> {
         getKillTime();
 
         if (divideByMax)
-            return (float) (1 - ((level.getGameTime() - fellStart)/ maxSeconds));
+            return (float) (1 - ((this.level.getGameTime() - fellStart)/ maxSeconds));
 
-        return (float) (((fellStart + maxSeconds) - level.getGameTime())/20);
+        return (float) (((fellStart + maxSeconds) - this.level.getGameTime())/20);
     }
 
     public int getKillTime(){
         if (ReviveMeConfig.pvpTimer == -1) return -1;
         float maxSeconds = getPenaltyTicks(ReviveMeConfig.pvpTimer * 20);
 
-        return (int) Math.max (0, ((fellStart + maxSeconds) - level.getGameTime())/20f);
+        return (int) Math.max (0, ((fellStart + maxSeconds) - this.level.getGameTime())/20f);
     }
 
     public boolean shouldDie(){
@@ -191,7 +194,7 @@ public class FallenData implements INBTSerializable<CompoundTag> {
     }
 
     public void resumeFallTimer(){
-        fellStart = (level.getGameTime() - (revStart - fellStart));
+        fellStart = (this.level.getGameTime() - (revStart - fellStart));
     }
 
     public boolean isFallen() {
@@ -237,7 +240,7 @@ public class FallenData implements INBTSerializable<CompoundTag> {
     }
 
     public float getProgress() {
-        return Math.min (1, (level.getGameTime() - revStart) /(float) revEnd);
+        return Math.min (1, (this.level.getGameTime() - revStart) /(float) revEnd);
     }
     public void setSacrificialItems(Inventory inventory){
         if (inventory == null){
@@ -258,8 +261,12 @@ public class FallenData implements INBTSerializable<CompoundTag> {
         while (playerItems.size() > 4) {
             playerItems.remove(this.level.random.nextInt(playerItems.size()));
         }
+        ArrayList<ItemStack> playerItemsCopy = new ArrayList<>();
+        for (ItemStack stack : playerItems){
+            playerItemsCopy.add(stack.copy());
+        }
 
-        this.sacrificialItems = playerItems;
+        this.sacrificialItems = playerItemsCopy;
     }
 
     public ArrayList<ItemStack> getItemList(){
@@ -309,6 +316,24 @@ public class FallenData implements INBTSerializable<CompoundTag> {
         this.penaltyMultiplier = newMultiplier;
     }
 
+    public void saveEffects(Player player){
+        CompoundTag effectsTag = new CompoundTag();
+        for (MobEffectInstance effectInstance : player.getActiveEffects()){
+            if (effectInstance.getDuration() <= 1*20) continue;
+            effectsTag.put(effectsTag.size()+"", effectInstance.save());
+        }
+        this.savedEffectsTag = effectsTag;
+    }
+
+    public void loadEffects(Player player){
+        for (String key : this.savedEffectsTag.getAllKeys()){
+            MobEffectInstance instance = MobEffectInstance.load(this.savedEffectsTag.getCompound(key));
+            if (instance == null) continue;
+            player.addEffect(instance);
+        }
+        this.savedEffectsTag = new CompoundTag();
+    }
+
     public CompoundTag writeNBT(){
         CompoundTag cNBT = new CompoundTag();
         cNBT.putLong(FELL_START_LONG, this.fellStart);
@@ -323,8 +348,7 @@ public class FallenData implements INBTSerializable<CompoundTag> {
         //The saved sacrificial items
         CompoundTag itemCompound = new CompoundTag();
         for (ItemStack item : sacrificialItems){
-            itemCompound.put(itemCompound.size()+"", item.save(this.level.registryAccess()));
-//            ItemList.append(ForgeRegistries.ITEMS.getKey(item)).append(",");
+            itemCompound.put(itemCompound.size()+"", item.save(this.provider));
         }
         cNBT.put(SACRIFICEITEMS_COMPOUND, itemCompound);
         //If the player sacrificed items
@@ -336,6 +360,7 @@ public class FallenData implements INBTSerializable<CompoundTag> {
 
         cNBT.putLong(CALLED_FOR_HELP_LONG, this.calledForHelpTime);
 
+        cNBT.put(SAVED_EFFECTS_TAG, this.savedEffectsTag);
         if(this.otherPlayer != null)
             cNBT.putUUID(OTHERPLAYER_UUID, this.otherPlayer);
         return cNBT;
@@ -351,8 +376,9 @@ public class FallenData implements INBTSerializable<CompoundTag> {
         CompoundTag itemCompound = cNBT.getCompound(SACRIFICEITEMS_COMPOUND);
         if (!itemCompound.isEmpty()){
             for (String key: itemCompound.getAllKeys()){
-                ItemStack sacrificeStack =
-                        ItemStack.parseOptional(this.level.registryAccess(), itemCompound.getCompound(key));
+                Optional<ItemStack> optional = ItemStack.parse(this.provider, itemCompound.getCompound(key));
+                if (optional.isEmpty()) continue;
+                ItemStack sacrificeStack = optional.get();
                 if (sacrificeStack.isEmpty()) continue;
                 sacrificialItems.add(sacrificeStack);
             }
@@ -362,6 +388,8 @@ public class FallenData implements INBTSerializable<CompoundTag> {
         this.penaltyMultiplier = cNBT.getInt(PENALTY_MULTIPLIER_INT);
 
         this.calledForHelpTime = cNBT.getLong(CALLED_FOR_HELP_LONG);
+
+        this.savedEffectsTag = cNBT.getCompound(SAVED_EFFECTS_TAG);
 
         if(cNBT.hasUUID(OTHERPLAYER_UUID)) {
             this.setOtherPlayer(cNBT.getUUID(OTHERPLAYER_UUID));
