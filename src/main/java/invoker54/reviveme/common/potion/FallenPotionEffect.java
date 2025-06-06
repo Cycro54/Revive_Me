@@ -50,8 +50,7 @@ public class FallenPotionEffect extends Effect {
             FallenCapability cap = FallenCapability.GetFallCap(entity);
             if (cap.isFallen()) return;
 
-            cap.setSacrificedItemsUsed(false);
-            cap.setReviveChanceUsed(false);
+            cap.resetSelfReviveCount();
             cap.setPenaltyMultiplier(0);
         }
 

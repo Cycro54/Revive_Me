@@ -86,7 +86,6 @@ public abstract class EntityMixin {
         if (damageSource.isBypassInvul()) return;
         if (revive_Me$getCap() == null) return;
         if (!revive_Me$getCap().isFallen()) return;
-        if (revive_Me$getCap().isDying()) return;
 
         if ((damageSource.getEntity() instanceof PlayerEntity)
                 && damageSource.getEntity().isCrouching() && revive_Me$getCap().getKillTime() == 0) {

@@ -12,7 +12,6 @@
     "SlotMixin"
   ],
   "client": [
-    "ForgeHooksClientMixin",
     "IForgeKeyMixin",
     "LocalPlayerMixin",
     "PlayerRendererMixin",

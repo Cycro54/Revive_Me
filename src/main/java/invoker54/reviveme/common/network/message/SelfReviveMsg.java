@@ -2,15 +2,29 @@ package invoker54.reviveme.common.network.message;
 
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
-import invoker54.reviveme.common.event.FallenTimerEvent;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public class ReviveChanceMsg {
-    //This is how the Network Handler will handle the message
-    public static void handle(ReviveChanceMsg msg, Supplier<NetworkEvent.Context> contextSupplier){
+public class SelfReviveMsg {
+
+    public int selectedOption;
+
+    public SelfReviveMsg(int selectedOption){
+        this.selectedOption = selectedOption;
+    }
+
+    public void encode (PacketBuffer buffer){
+        buffer.writeInt(this.selectedOption);
+    }
+
+    public static SelfReviveMsg decode(PacketBuffer buf){
+        return new SelfReviveMsg(buf.readInt());
+    }
+
+    public static void handle(SelfReviveMsg msg, Supplier<NetworkEvent.Context> contextSupplier){
         NetworkEvent.Context context = contextSupplier.get();
 
         context.enqueueWork(() -> {
@@ -19,17 +33,11 @@ public class ReviveChanceMsg {
             if (!player.isAlive()) return;
 
             FallenCapability cap = FallenCapability.GetFallCap(player);
-            boolean willDie = player.level.random.nextFloat() > ReviveMeConfig.reviveChance;
-
-
-            if ((cap.usedChance() && ReviveMeConfig.canGiveUp) || (!cap.usedChance() && willDie)) {
+            if (!cap.canSelfRevive()){
                 cap.kill(player);
             }
-            else if (!cap.usedChance() && !willDie){
-                //And set the revive chance as used
-                cap.setReviveChanceUsed(true);
-                //Revive the player.
-                FallenTimerEvent.revivePlayer(player, false);
+            else {
+                cap.useReviveOption(cap.getSelfReviveOption(msg.selectedOption), player);
             }
         });
 

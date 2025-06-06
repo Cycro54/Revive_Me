@@ -3,6 +3,7 @@ package invoker54.reviveme.commands;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import invoker54.invocore.client.util.InvoText;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.event.FallenTimerEvent;
 import invoker54.reviveme.common.network.NetworkHandler;
@@ -39,8 +40,8 @@ public class ReviveCommand {
         FallenCapability cap = FallenCapability.GetFallCap(caller);
 
         if (caller.isDeadOrDying() || !cap.isFallen()){
-            NetworkHandler.sendMessage(caller.getDisplayName().copy().append(new TranslationTextComponent("revive-me.commands.revive_fail")),
-                    true, caller);
+            InvoText failTxt = InvoText.translate("revive-me.commands.revive_fail", caller.getDisplayName());
+            NetworkHandler.sendMessage(failTxt.getText(), true, caller);
             return 1;
         }
 

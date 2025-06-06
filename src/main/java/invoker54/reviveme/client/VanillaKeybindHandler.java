@@ -1,21 +1,23 @@
 package invoker54.reviveme.client;
 
-import invoker54.invocore.client.ClientUtil;
+import invoker54.invocore.client.util.ClientUtil;
+import invoker54.invocore.common.ModLogger;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.client.GameSettings;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.client.util.InputMappings;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class VanillaKeybindHandler {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final ModLogger LOGGER = ModLogger.getLogger(VanillaKeybindHandler.class, ReviveMeConfig.debugMode);
     private static List<KeyBinding> vanillaKeyBindings;
     private static List<KeyBinding> movementMappings;
     public static boolean attackHeld = false;
     public static boolean useHeld = false;
+    public static boolean overrideKeyblock = false;
 
     public static void initializeKeybindList(){
         GameSettings options = ClientUtil.mC.options;
@@ -39,5 +41,12 @@ public class VanillaKeybindHandler {
         if (KeyBinding == null) return false;
 
         return movementMappings.contains(KeyBinding);
+    }
+
+    public static InputMappings.Input getKey(KeyBinding keyBinding){
+        overrideKeyblock = true;
+        InputMappings.Input key = keyBinding.getKey();
+        overrideKeyblock = false;
+        return key;
     }
 }

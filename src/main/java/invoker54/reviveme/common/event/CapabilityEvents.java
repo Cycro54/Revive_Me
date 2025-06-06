@@ -1,6 +1,8 @@
 package invoker54.reviveme.common.event;
 
+import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.ReviveMe;
+import invoker54.reviveme.client.event.FallScreenEvent;
 import invoker54.reviveme.common.api.FallenProvider;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
@@ -24,6 +26,7 @@ import java.util.UUID;
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class CapabilityEvents {
     public static final Map<UUID, ArrayList<UUID>> playerTracking = new HashMap<>();
+    private static final ModLogger LOGGER = ModLogger.getLogger(FallScreenEvent.class, ReviveMeConfig.debugMode);
 
     @SubscribeEvent
     public static void AttachCapability(AttachCapabilitiesEvent<Entity> event) {
@@ -53,6 +56,13 @@ public class CapabilityEvents {
     @SubscribeEvent
     public static void onLogout(PlayerEvent.PlayerLoggedOutEvent event){
         playerTracking.remove(event.getPlayer().getUUID());
+        if (!ReviveMeConfig.dieOnDisconnect) return;
+
+        PlayerEntity player = event.getPlayer();
+        if (!player.isAlive()) return;
+        FallenCapability cap = FallenCapability.GetFallCap(player);
+        if (!cap.isFallen()) return;
+        cap.kill(player);
     }
 
     @SubscribeEvent

@@ -1,6 +1,8 @@
 package invoker54.reviveme.common.event;
 
-import invoker54.invocore.MathUtil;
+import invoker54.invocore.client.util.InvoText;
+import invoker54.invocore.common.MathUtil;
+import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
@@ -13,15 +15,14 @@ import net.minecraft.entity.Pose;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.play.server.SUpdateHealthPacket;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.Effects;
 import net.minecraft.util.FoodStats;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.GameType;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -29,12 +30,11 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.network.PacketDistributor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import net.minecraftforge.registries.ForgeRegistries;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class FallenTimerEvent {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final ModLogger LOGGER = ModLogger.getLogger(FallenTimerEvent.class, ReviveMeConfig.debugMode);
 
     @SubscribeEvent
     public static void changeGamemode(PlayerEvent.PlayerChangeGameModeEvent event){
@@ -110,7 +110,7 @@ public class FallenTimerEvent {
         if (!reviver.isCreative()) {
             int amount = (int) cap.getPenaltyAmount(reviver);
             int leftoverAmount = 0;
-            switch (cap.getPenaltyType()) {
+            switch (ReviveMeConfig.penaltyType) {
                 case NONE:
                     break;
                 case HEALTH:
@@ -129,19 +129,23 @@ public class FallenTimerEvent {
                     ((ServerPlayerEntity)reviver).connection.send(new SUpdateHealthPacket(reviver.getHealth(),
                             reviver.getFoodData().getFoodLevel(), reviver.getFoodData().getSaturationLevel()));
                     break;
-                case ITEM:
-                    Item penaltyItem = cap.getPenaltyItem().getItem();
+                case ITEM: {
+                    ItemStack penaltyStack = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(ReviveMeConfig.penaltyItem)));
+                    penaltyStack.deserializeNBT(ReviveMeConfig.penaltyItemData);
                     PlayerInventory playerInv = reviver.inventory;
                     for (int a = 0; a < playerInv.getContainerSize(); a++) {
                         ItemStack currStack = playerInv.getItem(a);
-                        if (currStack.getItem() == penaltyItem) {
-                            int takeAway = (Math.min(amount, currStack.getCount()));
-                            amount -= takeAway;
-                            currStack.setCount(currStack.getCount() - takeAway);
-                        }
+                        if (!penaltyStack.sameItem(currStack)) continue;
+                        if (!ItemStack.tagMatches(penaltyStack, currStack)) continue;
+
+                        int takeAway = (Math.min(amount, currStack.getCount()));
+                        amount -= takeAway;
+                        currStack.setCount(currStack.getCount() - takeAway);
+
                         if (amount == 0) break;
                     }
                     break;
+                }
             }
         }
 
@@ -217,8 +221,9 @@ public class FallenTimerEvent {
                 SoundInit.REVIVED, SoundCategory.PLAYERS, 1.0F, MathUtil.randomFloat(0.7F, 1.0F));
 
         if (!fallen.level.isClientSide) {
-            NetworkHandler.sendMessage(fallen.getDisplayName().copy().append(new TranslationTextComponent("revive-me.commands.revive_pass")),
-                    isCommand, fallen);
+            InvoText reviveTxt = InvoText.translate("revive-me.commands.revive_pass",
+                    fallen.getDisplayName());
+            NetworkHandler.sendMessage(reviveTxt.getText(), isCommand, fallen);
 
             NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> fallen),
                     new SyncClientCapMsg(nbt));

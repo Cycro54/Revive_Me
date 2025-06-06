@@ -24,14 +24,6 @@ public abstract class ServerPlayerMixin extends PlayerEntity {
         super(p_i241920_1_, p_i241920_2_, p_i241920_3_, p_i241920_4_);
     }
 
-    @Override
-    public boolean canEat(boolean p_71043_1_) {
-        FallenCapability cap = FallenCapability.GetFallCap(this);
-        if (!cap.isFallen()) return super.canEat(p_71043_1_);
-
-        return false;
-    }
-
     @Inject(
 
             method = "isCreative",

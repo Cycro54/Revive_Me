@@ -51,6 +51,7 @@ public class RestartDeathTimerMsg {
                         new SyncClientCapMsg(tag));
             }
 
+            if (msg.fallenPlayer.isEmpty()) return;
             PlayerEntity fallenPlayer = list.getPlayer(UUID.fromString(msg.fallenPlayer));
             if (fallenPlayer != null){
                 CompoundNBT tag = new CompoundNBT();

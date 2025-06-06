@@ -34,7 +34,7 @@ public abstract class SlotMixin {
         FallenCapability cap = FallenCapability.GetFallCap(player);
         if (!cap.isFallen()) return;
         if (!this.hasItem()) return;
-        if (!cap.usedSacrificedItems() && cap.isSacrificialItem(getItem())) cir.setReturnValue(false);
+        if (cap.isSacrificialItem(getItem())) cir.setReturnValue(false);
         else {
             cir.setReturnValue(ReviveMeConfig.interactWithInventory == ReviveMeConfig.INTERACT_WITH_INVENTORY.YES);
         }
@@ -52,7 +52,7 @@ public abstract class SlotMixin {
         FallenCapability cap = FallenCapability.GetFallCap(((PlayerInventory) this.container).player);
         if (!cap.isFallen()) return;
         if (stack.isEmpty()) return;
-        if (!cap.usedSacrificedItems() && cap.isSacrificialItem(stack)) cir.setReturnValue(false);
+        if (cap.isSacrificialItem(stack)) cir.setReturnValue(false);
         else {
             cir.setReturnValue(ReviveMeConfig.interactWithInventory == ReviveMeConfig.INTERACT_WITH_INVENTORY.YES);
         }

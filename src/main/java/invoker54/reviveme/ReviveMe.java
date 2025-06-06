@@ -1,5 +1,6 @@
 package invoker54.reviveme;
 
+import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.init.CapabilityTypesInit;
@@ -11,8 +12,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 // The value here should match an entry in the META-INF/mods.toml file
 //@Mod("examplemod")
@@ -21,9 +20,9 @@ public class ReviveMe
 {
     public static final String MOD_ID = "reviveme";
     public static IEventBus bus;
+    public static ModLogger LOGGER = ModLogger.getLogger(ReviveMe.class, ReviveMeConfig.debugMode);
 
     // Directly reference a log4j logger.
-    public static final Logger LOGGER = LogManager.getLogger();
     public static final ResourceLocation FALLEN_LOC = new ResourceLocation(MOD_ID, "fallen");
 
     public ReviveMe() {
@@ -35,7 +34,6 @@ public class ReviveMe
 
         //This is for configs
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ReviveMeConfig.COMMON_SPEC, "reviveme-common.toml");
-        // MinecraftForge.EVENT_BUS.register(new DeathEventHandler());
     }
 
     private void commonSetup(final FMLCommonSetupEvent event)
