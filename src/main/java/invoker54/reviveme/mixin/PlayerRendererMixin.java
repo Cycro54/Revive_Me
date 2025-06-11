@@ -18,7 +18,7 @@ public class PlayerRendererMixin {
             at = {
                     @At(value = "HEAD")
             }, cancellable = true)
-    private void getRenderOffset(AbstractClientPlayer player, float p_117786_, CallbackInfoReturnable<Vec3> cir){
+    private void getRenderOffset(AbstractClientPlayer player, float p_117786_, CallbackInfoReturnable<Vec3> cir) {
         if (FallenCapability.GetFallCap(player).isFallen() && ReviveMeConfig.fallenPose == ReviveMeConfig.FALLEN_POSE.SLEEP) {
             cir.setReturnValue(new Vec3(1, 0.1F, 0));
         }

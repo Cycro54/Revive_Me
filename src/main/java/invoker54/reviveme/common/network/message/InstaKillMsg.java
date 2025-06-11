@@ -14,20 +14,20 @@ public class InstaKillMsg {
 
     private final UUID playerID;
 
-    public InstaKillMsg(UUID playerID){
+    public InstaKillMsg(UUID playerID) {
         this.playerID = playerID;
     }
 
-    public static void Encode(InstaKillMsg msg, FriendlyByteBuf buffer){
+    public static void Encode(InstaKillMsg msg, FriendlyByteBuf buffer) {
         buffer.writeUUID(msg.playerID);
     }
 
-    public static InstaKillMsg Decode(FriendlyByteBuf buffer){
+    public static InstaKillMsg Decode(FriendlyByteBuf buffer) {
         return new InstaKillMsg(buffer.readUUID());
     }
 
     //This is how the Network Handler will handle the message
-    public static void handle(InstaKillMsg msg, Supplier<NetworkEvent.Context> contextSupplier){
+    public static void handle(InstaKillMsg msg, Supplier<NetworkEvent.Context> contextSupplier) {
         NetworkEvent.Context context = contextSupplier.get();
 
         context.enqueueWork(() -> {
@@ -36,7 +36,7 @@ public class InstaKillMsg {
             PlayerList playerList = ServerLifecycleHooks.getCurrentServer().getPlayerList();
             Player player = playerList.getPlayer(msg.playerID);
 
-            if (player != null){
+            if (player != null) {
                 FallenCapability cap = FallenCapability.GetFallCap(player);
                 cap.kill(player);
             }

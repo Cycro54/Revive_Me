@@ -10,7 +10,7 @@ import net.minecraftforge.fml.common.Mod;
 public class VanillaKeybindHandlerEvent {
 
     @SubscribeEvent
-    public static void onScreen(ScreenEvent.Opening event){
+    public static void onScreen(ScreenEvent.Opening event) {
         VanillaKeybindHandler.attackHeld = false;
         VanillaKeybindHandler.useHeld = false;
     }

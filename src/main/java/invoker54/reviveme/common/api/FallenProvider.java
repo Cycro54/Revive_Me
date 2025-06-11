@@ -17,18 +17,20 @@ import javax.annotation.Nullable;
 public class FallenProvider implements ICapabilitySerializable<Tag> {
     public static final byte COMPOUND_NBT_ID = new CompoundTag().getId();
 
-    public FallenProvider(Level level){
+    public FallenProvider(Level level) {
         fallenCapability = new FallenCapability(level);
     }
 
     //region Capability setup
     //This is where all of the fallen capability data is
-    public static Capability<FallenCapability> FALLENDATA = CapabilityManager.get(new CapabilityToken<>() {});
+    public static Capability<FallenCapability> FALLENDATA = CapabilityManager.get(new CapabilityToken<>() {
+    });
 
     private final static String FALLEN_NBT = "fallenData";
     //This is where the current capability is stored to read and write
     private FallenCapability fallenCapability;
     private final LazyOptional<FallenCapability> optionalData = LazyOptional.of(() -> fallenCapability);
+
     @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> capability, @Nullable Direction facing) {

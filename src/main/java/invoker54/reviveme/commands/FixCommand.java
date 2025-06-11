@@ -34,16 +34,15 @@ public class FixCommand {
         ServerPlayer caller;
         try {
             caller = EntityArgument.getPlayer(commandContext, "player");
-        }
-        catch (Exception e){
-            if (!commandContext.getSource().isPlayer()){
+        } catch (Exception e) {
+            if (!commandContext.getSource().isPlayer()) {
                 return 1;
             }
             caller = commandContext.getSource().getPlayer();
         }
         FallenCapability cap = FallenCapability.GetFallCap(caller);
 
-        if (!caller.isAlive()){
+        if (!caller.isAlive()) {
             return 1;
         }
 
@@ -52,14 +51,14 @@ public class FixCommand {
 
         NetworkHandler.sendMessage((Component.translatable("revive-me.commands.fix")),
                 true, caller);
-        
+
         //This should fix the player if they are downed
-        if (cap.isFallen()){
+        if (cap.isFallen()) {
             DamageSource damageSource = cap.getDamageSource();
             if (damageSource == null) damageSource = DamageSource.OUT_OF_WORLD;
 
             //If they are out of time, smite them.
-            if (cap.shouldDie()){
+            if (cap.shouldDie()) {
                 cap.kill(caller);
                 return 1;
             }
@@ -67,12 +66,12 @@ public class FixCommand {
             cap.setFallen(false);
             FallEvent.cancelEvent(caller, damageSource);
         }
-        
+
         //This should fix the player if they are no longer fallen
         else {
             FallenTimerEvent.revivePlayer(caller, true);
         }
-        
+
         return 1;
     }
 }

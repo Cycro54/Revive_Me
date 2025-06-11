@@ -1,6 +1,8 @@
 package invoker54.reviveme.common.event;
 
-import invoker54.invocore.common.MathUtil;
+import invoker54.invocore.client.util.InvoText;
+import invoker54.invocore.common.ModLogger;
+import invoker54.invocore.common.util.MathUtil;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
@@ -10,8 +12,8 @@ import invoker54.reviveme.init.MobEffectInit;
 import invoker54.reviveme.init.SoundInit;
 import invoker54.reviveme.mixin.FoodMixin;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetHealthPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -20,7 +22,6 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraftforge.event.TickEvent;
@@ -29,16 +30,18 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.registries.ForgeRegistries;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class FallenTimerEvent {
+    private static final ModLogger LOGGER = ModLogger.getLogger(FallenTimerEvent.class, ReviveMeConfig.debugMode);
 
     @SubscribeEvent
-    public static void changeGamemode(PlayerEvent.PlayerChangeGameModeEvent event){
+    public static void changeGamemode(PlayerEvent.PlayerChangeGameModeEvent event) {
         Player player = event.getEntity();
         if (!(FallenCapability.GetFallCap(player).isFallen())) return;
         if (event.getNewGameMode() != GameType.CREATIVE && event.getNewGameMode() != GameType.SPECTATOR) return;
-        revivePlayer(player,false);
+        revivePlayer(player, false);
     }
 
     @SubscribeEvent
@@ -55,10 +58,10 @@ public class FallenTimerEvent {
         if (!cap.isFallen() || cap.getOtherPlayer() != null) return;
 
         //Make sure they aren't sprinting.
-        if(event.player.isSprinting()) event.player.setSprinting(false);
+        if (event.player.isSprinting()) event.player.setSprinting(false);
 
         //Make sure they aren't healing
-        if(event.player.getHealth() != 1){
+        if (event.player.getHealth() != 1) {
             event.player.setHealth(1);
         }
 
@@ -107,12 +110,12 @@ public class FallenTimerEvent {
         if (!reviver.isCreative()) {
             int amount = (int) cap.getPenaltyAmount(reviver);
             int leftoverAmount = 0;
-            switch (cap.getPenaltyType()) {
+            switch (ReviveMeConfig.penaltyType) {
                 case NONE:
                     break;
                 case HEALTH:
                     leftoverAmount = Math.max(0, Math.round(amount - reviver.getAbsorptionAmount()));
-                    reviver.setAbsorptionAmount(reviver.getAbsorptionAmount()-amount);
+                    reviver.setAbsorptionAmount(reviver.getAbsorptionAmount() - amount);
                     reviver.setHealth(Math.max(1, reviver.getHealth() - leftoverAmount));
                     break;
                 case EXPERIENCE:
@@ -120,25 +123,29 @@ public class FallenTimerEvent {
                     break;
                 case FOOD:
                     FoodData food = reviver.getFoodData();
-                    leftoverAmount = (int) Math.max(0,Math.round(amount - food.getSaturationLevel()));
-                    ((FoodMixin)food).setSaturationLevel(Math.max(0, food.getSaturationLevel() - amount));
-                    food.setFoodLevel(Math.max(0,food.getFoodLevel() - leftoverAmount));
-                    ((ServerPlayer)reviver).connection.send(new ClientboundSetHealthPacket(reviver.getHealth(),
+                    leftoverAmount = Math.max(0, Math.round(amount - food.getSaturationLevel()));
+                    ((FoodMixin) food).setSaturationLevel(Math.max(0, food.getSaturationLevel() - amount));
+                    food.setFoodLevel(Math.max(0, food.getFoodLevel() - leftoverAmount));
+                    ((ServerPlayer) reviver).connection.send(new ClientboundSetHealthPacket(reviver.getHealth(),
                             reviver.getFoodData().getFoodLevel(), reviver.getFoodData().getSaturationLevel()));
                     break;
-                case ITEM:
-                    Item penaltyItem = cap.getPenaltyItem().getItem();
+                case ITEM: {
+                    ItemStack penaltyStack = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(ReviveMeConfig.penaltyItem)));
+                    penaltyStack.deserializeNBT(ReviveMeConfig.penaltyItemData);
                     Inventory playerInv = reviver.getInventory();
                     for (int a = 0; a < playerInv.getContainerSize(); a++) {
                         ItemStack currStack = playerInv.getItem(a);
-                        if (currStack.getItem() == penaltyItem) {
-                            int takeAway = (Math.min(amount, currStack.getCount()));
-                            amount -= takeAway;
-                            currStack.setCount(currStack.getCount() - takeAway);
-                        }
+                        if (!penaltyStack.sameItem(currStack)) continue;
+                        if (!ItemStack.tagMatches(penaltyStack, currStack)) continue;
+
+                        int takeAway = (Math.min(amount, currStack.getCount()));
+                        amount -= takeAway;
+                        currStack.setCount(currStack.getCount() - takeAway);
+
                         if (amount == 0) break;
                     }
                     break;
+                }
             }
         }
 
@@ -152,7 +159,7 @@ public class FallenTimerEvent {
                 new SyncClientCapMsg(nbt));
     }
 
-    public static void revivePlayer(Player fallen, boolean isCommand){
+    public static void revivePlayer(Player fallen, boolean isCommand) {
         FallenCapability cap = FallenCapability.GetFallCap(fallen);
 
         //region Set the revived players health
@@ -185,9 +192,9 @@ public class FallenTimerEvent {
             foodAmount = ReviveMeConfig.revivedFood.floatValue();
         }
         //Now set their food level
-        fallen.getFoodData().setFoodLevel((int) Math.min(foodAmount,20));
+        fallen.getFoodData().setFoodLevel((int) Math.min(foodAmount, 20));
         //Then their saturation
-        ((FoodMixin)fallen.getFoodData()).setSaturationLevel(Math.max(0, foodAmount-20));
+        ((FoodMixin) fallen.getFoodData()).setSaturationLevel(Math.max(0, foodAmount - 20));
         //endregion
 
         //Remove all potion effects
@@ -214,8 +221,9 @@ public class FallenTimerEvent {
                 SoundInit.REVIVED, SoundSource.PLAYERS, 1.0F, MathUtil.randomFloat(0.7F, 1.0F));
 
         if (!fallen.level.isClientSide) {
-            NetworkHandler.sendMessage(fallen.getDisplayName().copy().append(Component.translatable("revive-me.commands.revive_pass")),
-                    isCommand, fallen);
+            InvoText reviveTxt = InvoText.translate("revive-me.commands.revive_pass",
+                    fallen.getDisplayName());
+            NetworkHandler.sendMessage(reviveTxt.getText(), isCommand, fallen);
 
             NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> fallen),
                     new SyncClientCapMsg(nbt));

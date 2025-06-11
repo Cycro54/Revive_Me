@@ -12,20 +12,20 @@ public class SyncConfigMsg {
     public CompoundTag configTag;
 
 
-    public SyncConfigMsg(CompoundTag configTag){
+    public SyncConfigMsg(CompoundTag configTag) {
         this.configTag = configTag;
     }
 
-    public static void Encode(SyncConfigMsg msg, FriendlyByteBuf buf){
+    public static void Encode(SyncConfigMsg msg, FriendlyByteBuf buf) {
         buf.writeNbt(msg.configTag);
     }
 
-    public static SyncConfigMsg Decode(FriendlyByteBuf buf){
+    public static SyncConfigMsg Decode(FriendlyByteBuf buf) {
         return new SyncConfigMsg(buf.readNbt());
     }
 
     //This is how the Network Handler will handle the message
-    public static void handle(SyncConfigMsg msg, Supplier<NetworkEvent.Context> contextSupplier){
+    public static void handle(SyncConfigMsg msg, Supplier<NetworkEvent.Context> contextSupplier) {
         NetworkEvent.Context context = contextSupplier.get();
 
         context.enqueueWork(() -> {

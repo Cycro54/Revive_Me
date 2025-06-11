@@ -32,17 +32,17 @@ public class NetworkHandler {
             PROTOCOL_VERSION::equals
     );
 
-    public static void init(){
+    public static void init() {
         //This is how you avoid sending anything to the server when you don't need to.
         // (change encode with an empty lambda, and just make decode create a new instance of the target message class)
         //INSTANCE.registerMessage(0, SpawnDiamondMsg.class, (message, buf) -> {}, it -> new SpawnDiamondMsg(), SpawnDiamondMsg::handle);
         INSTANCE.registerMessage(0, SyncClientCapMsg.class, SyncClientCapMsg::Encode, SyncClientCapMsg::Decode, SyncClientCapMsg::handle);
         INSTANCE.registerMessage(1, RestartDeathTimerMsg.class, RestartDeathTimerMsg::Encode, RestartDeathTimerMsg::Decode, RestartDeathTimerMsg::handle);
         INSTANCE.registerMessage(2, InstaKillMsg.class, InstaKillMsg::Encode, InstaKillMsg::Decode, InstaKillMsg::handle);
-        INSTANCE.registerMessage(3, ReviveChanceMsg.class, (message, buf) -> {}, it -> new ReviveChanceMsg(), ReviveChanceMsg::handle);
-        INSTANCE.registerMessage(4, SacrificeItemsMsg.class, (message, buf) -> {}, it -> new SacrificeItemsMsg(), SacrificeItemsMsg::handle);
-        INSTANCE.registerMessage(5, SyncConfigMsg.class, SyncConfigMsg::Encode, SyncConfigMsg::Decode, SyncConfigMsg::handle);
-        INSTANCE.registerMessage(6, CallForHelpMsg.class, (msg,buf)->{}, it -> new CallForHelpMsg(), CallForHelpMsg::handle);
+        INSTANCE.registerMessage(3, SyncConfigMsg.class, SyncConfigMsg::Encode, SyncConfigMsg::Decode, SyncConfigMsg::handle);
+        INSTANCE.registerMessage(4, CallForHelpMsg.class, (msg, buf) -> {
+        }, it -> new CallForHelpMsg(), CallForHelpMsg::handle);
+        INSTANCE.registerMessage(5, SelfReviveMsg.class, SelfReviveMsg::encode, SelfReviveMsg::decode, SelfReviveMsg::handle);
     }
 
     //Custom method used to send data to players
@@ -50,14 +50,13 @@ public class NetworkHandler {
         NetworkHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), message);
     }
 
-    public static void sendMessage(MutableComponent component, boolean isCommand, Entity trackedEntity){
+    public static void sendMessage(MutableComponent component, boolean isCommand, Entity trackedEntity) {
         if (ReviveMeConfig.silenceCommandMessages && isCommand) return;
         if (ReviveMeConfig.silenceRegularMessages && !isCommand) return;
 
         if (ReviveMeConfig.universalChatMessages) {
             trackedEntity.getServer().getPlayerList().broadcastSystemMessage(component, false);
-        }
-        else {
+        } else {
             ((ServerChunkCache) trackedEntity.level.getChunkSource()).broadcastAndSend(trackedEntity, new ClientboundSystemChatPacket(component, false));
         }
 

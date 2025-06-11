@@ -1,7 +1,13 @@
 package invoker54.reviveme.client.event;
 
-import invoker54.invocore.client.ClientUtil;
-import invoker54.invocore.client.TextUtil;
+import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import invoker54.invocore.client.util.ClientUtil;
+import invoker54.invocore.client.util.InvoText;
+import invoker54.invocore.client.util.InvoZone;
+import invoker54.invocore.client.util.TextUtil;
+import invoker54.invocore.common.util.MathUtil;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.client.gui.render.CircleRender;
@@ -10,26 +16,35 @@ import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.init.KeyInit;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.screens.ChatScreen;
-import net.minecraft.network.chat.Component;
+import net.minecraft.client.gui.screens.inventory.ContainerScreen;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.MobEffectTextureManager;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffectUtil;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.List;
 
-import static invoker54.invocore.client.ClientUtil.mC;
+import static invoker54.invocore.client.util.ClientUtil.mC;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class FallScreenEvent {
@@ -38,13 +53,13 @@ public class FallScreenEvent {
     private static final Minecraft inst = Minecraft.getInstance();
 
     public static final ResourceLocation Timer_TEXTURE = new
-            ResourceLocation(ReviveMe.MOD_ID,"textures/screens/timer_background.png");
+            ResourceLocation(ReviveMe.MOD_ID, "textures/screens/timer_background.png");
     public static final ResourceLocation HEALTH_TEXTURE = new
-            ResourceLocation(ReviveMe.MOD_ID,"textures/revive_types/heart.png");
+            ResourceLocation(ReviveMe.MOD_ID, "textures/revive_types/heart.png");
     public static final ResourceLocation FOOD_TEXTURE = new
-            ResourceLocation(ReviveMe.MOD_ID,"textures/revive_types/hunger.png");
+            ResourceLocation(ReviveMe.MOD_ID, "textures/revive_types/hunger.png");
     public static final ResourceLocation EXPERIENCE_TEXTURE = new
-            ResourceLocation(ReviveMe.MOD_ID,"textures/revive_types/experience_bottle.png");
+            ResourceLocation(ReviveMe.MOD_ID, "textures/revive_types/experience_bottle.png");
     public static final ResourceLocation MOUSE_TEXTURE = new
             ResourceLocation(ReviveMe.MOD_ID, "textures/mouse_icons.png");
     public static final ResourceLocation REVIVE_HELP_BUTTON_TEXTURE = new
@@ -54,565 +69,454 @@ public class FallScreenEvent {
     public static ClientUtil.Image timerIMG = new ClientUtil.Image(Timer_TEXTURE, 0, 64, 0, 64, 64);
     public static ClientUtil.Image heartIMG = new ClientUtil.Image(HEALTH_TEXTURE, 0, 8, 0, 8, 8);
     public static ClientUtil.Image xpIMG = new ClientUtil.Image(EXPERIENCE_TEXTURE, 0, 16, 0, 16, 16);
-    public static ClientUtil.Image foodIMG = new ClientUtil.Image(FOOD_TEXTURE, 0, 18, 0, 18,18);
-    public static ClientUtil.Image mouse_idle_IMG = new ClientUtil.Image(MOUSE_TEXTURE, 0, 22, 0, 28,64);
-    public static ClientUtil.Image mouse_left_IMG = new ClientUtil.Image(MOUSE_TEXTURE, 0, 22, 28, 28,64);
-    public static ClientUtil.Image mouse_right_IMG = new ClientUtil.Image(MOUSE_TEXTURE, 22, 22, 28, 28,64);
-    public static ClientUtil.Image revive_help_button_IMG = new ClientUtil.Image(REVIVE_HELP_BUTTON_TEXTURE, 0, 31, 0, 31,32);
+    public static ClientUtil.Image foodIMG = new ClientUtil.Image(FOOD_TEXTURE, 0, 18, 0, 18, 18);
+    public static ClientUtil.Image mouse_idle_IMG = new ClientUtil.Image(MOUSE_TEXTURE, 0, 22, 0, 28, 64);
+    public static ClientUtil.Image mouse_left_IMG = new ClientUtil.Image(MOUSE_TEXTURE, 0, 22, 28, 28, 64);
+    public static ClientUtil.Image mouse_right_IMG = new ClientUtil.Image(MOUSE_TEXTURE, 22, 22, 28, 28, 64);
+    public static ClientUtil.Image revive_help_button_IMG = new ClientUtil.Image(REVIVE_HELP_BUTTON_TEXTURE, 0, 31, 0, 31, 32);
 
-    private static final MutableComponent titleText = Component.translatable("fallenScreen.fallen_text");
-    private static final MutableComponent waitText = Component.translatable("fallenScreen.wait_text");
-    private static final MutableComponent forceDeathText = Component.translatable("fallenScreen.force_death_text");
-    private static final MutableComponent cantForceDeathText = Component.translatable("fallenScreen.cant_force_death_text");
+    private static final InvoText titleText = InvoText.translate("fallenScreen.fallen_text");
+    private static final InvoText reviveCountMultipleText = InvoText.translate("fallenScreen.revive_count_multiple");
+    private static final InvoText reviveCountSingleText = InvoText.translate("fallenScreen.revive_count_single");
+    private static final InvoText waitText = InvoText.translate("fallenScreen.wait_text");
+    private static final InvoText forceDeathText = InvoText.translate("fallenScreen.force_death_text");
+    private static final InvoText cantForceDeathText = InvoText.translate("fallenScreen.cant_force_death_text");
     private static final DecimalFormat df = new DecimalFormat("0.0");
     private static final int greenColor = new Color(39, 235, 86, 255).getRGB();
     private static final int whiteColor = new Color(255, 255, 255, 255).getRGB();
     private static final int blackFadeColor = new Color(0, 0, 0, 71).getRGB();
+    private static final int redFadeColor = 1615855616;
+
+    //Translation text for self revive
+    private static final String fallenDirectory = "revive-me.fallenScreen.self_revive.";
+    private static final InvoText chanceTxt = InvoText.translate(fallenDirectory + "chance_1");
+    private static final InvoText randomItemFalseTxt = InvoText.translate(fallenDirectory + "random_items.false_1");
+    private static final InvoText randomItemTxt = InvoText.translate(fallenDirectory + "random_items_1");
+    private static final InvoText specificItemFalseTxt = InvoText.translate(fallenDirectory + "specific_item.false_1");
+    private static final InvoText specificItemTxt = InvoText.translate(fallenDirectory + "specific_item_1");
+    private static final InvoText killTxt1 = InvoText.translate(fallenDirectory + "kill_1");
+    private static final InvoText killTxt2 = InvoText.translate(fallenDirectory + "kill_2");
+    private static final InvoText killTxt3 = InvoText.translate(fallenDirectory + "kill_3");
+    private static final InvoText killTxt4 = InvoText.translate(fallenDirectory + "kill_4");
+    private static final InvoText statusEffectTxt = InvoText.translate(fallenDirectory + "status_effects_1");
+    private static final InvoText experienceFalseTxt = InvoText.translate(fallenDirectory + "experience.false_1");
+    private static final InvoText experienceTxt = InvoText.translate(fallenDirectory + "experience_1");
 
     @SubscribeEvent
-    public static void registerFallenScreen(RegisterGuiOverlaysEvent event){
+    public static void registerFallenScreen(RegisterGuiOverlaysEvent event) {
 
         event.registerAbove(VanillaGuiOverlay.CHAT_PANEL.id(), "revive_button", ((gui, stack, partialTick, width, height) ->
         {
-            if (mC.screen instanceof ChatScreen) return;
-            FallenCapability cap = FallenCapability.GetFallCap(inst.player);
-            if (!cap.isFallen()) return;
+            FallenCapability cap = getCap();
+            if (cap == null) return;
+            if ((mC.screen instanceof ChatScreen)) return;
 
-            MutableComponent message = Component.literal("[").append(KeyInit.callForHelpKey.keyBind.getKey().getDisplayName())
-                    .append(Component.literal("]")).withStyle(ChatFormatting.BOLD);
-            if (cap.callForHelpCooldown() < 1) message.withStyle(ChatFormatting.BLACK);
+            InvoZone workZone = new InvoZone(0, width, 0, height);
 
-            revive_help_button_IMG.moveTo(width - (revive_help_button_IMG.getWidth() + 16), height - (revive_help_button_IMG.getHeight() + 16));
-            ClientUtil.blitColor(stack, revive_help_button_IMG.x0 + 1, revive_help_button_IMG.getWidth()-2,
-                    revive_help_button_IMG.y0 + 1 + (30 - (30 * (float)cap.callForHelpCooldown())),  30 * (float)cap.callForHelpCooldown(), whiteColor);
+            InvoText message = InvoText.literal("[" + KeyInit.callForHelpKey.keyBind.getKey().getDisplayName().getString()
+                    + "]").withStyle(true, ChatFormatting.BOLD);
+            if (cap.callForHelpCooldown() < 1) message.withStyle(true, ChatFormatting.BLACK);
 
-            revive_help_button_IMG.RenderImage(stack);
-            TextUtil.renderText(stack, message, 1, false, revive_help_button_IMG.x0 + 3, revive_help_button_IMG.getWidth() - 6,
-                    revive_help_button_IMG.y0 + 19, 8, 0, TextUtil.txtAlignment.MIDDLE);
+            InvoZone reviveButtonZone = revive_help_button_IMG.getRenderZone();
+            reviveButtonZone.setDown(workZone.down() - 16).setRight(workZone.right() - 16);
+            ClientUtil.blitColor(stack, reviveButtonZone.copy().setY(reviveButtonZone.down()).
+                    setHeight((int) (reviveButtonZone.height() * cap.callForHelpCooldown())).setBound(reviveButtonZone, true), whiteColor);
 
-            if (cap.callForHelpCooldown() != 1){
-                ClientUtil.blitColor(stack, revive_help_button_IMG.x0, revive_help_button_IMG.getWidth(),
-                        revive_help_button_IMG.y0, revive_help_button_IMG.getHeight(), blackFadeColor);
+            revive_help_button_IMG.render(stack);
+            InvoZone txtZone = reviveButtonZone.copy().splitHeight(4, 1);
+            txtZone.centerY(reviveButtonZone.y() + ((reviveButtonZone.height() / 4) * 3));
+            TextUtil.renderText(stack, message.getText(), false, 1, txtZone, TextUtil.txtAlignment.MIDDLE);
+
+            if (cap.callForHelpCooldown() != 1) {
+                ClientUtil.blitColor(stack, reviveButtonZone, blackFadeColor);
             }
         }));
 
         //if (true) return;
-        event.registerAbove(VanillaGuiOverlay.CHAT_PANEL.id(),"fallen_screen", (gui, stack, partialTicks, width, height) -> {
-            if (mC.screen instanceof ChatScreen) return;
-            FallenCapability cap = FallenCapability.GetFallCap(inst.player);
-            if (!cap.isFallen()) return;
+        event.registerAbove(VanillaGuiOverlay.CHAT_PANEL.id(), "fallen_screen", (gui, stack, partialTicks, width, height) -> {
+            //region initial checks
+            FallenCapability cap = getCap();
+            if (cap == null) return;
+            if ((mC.screen instanceof ChatScreen)) return;
+            if (cap.canSelfRevive()) return;
+            //endregion
 
-            if (cap.getOtherPlayer() != null) return;
+            InvoZone workZone = new InvoZone(0, width, 0, height);
 
-            if (ReviveMeConfig.selfReviveMultiplayer && (!cap.usedChance() || !cap.getItemList().isEmpty())) return;
-            //If self revive multiplayer is true, I don't want this to show if we have not used chance, and we have sacrificial items
-
-            if ((mC.hasSingleplayerServer() && mC.getSingleplayerServer().getPlayerList().getPlayers().size() == 1)) return;
-
-            int startTextHeight = (height / 5);
-            Font font = mC.font;
-
-            Gui.fill(stack, 0, 0, width, height, 1615855616);
+            ClientUtil.blitColor(stack, workZone, redFadeColor);
 
             //Title text
-            stack.pushPose();
-            stack.scale(2, 2, 2);
-            Gui.drawCenteredString(stack, font, titleText, (width / 2) / 2, (startTextHeight - 10) / 2, 16777215);
-            stack.popPose();
+            InvoZone titleTextZone = workZone.copy().setWidth(workZone.width() / 3).setHeight(workZone.height() / 5).inflate(0, 2)
+                    .centerX(workZone.middleX());
+            TextUtil.renderText(stack, titleText.getText(), true, 1, titleTextZone, TextUtil.txtAlignment.MIDDLE);
 
             //Wait For text
-            Gui.drawCenteredString(stack, font, waitText, width / 2, (int) (startTextHeight * 1.5f), 16777215);
+            InvoZone waitTextZone = workZone.copy().setWidth(workZone.width() / 3).setHeight(8).setY((workZone.height() / 4) + 12)
+                    .centerX(workZone.middleX());
+            TextUtil.renderText(stack, waitText.getText(), true, 1, waitTextZone, TextUtil.txtAlignment.MIDDLE);
+
             //Force death text
-            String editText = ReviveMeConfig.canGiveUp ? forceDeathText.getString() : cantForceDeathText.getString();
-            editText = editText.replace("{attack}", inst.options.keyAttack.getKey().getDisplayName().getString());
-            editText = editText.replace("{seconds}", df.format(2 - (FallenPlayerActionsEvent.timeHeld / 20f)));
-            Gui.drawCenteredString(stack, font, editText, width / 2, (startTextHeight * 2), 16777215);
+            InvoText forceDeathTextResult = ReviveMeConfig.canGiveUp ? forceDeathText : cantForceDeathText;
 
-            //Where the timer will be placed.
-            float x = (width / 2F);
-            float y = height - (height / 3F);
-            float seconds = cap.GetTimeLeft(true);
+            forceDeathTextResult = forceDeathTextResult.setArgs(
+                    InvoText.literal(VanillaKeybindHandler.getKey(inst.options.keyAttack).getDisplayName().getString()).getText(),
+                    df.format(2 - (FallenPlayerActionsEvent.timeHeld / 20f)));
+            InvoZone forceDeathTextZone = waitTextZone.copy().setY(waitTextZone.down() + 17).setWidth(workZone.width()).centerX(waitTextZone.middleX());
+            TextUtil.renderText(stack, forceDeathTextResult.getText(), true, 1, forceDeathTextZone, TextUtil.txtAlignment.MIDDLE);
 
-            //System.out.println(seconds);
-
-            //green color: 2616150
-            float endAngle = seconds <= 0 ? 360 : seconds * 360;
-            float radius = 36;
-            CircleRender.drawArc(stack, x, y, radius, 0, endAngle, greenColor);
-
-            //Increase seconds by 1 if seconds isn't at 0
-            seconds = cap.GetTimeLeft(false);
-            seconds += (seconds <= 0 ? 0 : 1);
-
-            MutableComponent timeLeftString =
-                    Component.literal((seconds <= 0) ? "INF" : Integer.toString((int) seconds))
-                            .withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
-
-            //This is the timer background
-            timerIMG.resetScale();
-            timerIMG.setActualSize(64, 64);
-            timerIMG.moveTo(0, 0);
-            timerIMG.centerImageX(0, width);
-            timerIMG.centerImageY((int) (y - radius), (int) (radius * 2));
-            timerIMG.RenderImage(stack);
-
-            TextUtil.renderText(stack, timeLeftString, false, timerIMG.x0 + 17, 30, timerIMG.y0 + 17, 30,
-                    0, TextUtil.txtAlignment.MIDDLE);
+            renderTimer(stack, cap, workZone, workZone.down() - (workZone.down() / 3), 36, 64);
         });
 
-        event.registerAbove(VanillaGuiOverlay.CHAT_PANEL.id(),"fallen_self_revive_screen", (gui, stack, partialTicks, width, height) -> {
-            if (mC.screen instanceof ChatScreen) return;
-            if (ReviveMeConfig.compactReviveUI) return;
-            if (!ReviveMeConfig.selfReviveMultiplayer &&
-                    (
-                            (mC.hasSingleplayerServer() && mC.getSingleplayerServer().getPlayerList().getPlayers().size() > 1) ||
-                                    !mC.isLocalServer()
-                    )
-            ) return;
+        event.registerAbove(VanillaGuiOverlay.CHAT_PANEL.id(), "fallen_self_revive_screen", (gui, stack, partialTicks, width, height) -> {
+            FallenCapability cap = getCap();
+            if (cap == null) return;
+            if ((mC.screen instanceof ChatScreen)) return;
+            if (!cap.canSelfRevive()) return;
 
-            FallenCapability cap = FallenCapability.GetFallCap(inst.player);
-            if (!cap.isFallen()) return;
-            if (cap.getOtherPlayer() != null) return;
-            if (cap.usedChance() && cap.getItemList().isEmpty()) return;
+            InvoZone workZone = new InvoZone(0, width, 0, height);
 
-            int fifthHeight = (height / 5);
-            float halfWidth = (width / 2F);
-            float thirdHeight = height - (height / 3F);
-            Font font = mC.font;
+            InvoZone leftZone;
+            InvoZone rightZone;
 
-            Gui.fill(stack, 0, 0, width, height, 1615855616);
+            ClientUtil.blitColor(stack, workZone, redFadeColor);
+
+            if (!ReviveMeConfig.compactReviveUI) {
+                float timerMiddleY = workZone.down() - (workZone.down() / 3);
+                leftZone = workZone.copy().splitWidth(4, 1);
+                leftZone.splitHeight(5, 3);
+                leftZone.center(workZone.copy().setWidth(workZone.width() / 2));
+                renderTimer(stack, cap, workZone, timerMiddleY, 36, 64);
+            } else {
+                float timerMiddleY = workZone.down() - (workZone.down() / 4);
+                leftZone = workZone.copy().splitWidth(5, 1);
+                leftZone.splitHeight(3, 1);
+                leftZone.centerX(workZone.copy().splitWidth(2, 1).middleX());
+                leftZone.setDown(timerMiddleY + 18);
+                renderTimer(stack, cap, workZone, timerMiddleY, 18, 32);
+            }
+            rightZone = leftZone.copy().mirrorX(workZone.middleX());
 
             //Title text
-            stack.pushPose();
-            stack.scale(2, 2, 2);
-            Gui.drawCenteredString(stack, font, titleText, (width / 2) / 2, ((fifthHeight - 18)/2)/2, 16777215);
-            stack.popPose();
+            InvoZone titleTextZone = workZone.copy().setWidth(workZone.width() / 3).setHeight(workZone.height() / 5).inflate(0, -12)
+                    .centerX(workZone.middleX());
+            TextUtil.renderText(stack, titleText.getText(), true, 1, titleTextZone, TextUtil.txtAlignment.MIDDLE);
 
-            //Other revive items top
-            float startHeight = fifthHeight + ((fifthHeight - 9)/2F);
-            MutableComponent stringToRender;
-
-            //region Left mouse to give chance
-            if (!cap.usedChance()) {
-                //Top portion
-                ClientUtil.blitColor(stack, halfWidth/4F, (halfWidth/2F), startHeight,
-                        20, new Color(0,0,0, 182).getRGB());
-                stringToRender = Component.translatable("fallenScreen.self_revive.give_chance_1");
-            stringToRender = Component.literal(stringToRender.getString().replace("{attack}",inst.options.keyAttack.getKey().getDisplayName().getString()));
-                TextUtil.renderText(stack, stringToRender.withStyle(ChatFormatting.BOLD), true, halfWidth / 4, (halfWidth / 2F),
-                        startHeight, 20, 2, TextUtil.txtAlignment.MIDDLE);
-
-                //Middle potion
-                ClientUtil.blitColor(stack, halfWidth / 4F, (halfWidth / 2F), startHeight + 40,
-                        (halfWidth / 2F) - 60, new Color(0, 0, 0, 255).getRGB());
-                stringToRender = Component.literal(Math.round(ReviveMeConfig.reviveChance * 100) + "%");
-                TextUtil.renderText(stack, stringToRender.withStyle(ChatFormatting.BOLD).withStyle(ChatFormatting.GOLD),
-                        true, halfWidth / 4, (halfWidth / 2F), startHeight,
-                        (halfWidth / 2F) + 20, 2, TextUtil.txtAlignment.MIDDLE);
-
-                //Bottom portion
-                ClientUtil.blitColor(stack, halfWidth / 4F, (halfWidth / 2F), startHeight + (halfWidth / 2F),
-                        20, new Color(0, 0, 0, 182).getRGB());
-                stringToRender = Component.translatable("fallenScreen.self_revive.give_chance_2");
-                TextUtil.renderText(stack, stringToRender.withStyle(ChatFormatting.BOLD), true, halfWidth / 4, (halfWidth / 2F),
-                        startHeight + (halfWidth / 2F), 20, 2, TextUtil.txtAlignment.MIDDLE);
+            int revivesLeft = ReviveMeConfig.maxSelfRevives - cap.getSelfReviveCount();
+            if (revivesLeft > 0) {
+                InvoZone reviveTextZone = titleTextZone.copy().setWidthConstraint(titleTextZone.width() * 0.7F).centerX(titleTextZone.middleX())
+                        .setY(titleTextZone.down()).splitHeight(3, 2);
+                InvoText chosenText = revivesLeft == 1 ? reviveCountSingleText : reviveCountMultipleText;
+                chosenText = chosenText.setArgs(InvoText.literal(revivesLeft + "")
+                        .withStyle(true, (revivesLeft == 1 ? ChatFormatting.RED : ChatFormatting.YELLOW), ChatFormatting.BOLD).getText());
+                ClientUtil.blitColor(stack, reviveTextZone, new Color(0, 0, 0, 150).getRGB());
+                TextUtil.renderText(stack, chosenText.getText(), true, 1,
+                        reviveTextZone.inflate(-2, -2), TextUtil.txtAlignment.MIDDLE);
             }
-            //endregion
 
-            //Right mouse to give items
-            ClientUtil.blitColor(stack, (halfWidth + halfWidth/4), (halfWidth/2F),
-                    startHeight, 20, new Color(0,0,0, 182).getRGB());
-            stringToRender = Component.translatable("fallenScreen.self_revive.give_items");
-            stringToRender = Component.literal(stringToRender.getString().replace("{use}",inst.options.keyUse.getKey().getDisplayName().getString()));
-            TextUtil.renderText(stack, stringToRender.withStyle(ChatFormatting.BOLD), true, (halfWidth + halfWidth/4), (halfWidth/2F),
-                                startHeight, 20, 1, TextUtil.txtAlignment.MIDDLE);
 
-            //region this will be for sacrificial items
-            float offset = 0;
-            int padding = 2;
-            int itemSize = 16;
+            double timeHeldPercentage = FallenPlayerActionsEvent.timeHeld / 40D;
+            float sizeChange = MathUtil.lerp(MathUtil.EaseType.EASEOUTQUAD.getEase(timeHeldPercentage), 0, 10);
 
-            if (cap.getItemList().size() != 0){
-                ArrayList<ItemStack> itemArrayList = cap.getItemList();
-                for (ItemStack sacrificeStack : itemArrayList) {
-                //Draw the background
-                ClientUtil.blitColor(stack, (halfWidth / 4) + halfWidth, halfWidth / 2, (fifthHeight * 2) + offset,
-                        itemSize + (padding * 2), new Color(0, 0, 0, 255).getRGB());
+            timeHeldPercentage = MathUtil.EaseType.EASEOUTQUAD.getEase(Math.min(1, timeHeldPercentage * 2));
 
-                //Draw the item
-                mC.getItemRenderer().renderAndDecorateItem(sacrificeStack,
-                        (int) ((halfWidth / 4) + halfWidth + padding), (int) ((fifthHeight * 2) + offset + padding));
-
-                //Draw the amount they have, then the amount they will have after reduction
-                int count = FallenCapability.countItem(inst.player.getInventory(), sacrificeStack);
-                MutableComponent countComp = Component.literal("" + count).withStyle(ChatFormatting.BOLD).withStyle(ChatFormatting.GREEN);
-                MutableComponent arrowComp = Component.literal(" -> ").withStyle(ChatFormatting.BOLD);
-                MutableComponent newCountComp =
-                        Component.literal("" + (count - (Math.round(Math.max(1, ReviveMeConfig.sacrificialItemPercent * count)))))
-                                .withStyle(ChatFormatting.BOLD).withStyle(ChatFormatting.RED);
-
-                float startX = (halfWidth / 4) + halfWidth + (padding + itemSize + padding);
-                float spacePortion = ((halfWidth / 2) - (itemSize + (padding * 3)))/3F;
-                float startY = (fifthHeight * 2) + offset + padding;
-                TextUtil.renderText(stack, countComp, true, (int) startX, spacePortion, startY, itemSize, 1, TextUtil.txtAlignment.MIDDLE);
-                TextUtil.renderText(stack, arrowComp, true, (int) startX + spacePortion, spacePortion, startY, itemSize, 1, TextUtil.txtAlignment.MIDDLE);
-                TextUtil.renderText(stack, newCountComp, true, (int) startX + (spacePortion*2), spacePortion, startY, itemSize, 1, TextUtil.txtAlignment.MIDDLE);
-
-                offset += itemSize + (padding * 3);
-            }
-            }
-            //endregion
-
-            //region This will be if the player is holding a button
-
-            //I have to render the mouse later on so that it isn't affected by blackout
-            ClientUtil.Image chosenMouse = mouse_idle_IMG;
-
-            //This will be chance
             if (VanillaKeybindHandler.attackHeld) {
-                ClientUtil.blitColor(stack, halfWidth, halfWidth, fifthHeight, height,
-                        new Color(0,0,0, Math.min((int) (255 * (FallenPlayerActionsEvent.timeHeld/40F)), 255)).getRGB());
-
-                chosenMouse = mouse_left_IMG;
+                rightZone.setX(MathUtil.lerp(timeHeldPercentage, rightZone.x(), workZone.right()));
+                rightZone.inflate(-sizeChange, -sizeChange);
+                leftZone.inflate(sizeChange, sizeChange);
+            } else if (VanillaKeybindHandler.useHeld) {
+                leftZone.setX(MathUtil.lerp(timeHeldPercentage, leftZone.x(), 0 - rightZone.width()));
+                leftZone.inflate(-sizeChange, -sizeChange);
+                rightZone.inflate(sizeChange, sizeChange);
             }
 
-            //This will use items
-            else if (VanillaKeybindHandler.useHeld) {
-                ClientUtil.blitColor(stack, 0, halfWidth, fifthHeight, height,
-                        new Color(0,0,0, Math.min((int) (255 * (FallenPlayerActionsEvent.timeHeld/40F)), 255)).getRGB());
-
-                chosenMouse = mouse_right_IMG;
-            }
-            //endregion
-
-            //Divider Lines in the middle
-            ClientUtil.blitColor(stack, halfWidth - 1, 2, fifthHeight, height, new Color(0, 0, 0,255).getRGB());
-            ClientUtil.blitColor(stack, 0, width, fifthHeight, 2, new Color(0, 0, 0,255).getRGB());
-
-
-
-            //region this will black out the options you've already used
-
-            //This is for item sacrifice
-            if (cap.usedSacrificedItems() || cap.getItemList().size() == 0){
-                ClientUtil.blitColor(stack, halfWidth, halfWidth, fifthHeight, height, new Color(0,0,0, 204).getRGB());
-
-                MutableComponent item_text = Component.translatable(cap.usedSacrificedItems() ? "fallenScreen.self_revive.used" : "fallenScreen.self_revive.no_items");
-                item_text = item_text.withStyle(ChatFormatting.DARK_RED);
-
-                TextUtil.renderText(stack, item_text, true,
-                        halfWidth, halfWidth, startHeight,
-                        (halfWidth/2F) + 20,  (int) (halfWidth/4F), TextUtil.txtAlignment.MIDDLE);
-            }
-            //This is for chance
-            if (cap.usedChance()){
-                ClientUtil.blitColor(stack, 0, halfWidth, fifthHeight, height, new Color(0,0,0, 204).getRGB());
-                TextUtil.renderText(stack, Component.translatable("fallenScreen.self_revive.used").withStyle(ChatFormatting.DARK_RED), true,
-                        0, (halfWidth), startHeight,
-                        (halfWidth/2F) + 20,  (int) (halfWidth/4F), TextUtil.txtAlignment.MIDDLE);
-            }
-            //endregion
-
-            //This will render the mouse
-            chosenMouse.resetScale();
-            chosenMouse.setActualSize(chosenMouse.getWidth() * 2, chosenMouse.getHeight() * 2);
-            chosenMouse.centerImageX(0, width);
-            chosenMouse.moveTo(chosenMouse.x0,fifthHeight);
-            chosenMouse.RenderImage(stack);
-
-            //System.out.println(seconds);
-
-
-
-            //region The timer stuff
-            float seconds = cap.GetTimeLeft(true);
-            //green color: 2616150
-            float endAngle = seconds <= 0 ? 360 : seconds * 360;
-            float radius = 36;
-            CircleRender.drawArc(stack, halfWidth, thirdHeight, radius, 0, endAngle, greenColor);
-
-            //Increase seconds by 1 if seconds isn't at 0
-            seconds = cap.GetTimeLeft(false);
-            seconds += (seconds <= 0 ? 0 : 1);
-
-            MutableComponent timeLeftString =
-                    Component.literal((seconds <= 0) ? "INF" : Integer.toString((int) seconds))
-                            .withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
-
-            //This is the timer background
-            timerIMG.resetScale();
-            timerIMG.setActualSize(64, 64);
-            timerIMG.moveTo(0, 0);
-            timerIMG.centerImageX(0, width);
-            timerIMG.centerImageY((int) (thirdHeight - radius), (int) (radius * 2));
-            timerIMG.RenderImage(stack);
-
-            TextUtil.renderText(stack, timeLeftString, false,timerIMG.x0 + 17, 30, timerIMG.y0 + 17, 30,
-                    0, TextUtil.txtAlignment.MIDDLE);
-            //endregion
+            renderReviveOption(GLFW.GLFW_MOUSE_BUTTON_1, stack, leftZone, cap, VanillaKeybindHandler.attackHeld);
+            renderReviveOption(GLFW.GLFW_MOUSE_BUTTON_2, stack, rightZone, cap, VanillaKeybindHandler.useHeld);
         });
-
-        event.registerAbove(VanillaGuiOverlay.CHAT_PANEL.id(),"fallen_self_revive_compact_screen", (gui, stack, partialTicks, width, height) -> {
-            if (mC.screen instanceof ChatScreen) return;
-            if (!ReviveMeConfig.compactReviveUI) return;
-            if (!ReviveMeConfig.selfReviveMultiplayer &&
-                    (
-                            (mC.hasSingleplayerServer() && mC.getSingleplayerServer().getPlayerList().getPlayers().size() > 1) ||
-                                    !mC.isLocalServer()
-                    )
-            ) return;
-
-            FallenCapability cap = FallenCapability.GetFallCap(inst.player);
-            if (!cap.isFallen()) return;
-            if (cap.getOtherPlayer() != null) return;
-            if (cap.usedChance() && cap.getItemList().isEmpty()) return;
-
-            float halfWidth = (width / 2F);
-            float thirdHeight = (height / 3F);
-            //This is for the green circle that is around the Timer img
-            float radius = (height/5F)/2;
-            //This is the top of the timer picture
-            int timerOrigY = (int) (thirdHeight + (radius/2)) + 2;
-            int mouseOrigY = (int) (timerOrigY + (timerIMG.getHeight()/2F) + radius) + 2;
-            Font font = mC.font;
-
-            Gui.fill(stack, 0, 0, width, height, 1615855616);
-
-            //Title text
-            stack.pushPose();
-            stack.scale(2, 2, 2);
-            Gui.drawCenteredString(stack, font, titleText, (width / 2) / 2, (int) (timerOrigY - radius)/2, 16777215);
-            stack.popPose();
-
-            //Other revive items top
-            float startHeight = mouseOrigY + 2;
-            //How much room the text has width
-            float txtRoomWidth = (width/2.25F)/2F;
-            //How much room half of the mouse takes
-            float halfMouseSizeX = (mouse_idle_IMG.getWidth()/2F);
-            //Text room height
-            float txtRoomHeight = (int)(mouse_idle_IMG.getHeight() * 1.25f);
-            MutableComponent stringToRender;
-
-            //Background
-            ClientUtil.blitColor(stack, halfWidth - txtRoomWidth, (width/2.25F), mouse_idle_IMG.y0,
-                    txtRoomHeight, new Color(0,0,0, 182).getRGB());
-
-            //region This will be if the player is holding a button
-
-            //This will be chance
-            if (VanillaKeybindHandler.attackHeld) {
-                ClientUtil.blitColor(stack, halfWidth - txtRoomWidth - 1, txtRoomWidth + 1, mouse_idle_IMG.y0 - 1,
-                        txtRoomHeight + 2, new Color(255, 255, 255, 255).getRGB());
-            }
-
-            //This will be for items
-            else if (VanillaKeybindHandler.useHeld) {
-                ClientUtil.blitColor(stack, halfWidth, txtRoomWidth + 1, mouse_idle_IMG.y0 - 1,
-                        txtRoomHeight + 2, new Color(255, 255, 255, 255).getRGB());
-            }
-            //endregion
-
-            //region Left mouse to give chance
-            if (!cap.usedChance()) {
-                //background
-                ClientUtil.blitColor(stack, halfWidth - txtRoomWidth, txtRoomWidth - halfMouseSizeX - 5,
-                        mouse_idle_IMG.y0, txtRoomHeight, new Color(0,0,0, 255).getRGB());
-
-                //Top portion
-                stringToRender = Component.translatable("fallenScreen.self_revive.give_chance_1");
-            stringToRender = Component.literal(stringToRender.getString().replace("{attack}",inst.options.keyAttack.getKey().getDisplayName().getString()));
-                TextUtil.renderText(stack, stringToRender.withStyle(ChatFormatting.BOLD), 2, true, halfWidth - txtRoomWidth, txtRoomWidth - halfMouseSizeX - 5,
-                        mouse_idle_IMG.y0, (txtRoomHeight/4), 2, TextUtil.txtAlignment.MIDDLE);
-
-                //Middle potion
-//                ClientUtil.blitColor(stack, halfWidth - txtRoomWidth + 2, txtRoomWidth - halfMouseSizeX - 4, mouse_idle_IMG.y0 + (txtRoomHeight/4),
-//                        (txtRoomHeight/2), new Color(0,0,0, 255).getRGB());
-                stringToRender = Component.literal(Math.round(ReviveMeConfig.reviveChance * 100) + "%");
-                TextUtil.renderText(stack, stringToRender.withStyle(ChatFormatting.BOLD).withStyle(ChatFormatting.GOLD),
-                        true, halfWidth - txtRoomWidth, txtRoomWidth - halfMouseSizeX - 5,
-                        mouse_idle_IMG.y0 + (txtRoomHeight/4), (txtRoomHeight/2), 2, TextUtil.txtAlignment.MIDDLE);
-
-                //Bottom portion
-                stringToRender = Component.translatable("fallenScreen.self_revive.give_chance_2");
-                TextUtil.renderText(stack, stringToRender.withStyle(ChatFormatting.BOLD), 2, true, halfWidth - txtRoomWidth, txtRoomWidth - halfMouseSizeX - 5,
-                        mouse_idle_IMG.y0 + ((txtRoomHeight/4) * 3), (txtRoomHeight/4), 2, TextUtil.txtAlignment.MIDDLE);
-            }
-            //endregion
-
-            //Right mouse to give items
-            stringToRender = Component.translatable("fallenScreen.self_revive.give_items");
-            stringToRender = Component.literal(stringToRender.getString().replace("{use}",inst.options.keyUse.getKey().getDisplayName().getString()));
-            if (!cap.usedSacrificedItems() && cap.getItemList().size() != 0) {
-                ClientUtil.blitColor(stack, halfWidth + halfMouseSizeX + 5, txtRoomWidth - halfMouseSizeX - 5,
-                        mouse_idle_IMG.y0, (txtRoomHeight / 4), new Color(0, 0, 0, 255).getRGB());
-                TextUtil.renderText(stack, stringToRender.withStyle(ChatFormatting.BOLD), 2, true, halfWidth + halfMouseSizeX + 5,
-                        txtRoomWidth - halfMouseSizeX - 5, mouse_idle_IMG.y0, (txtRoomHeight / 4), 1, TextUtil.txtAlignment.MIDDLE);
-            }
-
-            //region this will be for sacrificial items
-            float offset = 0;
-            int padding = 0;
-            float itemSize = ((((txtRoomHeight/4) * 3)/4F) - (padding * 2));
-
-            if (cap.getItemList().size() != 0){
-                ArrayList<ItemStack> itemArrayList = cap.getItemList();
-                for (ItemStack sacrificeStack : itemArrayList) {
-                float backgroundX = halfWidth + halfMouseSizeX + 5;
-                float backgroundW = txtRoomWidth - halfMouseSizeX - 5;
-                float backgroundY = mouse_idle_IMG.y0 + (txtRoomHeight/4) + offset;
-                float backgroundH = itemSize + (padding * 2);
-
-                //Draw the background
-                ClientUtil.blitColor(stack, backgroundX, backgroundW, backgroundY,
-                        backgroundH, new Color(0, 0, 0, 255).getRGB());
-
-                float smallestSize = Math.min((backgroundW/3),backgroundH);
-
-                //Draw the item
-                ClientUtil.blitItem(stack, backgroundX + (((backgroundW/4F) - smallestSize))/2F, smallestSize,
-                        backgroundY + padding, smallestSize, sacrificeStack);
-//                mC.getItemRenderer().renderAndDecorateItem(new ItemStack(item),
-//                        (int) (halfWidth + halfMouseSizeX + 5 + padding), (int) (mouse_idle_IMG.y0 + (txtRoomHeight/4) + offset + padding));
-
-                //Draw the amount they have, then the amount they will have after reduction
-                int count = FallenCapability.countItem(inst.player.getInventory(), sacrificeStack);
-                MutableComponent countComp = Component.literal("" + count).withStyle(ChatFormatting.BOLD).withStyle(ChatFormatting.GREEN);
-                MutableComponent arrowComp = Component.literal(" -> ").withStyle(ChatFormatting.BOLD);
-                MutableComponent newCountComp =
-                        Component.literal("" + (count - (Math.round(Math.max(1, ReviveMeConfig.sacrificialItemPercent * count)))))
-                                .withStyle(ChatFormatting.BOLD).withStyle(ChatFormatting.RED);
-
-                float startX = backgroundX + (backgroundW/4F);
-                float spacePortion = backgroundW/4F;
-                float startY = mouse_idle_IMG.y0 + (txtRoomHeight/4) + offset + padding;
-                TextUtil.renderText(stack, countComp, true, (int) startX, spacePortion, startY, itemSize, 1, TextUtil.txtAlignment.MIDDLE);
-                TextUtil.renderText(stack, arrowComp, 1, true, (int) startX + spacePortion, spacePortion, startY-1, itemSize + (padding * 2), 0, TextUtil.txtAlignment.MIDDLE);
-                TextUtil.renderText(stack, newCountComp, true, (int) startX + (spacePortion*2), spacePortion, startY, itemSize, 1, TextUtil.txtAlignment.MIDDLE);
-
-                offset += backgroundH;
-            }
-            }
-            //endregion
-
-            //region This will be if the player is holding a button
-
-            //I have to render the mouse later on so that it isn't affected by blackout
-            ClientUtil.Image chosenMouse = mouse_idle_IMG;
-
-            //This will be chance
-            if (VanillaKeybindHandler.attackHeld) {
-                ClientUtil.blitColor(stack, halfWidth, txtRoomWidth, mouse_idle_IMG.y0, txtRoomHeight,
-                        new Color(0,0,0, Math.min((int) (255 * (FallenPlayerActionsEvent.timeHeld/40F)), 255)).getRGB());
-
-                chosenMouse = mouse_left_IMG;
-            }
-
-            //This will use items
-            else if (VanillaKeybindHandler.useHeld) {
-                ClientUtil.blitColor(stack, halfWidth - txtRoomWidth, txtRoomWidth, mouse_idle_IMG.y0, txtRoomHeight,
-                        new Color(0,0,0, Math.min((int) (255 * (FallenPlayerActionsEvent.timeHeld/40F)), 255)).getRGB());
-
-                chosenMouse = mouse_right_IMG;
-            }
-            //endregion
-
-            //region this will black out the options you've already used
-
-            //This is for item sacrifice
-            if (cap.usedSacrificedItems() || cap.getItemList().size() == 0){
-                ClientUtil.blitColor(stack, halfWidth, txtRoomWidth, mouse_idle_IMG.y0, txtRoomHeight, new Color(0,0,0, 255).getRGB());
-
-                MutableComponent item_text = Component.translatable(cap.usedSacrificedItems() ? "fallenScreen.self_revive.used" : "fallenScreen.self_revive.no_items");
-                item_text = item_text.withStyle(ChatFormatting.DARK_RED);
-
-                TextUtil.renderText(stack, item_text, true,
-                        halfWidth + halfMouseSizeX, txtRoomWidth - halfMouseSizeX, mouse_idle_IMG.y0,
-                        txtRoomHeight, 4, TextUtil.txtAlignment.MIDDLE);
-            }
-            //This is for chance
-            if (cap.usedChance()){
-                ClientUtil.blitColor(stack, halfWidth - txtRoomWidth, txtRoomWidth, mouse_idle_IMG.y0, txtRoomHeight, new Color(0,0,0, 255).getRGB());
-                TextUtil.renderText(stack, Component.translatable("fallenScreen.self_revive.used").withStyle(ChatFormatting.DARK_RED), true,
-                        halfWidth - txtRoomWidth, txtRoomWidth - halfMouseSizeX, mouse_idle_IMG.y0, txtRoomHeight,  4, TextUtil.txtAlignment.MIDDLE);
-            }
-            //endregion
-
-            //System.out.println(seconds);
-
-
-            //region The timer stuff
-            float seconds = cap.GetTimeLeft(true);
-            //green color: 2616150
-            float endAngle = seconds <= 0 ? 360 : seconds * 360;
-
-            //Increase seconds by 1 if seconds isn't at 0
-            seconds = cap.GetTimeLeft(false);
-            seconds += (seconds <= 0 ? 0 : 1);
-
-            MutableComponent timeLeftString =
-                    Component.literal((seconds <= 0) ? "INF" : Integer.toString((int) seconds))
-                            .withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
-
-            //This is the timer background
-            timerIMG.resetScale();
-            timerIMG.setActualSize((int) (radius * 1.75F), (int) (radius * 1.75F));
-            timerIMG.centerImageX(0, width);
-            timerIMG.moveTo(timerIMG.x0, timerOrigY);
-            CircleRender.drawArc(stack, halfWidth, timerIMG.y0 + (timerIMG.getHeight()/2F), radius, 0, endAngle, greenColor);
-            timerIMG.RenderImage(stack);
-
-            float timeSizeDiff = 64F/timerIMG.getHeight();
-            TextUtil.renderText(stack, timeLeftString, false,(timerIMG.x0 + 17/timeSizeDiff), (30/timeSizeDiff),
-                    (timerIMG.y0 + 17/timeSizeDiff), (30)/timeSizeDiff,0, TextUtil.txtAlignment.MIDDLE);
-            //endregion
-
-
-            //This will render the mouse
-            chosenMouse.resetScale();
-            chosenMouse.setActualSize((int) (chosenMouse.getWidth() * ((height/5F)/chosenMouse.getHeight())), height/5);
-            chosenMouse.centerImageX(0, width);
-            chosenMouse.moveTo(chosenMouse.x0, mouseOrigY);
-            chosenMouse.RenderImage(stack);
-        });
-
 
         event.registerBelowAll("chat_fallen_timer_screen", (gui, stack, partialTicks, width, height) -> {
+            FallenCapability cap = getCap();
+            if (cap == null) return;
             if (!(mC.screen instanceof ChatScreen)) return;
 
-            FallenCapability cap = FallenCapability.GetFallCap(inst.player);
-            if (!cap.isFallen()) return;
-            if (cap.getOtherPlayer() != null) return;
+            InvoZone workZone = new InvoZone(0, width, 0, height);
 
-            float halfWidth = (width / 2F);
-            float thirdHeight = height - (height / 3F);
-
-            //Where the timer will be placed.
-            float seconds = cap.GetTimeLeft(true);
-            //green color: 2616150
-            float endAngle = seconds <= 0 ? 360 : seconds * 360;
-            float radius = 36;
-            CircleRender.drawArc(stack, halfWidth, thirdHeight, radius, 0, endAngle, greenColor);
-
-            //Increase seconds by 1 if seconds isn't at 0
-            seconds = cap.GetTimeLeft(false);
-            seconds += (seconds <= 0 ? 0 : 1);
-
-            MutableComponent timeLeftString =
-                    Component.literal((seconds <= 0) ? "INF" : Integer.toString((int) seconds))
-                            .withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
-
-            //This is the timer background
-            timerIMG.resetScale();
-            timerIMG.setActualSize(64, 64);
-            timerIMG.moveTo(0, 0);
-            timerIMG.centerImageX(0, width);
-            timerIMG.centerImageY((int) (thirdHeight - radius), (int) (radius * 2));
-            timerIMG.RenderImage(stack);
-
-            TextUtil.renderText(stack, timeLeftString, false, timerIMG.x0 + 17, 30, timerIMG.y0 + 17, 30,
-                    0, TextUtil.txtAlignment.MIDDLE);
+            renderTimer(stack, cap, workZone, workZone.down() - (workZone.down() / 3), 36, 64);
         });
+    }
+
+    public static void renderReviveOption(int mouseButton, PoseStack stack, InvoZone workZone, FallenCapability cap, boolean beingHeld) {
+        ClientUtil.blitColor(stack, workZone, blackFadeColor);
+        InvoZone headerZone = workZone.copy().splitHeight(4, 1);
+        InvoZone mainZone = workZone.copy().setY(headerZone.down()).setHeight(workZone.height() - headerZone.height());
+        InvoZone greenZone = mainZone.copy();
+        InvoText chosenTxt = null;
+        FallenCapability.SELFREVIVETYPE selfReviveType = cap.getSelfReviveOption(mouseButton);
+        ClientUtil.blitColor(stack, mainZone, new Color(0, 0, 0, 128).getRGB());
+
+        switch (selfReviveType) {
+            case CHANCE: {
+                chosenTxt = chanceTxt;
+                int reviveChance = (int) (100 * Float.parseFloat(df.format(Math.max(0, ReviveMeConfig.reviveChance * (1 - cap.getSelfPenaltyPercentage())))));
+                InvoText chanceNumberTxt =
+                        InvoText.literal(reviveChance + "%")
+                                .withStyle(true, ChatFormatting.BOLD, (reviveChance <= 0 ? ChatFormatting.RED : ChatFormatting.GOLD));
+
+                TextUtil.renderText(stack, chanceNumberTxt.getText(), true, 1, mainZone.copy().inflate(-4, 0), TextUtil.txtAlignment.MIDDLE);
+                break;
+            }
+            case RANDOM_ITEMS: {
+                chosenTxt = randomItemTxt;
+                float randomItemPadding = 2;
+
+                ArrayList<ItemStack> itemArrayList = cap.getItemList();
+                if (itemArrayList.isEmpty()) {
+                    TextUtil.renderText(stack, randomItemFalseTxt.withStyle(true, ChatFormatting.RED).getText(),
+                            true, 0, mainZone.inflate(-4, -4), TextUtil.txtAlignment.MIDDLE);
+                    break;
+                }
+
+                //Remove the padding space
+                mainZone.setHeight(mainZone.height() - (randomItemPadding * 3));
+                mainZone.splitHeight(4, 1);
+                float randomItemSize = mainZone.height() - (randomItemPadding * 2);
+
+                for (ItemStack sacrificeStack : itemArrayList) {
+                    //Draw the background
+                    ClientUtil.blitColor(stack, mainZone, new Color(0, 0, 0, 255).getRGB());
+
+                    InvoZone randomItemFullZone = mainZone.copy().inflate(-randomItemPadding, -randomItemPadding);
+                    InvoZone randomItemImageZone = randomItemFullZone.copy().setWidth(randomItemSize);
+                    InvoZone randomItemTxtZone = randomItemFullZone.copy().setWidth(randomItemFullZone.width() - randomItemImageZone.width())
+                            .setX(randomItemImageZone.right()).splitWidth(3, 1);
+
+                    //Draw the item
+                    ClientUtil.blitItem(stack, randomItemImageZone, sacrificeStack);
+
+                    //Draw the amount they have, then the amount they will have after reduction
+                    int count = FallenCapability.countItem(inst.player.getInventory(), sacrificeStack);
+                    TextUtil.renderText(stack, InvoText.literal("" + count).withStyle(true, ChatFormatting.BOLD, ChatFormatting.GREEN).getText(),
+                            true, 1, randomItemTxtZone, TextUtil.txtAlignment.MIDDLE);
+                    randomItemTxtZone.shift(randomItemTxtZone.width(), 0);
+
+                    TextUtil.renderText(stack, InvoText.literal(" -> ").withStyle(true, ChatFormatting.BOLD).getText(),
+                            true, 1, randomItemTxtZone, TextUtil.txtAlignment.MIDDLE);
+                    randomItemTxtZone.shift(randomItemTxtZone.width(), 0);
+
+                    TextUtil.renderText(stack, InvoText.literal("" + (count - (Math.round(Math.max(1,
+                                            count * ReviveMeConfig.sacrificialItemPercent * (1 + cap.getSelfPenaltyPercentage()))))))
+                                    .withStyle(true, ChatFormatting.BOLD, ChatFormatting.RED).getText(),
+                            true, 1, randomItemTxtZone, TextUtil.txtAlignment.MIDDLE);
+
+                    mainZone.shift(0, mainZone.height() + randomItemPadding);
+                }
+                break;
+            }
+            case SPECIFIC_ITEM: {
+                chosenTxt = specificItemTxt;
+                Pair<Integer, List<ItemStack>> itemPair = cap.getSpecificItem(ClientUtil.getPlayer());
+                InvoZone itemZone = mainZone.copy().splitHeight(3, 2);
+                itemZone.setHeight(Math.min(itemZone.height(), itemZone.width())).setWidth(Math.min(itemZone.width(), itemZone.height()));
+                itemZone.centerX(mainZone.middleX());
+                InvoZone countZone = itemZone.copy().setY(itemZone.down()).setHeight(mainZone.down() - itemZone.down())
+                        .setWidth(mainZone.width()).setX(mainZone.x());
+
+                InvoText badText = InvoText.translate("revive-me.fallenScreen.self_revive.specific_item.false_1")
+                        .withStyle(true, ChatFormatting.RED, ChatFormatting.BOLD);
+
+                if (itemPair.getKey() >= ReviveMeConfig.specificItemCount) {
+                    Inventory inventory = ClientUtil.getPlayer().getInventory();
+                    int itemCount = 0;
+                    ItemStack specificStack = itemPair.getRight().get(0);
+                    for (int a = 0; a < inventory.getContainerSize(); a++) {
+                        ItemStack containerStack = inventory.getItem(a);
+                        if (!containerStack.sameItem(specificStack)) continue;
+                        if (!ItemStack.tagMatches(specificStack, containerStack)) continue;
+                        itemCount += containerStack.getCount();
+                    }
+
+                    ClientUtil.blitColor(stack, mainZone, new Color(0, 0, 0, 100).getRGB());
+                    ClientUtil.blitItem(stack, itemZone, specificStack);
+                    ClientUtil.blitColor(stack, countZone, new Color(0, 0, 0, 100).getRGB());
+                    countZone.splitWidth(3, 1);
+                    TextUtil.renderText(stack, InvoText.literal(itemCount + "").withStyle(true, ChatFormatting.GREEN).getText(),
+                            true, 1, countZone.copy().inflate(-4, -4), TextUtil.txtAlignment.MIDDLE);
+                    TextUtil.renderText(stack, InvoText.literal("->").getText(),
+                            true, 1, countZone.setX(countZone.right()), TextUtil.txtAlignment.MIDDLE);
+                    TextUtil.renderText(stack, InvoText.literal((itemCount - itemPair.getKey()) + "").withStyle(true, ChatFormatting.RED).getText(),
+                            true, 1, countZone.setX(countZone.right()).copy().inflate(-4, -4), TextUtil.txtAlignment.MIDDLE);
+                } else {
+//                    ClientUtil.blitItem(stack, itemZone, itemPair.getRight().get(0));
+//                    ClientUtil.blitColor(stack, mainZone, new Color(0,0,0,230).getRGB());
+                    mainZone.splitHeight(2, 1);
+                    InvoText itemCountTxt = InvoText.literal("" + Math.abs(itemPair.getKey() - ReviveMeConfig.specificItemCount)).withStyle(true, ChatFormatting.GREEN);
+                    TextUtil.renderText(stack, badText.setArgs(itemCountTxt.getText()).getText(), true, 0,
+                            mainZone.copy().inflate(-4, -2), TextUtil.txtAlignment.MIDDLE);
+
+                    mainZone.setY(mainZone.down());
+                    mainZone.splitHeight(2, 1);
+
+                    ClientUtil.blitItem(stack, mainZone.copy().setWidth(mainZone.height()).centerX(mainZone.middleX()), itemPair.getRight().get(0));
+                    InvoText itemNameTxt = InvoText.component((MutableComponent) itemPair.getRight().get(0)
+                            .getDisplayName()).withStyle(false, ChatFormatting.BOLD);
+                    TextUtil.renderText(stack, itemNameTxt.getText(), true, 1, mainZone.setY(mainZone.down())
+                            .inflate(-4, -4), TextUtil.txtAlignment.MIDDLE);
+                }
+                break;
+            }
+            case KILL: {
+                chosenTxt = killTxt1;
+                int seconds = (int) ((ReviveMeConfig.reviveKillTime * 20 * (1 - cap.getSelfPenaltyPercentage())) / 20);
+                mainZone.splitHeight(4, 1);
+                mainZone.setY(mainZone.middleY());
+
+                TextUtil.renderText(stack, killTxt2.withStyle(true, ChatFormatting.GOLD).setArgs(
+                                InvoText.literal("" + ReviveMeConfig.reviveKillAmount)
+                                        .withStyle(true, ChatFormatting.RED).getText()).getText(),
+                        true, 1, mainZone.copy()
+                                .inflate(-3, -3), TextUtil.txtAlignment.MIDDLE);
+
+                TextUtil.renderText(stack, killTxt3.withStyle(true, ChatFormatting.GOLD, ChatFormatting.BOLD).getText(),
+                        true, 1, mainZone.shift(0, mainZone.height()).copy()
+                                .inflate(-3, -3), TextUtil.txtAlignment.MIDDLE);
+
+                TextUtil.renderText(stack, killTxt4.withStyle(true, ChatFormatting.GOLD).setArgs(InvoText.literal("" + seconds)
+                                .withStyle(true, ChatFormatting.RED).getText()).getText(),
+                        true, 1, mainZone.shift(0, mainZone.height()).copy()
+                                .inflate(-3, -3), TextUtil.txtAlignment.MIDDLE);
+
+                break;
+            }
+            case STATUS_EFFECTS: {
+                chosenTxt = statusEffectTxt;
+                MobEffectTextureManager potionspriteuploader = mC.getMobEffectTextures();
+
+                ClientUtil.Image backgroundImg = new ClientUtil.Image(ContainerScreen.INVENTORY_LOCATION, 0, 120, 166, 31, 256);
+                InvoZone backgroundZone = backgroundImg.getRenderZone();
+
+                backgroundZone.setY(headerZone.down()).setWidthConstraint(mainZone.width() - 2);
+
+                mainZone.setHeight(mainZone.height() / cap.getNegativeStatusEffects().size());
+                for (MobEffect effect : cap.getNegativeStatusEffects()) {
+                    TextureAtlasSprite sprite = potionspriteuploader.get(effect);
+                    ClientUtil.Image effectIMG = new ClientUtil.Image(sprite.atlas().location(), sprite.getU0(),
+                            (sprite.getU1() - sprite.getU0()), sprite.getV0(),
+                            (sprite.getV1() - sprite.getV0()), 1);
+                    InvoZone effectZone = effectIMG.getRenderZone();
+
+                    backgroundZone.center(mainZone);
+                    backgroundImg.render(stack);
+                    effectZone.copy(backgroundZone);
+
+                    //Divide the background zone width by 4 and that will be the effect img zone
+                    effectZone.splitWidth(4, 1).inflate(-4, -4);
+                    effectIMG.render(stack);
+
+                    InvoZone textZone = backgroundZone.copy().splitWidth(4, 1);
+                    textZone.setX(textZone.right()).setWidth(textZone.width() * 3).inflate(-2, -4)
+                            .splitHeight(2, 1);
+
+                    int amp = (cap.getNegativeStatusEffects().size() > 1 ? 0 : 1);
+                    int duration = (int) (20 * ReviveMeConfig.negativeEffectsTime * (1 + cap.getSelfPenaltyPercentage()));
+                    MobEffectInstance instance = new MobEffectInstance(effect, duration, amp);
+
+                    String s = I18n.get(effect.getDescriptionId());
+                    if (instance.getAmplifier() >= 1 && instance.getAmplifier() <= 9) {
+                        s = s + ' ' + I18n.get("enchantment.level." + (instance.getAmplifier() + 1));
+                    }
+                    String s1 = MobEffectUtil.formatDuration(instance, 1.0F);
+
+                    TextUtil.renderText(stack, InvoText.literal(s).getText(), true, 1, textZone,
+                            TextUtil.txtAlignment.LEFT);
+                    textZone.setY(textZone.down() + 2);
+                    TextUtil.renderText(stack, InvoText.literal(s1).withStyle(true, ChatFormatting.DARK_GRAY).getText(),
+                            true, 1, textZone, TextUtil.txtAlignment.LEFT);
+
+                    mainZone.setY(mainZone.down());
+                }
+                break;
+            }
+            case EXPERIENCE: {
+                chosenTxt = experienceTxt;
+                int newLevel = (inst.player.experienceLevel - (int) (inst.player.experienceLevel * ReviveMeConfig.reviveXPLossPercentage
+                        * (1 + cap.getSelfPenaltyPercentage())));
+
+                InvoZone itemZone = mainZone.copy().splitHeight(4, 3);
+                itemZone.inflate(Math.min((itemZone.height() - itemZone.width()) / 2, 0), Math.min((itemZone.width() - itemZone.height()) / 2, 0));
+
+                ClientUtil.blitItem(stack, itemZone.inflate(-5, -5),
+                        new ItemStack(Items.EXPERIENCE_BOTTLE));
+
+                if (ReviveMeConfig.minReviveXPLevel <= inst.player.experienceLevel) {
+                    mainZone.splitWidth(3, 1).splitHeight(4, 1).shift(0, mainZone.height() * 3);
+                    TextUtil.renderText(stack, InvoText.literal(inst.player.experienceLevel + "").withStyle(true, ChatFormatting.GREEN, ChatFormatting.BOLD)
+                            .getText(), true, 1, mainZone.copy().inflate(-2, -2), TextUtil.txtAlignment.MIDDLE);
+
+                    mainZone.shift(mainZone.width(), 0);
+                    TextUtil.renderText(stack, InvoText.literal("->")
+                            .getText(), true, 1, mainZone.copy().inflate(-2, -2), TextUtil.txtAlignment.MIDDLE);
+
+                    mainZone.shift(mainZone.width(), 0);
+                    TextUtil.renderText(stack, InvoText.literal("" + newLevel).withStyle(true, ChatFormatting.RED, ChatFormatting.BOLD)
+                            .getText(), true, 1, mainZone.copy().inflate(-2, -2), TextUtil.txtAlignment.MIDDLE);
+                } else {
+                    RenderSystem.defaultBlendFunc();
+                    ClientUtil.blitColor(stack, mainZone, new Color(0, 0, 0, 230).getRGB());
+                    TextUtil.renderText(stack, experienceFalseTxt.setArgs(InvoText.literal("" + ReviveMeConfig.minReviveXPLevel)
+                                            .withStyle(true, ChatFormatting.GREEN, ChatFormatting.BOLD).getText())
+                                    .withStyle(true, ChatFormatting.RED).getText(), true, 0,
+                            mainZone.inflate(-4, -4), TextUtil.txtAlignment.MIDDLE);
+                }
+                break;
+            }
+        }
+
+        if (beingHeld) {
+            float fillPercent = MathUtil.lerp((FallenPlayerActionsEvent.timeHeld / 40F), 0, greenZone.height());
+            ClientUtil.blitColor(stack, greenZone.copy().setHeight(fillPercent).mirrorY(greenZone.middleY()),
+                    new Color(117, 243, 54, 216).getRGB());
+        }
+
+        if (chosenTxt != null) {
+            InputConstants.Key key = VanillaKeybindHandler.getKey(mouseButton == 0 ?
+                    inst.options.keyAttack : inst.options.keyUse);
+            chosenTxt = chosenTxt.setArgs(InvoText.literal(key.getDisplayName().getString()).withStyle(true, ChatFormatting.BOLD, ChatFormatting.YELLOW).getText());
+            TextUtil.renderText(stack, chosenTxt.withStyle(true, ChatFormatting.BOLD).getText(), true, 3,
+                    headerZone.inflate(-2, -3), TextUtil.txtAlignment.MIDDLE);
+        }
+    }
+
+    public static void renderTimer(PoseStack stack, FallenCapability cap, InvoZone workZone, float y, int progressCircleRadius, int imageSize) {
+        //Where the timer will be placed.
+        InvoZone timerZone = timerIMG.getRenderZone().setWidth(imageSize).setHeight(imageSize).setY(y).centerX(workZone.middleX());
+
+        //Increase seconds by 1 if seconds isn't at 0
+        float seconds = cap.GetTimeLeft(false);
+        seconds += (seconds <= 0 ? 0 : 1);
+
+        InvoText timeLeftTxt = InvoText.literal((seconds <= 0) ? "INF" : Integer.toString((int) seconds))
+                .withStyle(true, ChatFormatting.RED, ChatFormatting.BOLD);
+
+        //This is the timer background
+        timerZone.shift(0, -timerZone.height() / 2);
+
+        //green color: 2616150
+        seconds = cap.GetTimeLeft(true);
+        float endAngle = seconds <= 0 ? 360 : seconds * 360;
+        CircleRender.drawArc(stack, timerZone.middleX(),
+                timerZone.middleY(), progressCircleRadius, 0, endAngle, greenColor);
+
+        timerIMG.render(stack);
+
+        TextUtil.renderText(stack, timeLeftTxt.getText(), false, 1,
+                timerZone.inflate(-imageSize / 4F, -imageSize / 4F), TextUtil.txtAlignment.MIDDLE);
+    }
+
+    public static FallenCapability getCap() {
+        FallenCapability cap = FallenCapability.GetFallCap(inst.player);
+        if (!cap.isFallen()) return null;
+        if (cap.getOtherPlayer() != null) return null;
+
+        return cap;
     }
 }
 

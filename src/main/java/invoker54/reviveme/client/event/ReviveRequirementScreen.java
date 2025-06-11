@@ -1,23 +1,25 @@
 package invoker54.reviveme.client.event;
 
-import invoker54.invocore.client.ClientUtil;
-import invoker54.invocore.client.TextUtil;
+import invoker54.invocore.client.util.ClientUtil;
+import invoker54.invocore.client.util.InvoText;
+import invoker54.invocore.client.util.InvoZone;
+import invoker54.invocore.client.util.TextUtil;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import static invoker54.invocore.client.ClientUtil.getPlayer;
-import static invoker54.invocore.client.ClientUtil.mC;
 import static invoker54.reviveme.client.event.FallScreenEvent.*;
 import static invoker54.reviveme.client.event.RenderFallPlateEvent.blackBg;
 
@@ -26,113 +28,109 @@ public class ReviveRequirementScreen {
     private static final Logger LOGGER = LogManager.getLogger();
 
     @SubscribeEvent
-    public static void registerRequirementScreen(RegisterGuiOverlaysEvent event){
+    public static void registerRequirementScreen(RegisterGuiOverlaysEvent event) {
         //if (true) return;
         event.registerAboveAll("requirement_screen", (gui, stack, partialTicks, fullWidth, fullHeight) -> {
             if (ClientUtil.getPlayer().isCreative() || ClientUtil.getPlayer().isSpectator()) return;
-            if (!(mC.crosshairPickEntity instanceof Player)) return;
-            if (((Player) mC.crosshairPickEntity).isDeadOrDying()) return;
-            if (getPlayer().isCrouching()) return;
-            FallenCapability cap = FallenCapability.GetFallCap((LivingEntity) mC.crosshairPickEntity);
+            //if (true) return;
+            if (!(ClientUtil.mC.crosshairPickEntity instanceof Player)) return;
+            if (((Player) ClientUtil.mC.crosshairPickEntity).isDeadOrDying()) return;
+            if (ClientUtil.getPlayer().isCrouching()) return;
+            FallenCapability cap = FallenCapability.GetFallCap((LivingEntity) ClientUtil.mC.crosshairPickEntity);
             if (!cap.isFallen()) return;
             if (cap.getOtherPlayer() != null) return;
-            if (cap.getPenaltyType() == FallenCapability.PENALTYPE.NONE) return;
+            if (ReviveMeConfig.penaltyType == FallenCapability.PENALTYPE.NONE) return;
 
-            //50%
-            int halfWidth = fullWidth/2;
-            int halfHeight = fullHeight/2;
+            InvoZone workZone = new InvoZone(0, fullWidth, 0, fullHeight);
 
-            //25%
-            int quarterWidth = halfWidth/2;
-            int quarterHeight = halfHeight/2;
-
-            //12.5%
-            int eighthWidth = quarterWidth/2;
-            int eighthHeight = quarterHeight/2;
-
-            int x0 = halfWidth + eighthWidth;
-            int y0 = eighthHeight;
-            
-            int penaltyTypeSize = 16;
+            float penaltyTypeSize = 16;
             int padding = 2;
             padding *= 2;
-            int space = Math.min(Math.min(eighthHeight, eighthWidth), (penaltyTypeSize * 4) + padding);
+            float space = Math.min(Math.min(workZone.height() / 8, workZone.width() / 8), (penaltyTypeSize * 4) + padding);
             space -= padding;
-            
+
             float scaleFactor = 1;
-            stack.pushPose();
-            if (space > penaltyTypeSize) scaleFactor = space/(float)penaltyTypeSize;
+            if (space > penaltyTypeSize) scaleFactor = space / penaltyTypeSize;
             penaltyTypeSize *= scaleFactor;
-            int panelWidth = (space * 2) + (padding * 2);
-            int panelHeight = space + padding;
+            float panelWidth = (space * 2) + (padding * 2);
+            float panelHeight = space + padding;
+
+            InvoZone requirementZone = new InvoZone(workZone.copy().splitWidth(8, 5).right(),
+                    panelWidth, workZone.height() / 8, panelHeight);
 
             //This is the background of the requirements
-            ClientUtil.blitColor(stack, x0, panelWidth, eighthHeight, panelHeight, blackBg);
+            ClientUtil.blitColor(stack, requirementZone, blackBg);
+
+            ClientUtil.Image chosenImg = null;
+            InvoZone chosenZone = requirementZone.copy();
 
             //This is the picture
             //Revive type item texture
-            switch (cap.getPenaltyType()) {
+            switch (ReviveMeConfig.penaltyType) {
                 case NONE:
-                    break;
+                    return;
                 case HEALTH:
-                    heartIMG.centerImageX(x0, panelWidth/2);
-                    heartIMG.centerImageY(eighthHeight, panelHeight);
-                    heartIMG.setActualSize(penaltyTypeSize, penaltyTypeSize);
-                    heartIMG.RenderImage(stack);
+                    chosenImg = heartIMG;
+                    chosenZone = chosenImg.getRenderZone();
                     break;
                 case EXPERIENCE:
-                    xpIMG.centerImageX(x0, panelWidth/2);
-                    xpIMG.centerImageY(eighthHeight, panelHeight);
-                    xpIMG.setActualSize(penaltyTypeSize, penaltyTypeSize);
-                    xpIMG.RenderImage(stack);
+                    chosenImg = xpIMG;
+                    chosenZone = chosenImg.getRenderZone();
                     break;
                 case FOOD:
-                    foodIMG.centerImageX(x0, panelWidth/2);
-                    foodIMG.centerImageY(eighthHeight, panelHeight);
-                    foodIMG.setActualSize(penaltyTypeSize, penaltyTypeSize);
-                    foodIMG.RenderImage(stack);
+                    chosenImg = foodIMG;
+                    chosenZone = chosenImg.getRenderZone();
                     break;
                 case ITEM:
-                    ClientUtil.blitItem(stack, x0 + (((panelWidth/2F) - penaltyTypeSize)/2F), penaltyTypeSize,
-                            (y0 + ((panelHeight - penaltyTypeSize)/2F)), penaltyTypeSize, cap.getPenaltyItem());
                     break;
             }
-            
-            stack.popPose();
+            chosenZone.setWidth(penaltyTypeSize).setHeight(penaltyTypeSize).center(requirementZone.copy().splitWidth(2, 1));
+
+            if (ReviveMeConfig.penaltyType == FallenCapability.PENALTYPE.ITEM) {
+                ItemStack penaltyStack = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(ReviveMeConfig.penaltyItem)));
+                penaltyStack.deserializeNBT(ReviveMeConfig.penaltyItemData);
+                ClientUtil.blitItem(stack, chosenZone, penaltyStack);
+            }
+            if (chosenImg != null) {
+                chosenImg.render(stack);
+            }
 
             //This is penalty amount txt
             //Penalty txt
-            MutableComponent penaltyAmount = Component.literal(Integer.toString((int) cap.getPenaltyAmount(mC.player)))
-                    .withStyle(ChatFormatting.BOLD)
-                    .withStyle(cap.hasEnough(mC.player) ? ChatFormatting.GREEN : ChatFormatting.RED);
+            InvoText penaltyAmount = InvoText.literal(Integer.toString((int) cap.getPenaltyAmount(ClientUtil.mC.player)))
+                    .withStyle(true, ChatFormatting.BOLD)
+                    .withStyle(false, cap.hasEnough(ClientUtil.mC.player) ? ChatFormatting.GREEN : ChatFormatting.RED);
 
-            TextUtil.renderText(stack, penaltyAmount, false, x0 + (panelWidth/2F),
-                    (panelWidth/2F), eighthHeight, panelHeight, padding/2, TextUtil.txtAlignment.MIDDLE);
+            TextUtil.renderText(stack, penaltyAmount.getText(), false, 1,
+                    requirementZone.copy().setX(requirementZone.middleX()).splitWidth(2, 1)
+                            .inflate(-4, -4), TextUtil.txtAlignment.MIDDLE);
 
             //This is how much you have, and how much you will have after
-            int requirementBoxHeight = (eighthHeight+panelHeight) + 10;
-            int startAmount = (int) Math.round(cap.countReviverPenaltyAmount(mC.player));
-            int endAmount = Math.round(startAmount-cap.getPenaltyAmount(mC.player));
-            float panelThirdWidth = panelWidth/3F;
+            int startAmount = (int) Math.round(cap.countReviverPenaltyAmount(ClientUtil.mC.player));
+            int endAmount = Math.round(startAmount - cap.getPenaltyAmount(ClientUtil.mC.player));
 
-            MutableComponent startTxt = Component.literal(""+startAmount)
-                    .withStyle(ChatFormatting.BOLD)
-                    .withStyle(ChatFormatting.GREEN);
+            InvoText startTxt = InvoText.literal("" + startAmount)
+                    .withStyle(true, ChatFormatting.BOLD, ChatFormatting.GREEN);
 
-            MutableComponent arrowTxt = Component.literal("->")
-                    .withStyle(ChatFormatting.BOLD);
+            InvoText arrowTxt = InvoText.literal("->")
+                    .withStyle(true, ChatFormatting.BOLD);
 
-            MutableComponent endTxt = Component.literal(""+endAmount)
-                    .withStyle(ChatFormatting.BOLD)
-                    .withStyle(ChatFormatting.RED);
+            InvoText endTxt = InvoText.literal("" + endAmount)
+                    .withStyle(true, ChatFormatting.BOLD, ChatFormatting.RED);
 
-            ClientUtil.blitColor(stack, x0, panelWidth, requirementBoxHeight, panelHeight/2F, blackBg);
-            TextUtil.renderText(stack, startTxt, 1, true, x0,
-                    panelThirdWidth,requirementBoxHeight, panelHeight/2F, 2, TextUtil.txtAlignment.MIDDLE);
-            TextUtil.renderText(stack, arrowTxt, 1, true, x0+(panelThirdWidth),
-                    panelThirdWidth,requirementBoxHeight, panelHeight/2F, 2, TextUtil.txtAlignment.MIDDLE);
-            TextUtil.renderText(stack, endTxt, 1, true, x0+(panelThirdWidth*2),
-                    panelThirdWidth,requirementBoxHeight, panelHeight/2F, 2, TextUtil.txtAlignment.MIDDLE);
+            requirementZone.splitHeight(2, 1).shift(0, (requirementZone.height() * 2) + 10);
+            ClientUtil.blitColor(stack, requirementZone, blackBg);
+
+            requirementZone.splitWidth(3, 1);
+
+            TextUtil.renderText(stack, startTxt.getText(), true, 1,
+                    requirementZone.copy().inflate(-2, -2), TextUtil.txtAlignment.MIDDLE);
+
+            TextUtil.renderText(stack, arrowTxt.getText(), true, 1,
+                    requirementZone.shift(requirementZone.width(), 0).copy().inflate(-2, -2), TextUtil.txtAlignment.MIDDLE);
+
+            TextUtil.renderText(stack, endTxt.getText(), true, 1,
+                    requirementZone.shift(requirementZone.width(), 0).copy().inflate(-2, -2), TextUtil.txtAlignment.MIDDLE);
         });
     }
 

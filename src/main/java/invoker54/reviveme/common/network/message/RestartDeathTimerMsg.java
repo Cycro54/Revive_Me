@@ -18,21 +18,22 @@ public class RestartDeathTimerMsg {
     private final String fallenPlayer;
     private final String reviverPlayer;
 
-    public RestartDeathTimerMsg(String fallenPlayer, String reviverPlayer){
+    public RestartDeathTimerMsg(String fallenPlayer, String reviverPlayer) {
         this.fallenPlayer = fallenPlayer;
         this.reviverPlayer = reviverPlayer;
     }
 
-    public static void Encode(RestartDeathTimerMsg msg, FriendlyByteBuf buffer){
+    public static void Encode(RestartDeathTimerMsg msg, FriendlyByteBuf buffer) {
         buffer.writeUtf(msg.fallenPlayer);
         buffer.writeUtf(msg.reviverPlayer);
     }
 
     public static RestartDeathTimerMsg Decode(FriendlyByteBuf buffer) {
-        return new RestartDeathTimerMsg(buffer.readUtf(), buffer.readUtf());}
+        return new RestartDeathTimerMsg(buffer.readUtf(), buffer.readUtf());
+    }
 
     //This is how the Network Handler will handle the message
-    public static void handle(RestartDeathTimerMsg msg, Supplier<NetworkEvent.Context> contextSupplier){
+    public static void handle(RestartDeathTimerMsg msg, Supplier<NetworkEvent.Context> contextSupplier) {
         NetworkEvent.Context context = contextSupplier.get();
 
         context.enqueueWork(() -> {
@@ -51,8 +52,9 @@ public class RestartDeathTimerMsg {
                         new SyncClientCapMsg(tag));
             }
 
+            if (msg.fallenPlayer.isEmpty()) return;
             Player fallenPlayer = list.getPlayer(UUID.fromString(msg.fallenPlayer));
-            if (fallenPlayer != null){
+            if (fallenPlayer != null) {
                 CompoundTag tag = new CompoundTag();
                 FallenCapability fallenCap = FallenCapability.GetFallCap(fallenPlayer);
                 fallenCap.setOtherPlayer(null);

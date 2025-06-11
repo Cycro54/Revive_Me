@@ -14,8 +14,8 @@ import net.minecraftforge.fml.common.Mod;
 public class PlayerRenderEvent {
     //This will make the player look like they are crouching (on client side ONLY)
     @SubscribeEvent
-    public static void onRender(RenderPlayerEvent.Pre event){
-        if (FallenCapability.GetFallCap(event.getEntity()).isFallen()){
+    public static void onRender(RenderPlayerEvent.Pre event) {
+        if (FallenCapability.GetFallCap(event.getEntity()).isFallen()) {
             PlayerModel<AbstractClientPlayer> player = event.getRenderer().getModel();
             if (ReviveMeConfig.fallenPose == ReviveMeConfig.FALLEN_POSE.CROUCH) player.crouching = true;
         }

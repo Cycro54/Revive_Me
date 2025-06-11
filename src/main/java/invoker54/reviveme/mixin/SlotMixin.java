@@ -16,11 +16,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Slot.class)
 public abstract class SlotMixin {
-    @Shadow public abstract boolean hasItem();
+    @Shadow
+    public abstract boolean hasItem();
 
-    @Shadow public abstract ItemStack getItem();
+    @Shadow
+    public abstract ItemStack getItem();
 
-    @Shadow @Final public Container container;
+    @Shadow
+    @Final
+    public Container container;
 
     @Inject(
             method = "mayPickup(Lnet/minecraft/world/entity/player/Player;)Z",
@@ -32,7 +36,7 @@ public abstract class SlotMixin {
         FallenCapability cap = FallenCapability.GetFallCap(player);
         if (!cap.isFallen()) return;
         if (!this.hasItem()) return;
-        if (!cap.usedSacrificedItems() && cap.isSacrificialItem(getItem())) cir.setReturnValue(false);
+        if (cap.isSacrificialItem(getItem())) cir.setReturnValue(false);
         else {
             cir.setReturnValue(ReviveMeConfig.interactWithInventory == ReviveMeConfig.INTERACT_WITH_INVENTORY.YES);
         }
@@ -51,7 +55,7 @@ public abstract class SlotMixin {
         FallenCapability cap = FallenCapability.GetFallCap(((Inventory) this.container).player);
         if (!cap.isFallen()) return;
         if (stack.isEmpty()) return;
-        if (!cap.usedSacrificedItems() && cap.isSacrificialItem(stack)) cir.setReturnValue(false);
+        if (cap.isSacrificialItem(stack)) cir.setReturnValue(false);
         else {
             cir.setReturnValue(ReviveMeConfig.interactWithInventory == ReviveMeConfig.INTERACT_WITH_INVENTORY.YES);
         }

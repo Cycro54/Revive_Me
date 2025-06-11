@@ -16,20 +16,22 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Entity.class)
 public abstract class EntityMixin {
-    @Shadow public Level level;
+    @Shadow
+    public Level level;
 
     @Unique
     private FallenCapability revive_Me$cap;
 
-    @Shadow public abstract int getId();
+    @Shadow
+    public abstract int getId();
 
     @Unique
-    private FallenCapability revive_Me$getCap(){
+    private FallenCapability revive_Me$getCap() {
         if (this.revive_Me$cap != null) return this.revive_Me$cap;
 
         Entity entity = this.level.getEntity(this.getId());
         if (!(entity instanceof Player)) return null;
-        revive_Me$cap = FallenCapability.GetFallCap((Player)entity);
+        revive_Me$cap = FallenCapability.GetFallCap((Player) entity);
 
         return this.revive_Me$cap;
     }
@@ -39,15 +41,14 @@ public abstract class EntityMixin {
             at = {
                     @At(value = "HEAD")
             }, cancellable = true)
-    private void hasPose(Pose pose, CallbackInfoReturnable<Boolean> cir){
+    private void hasPose(Pose pose, CallbackInfoReturnable<Boolean> cir) {
         if (!this.level.isClientSide) return;
         Entity entity = this.level.getEntity(this.getId());
-        if (!(entity instanceof Player)) return;
+        if (!(entity instanceof Player player)) return;
 
-        Player player = (Player)entity;
         if (!FallenCapability.GetFallCap(player).isFallen()) return;
 
-        switch (ReviveMeConfig.fallenPose){
+        switch (ReviveMeConfig.fallenPose) {
             case CROUCH -> cir.setReturnValue(pose == Pose.CROUCHING);
             case PRONE -> cir.setReturnValue(pose == Pose.SWIMMING);
             case SLEEP -> cir.setReturnValue(pose == Pose.SLEEPING);
@@ -60,7 +61,7 @@ public abstract class EntityMixin {
                     @At(value = "HEAD")
             }, cancellable = true
     )
-    private void isInvulnerable(CallbackInfoReturnable<Boolean> cir){
+    private void isInvulnerable(CallbackInfoReturnable<Boolean> cir) {
         if (revive_Me$getCap() == null) return;
         if (!revive_Me$getCap().isFallen()) return;
 
@@ -73,11 +74,10 @@ public abstract class EntityMixin {
                     @At(value = "HEAD")
             }, cancellable = true
     )
-    private void isInvulnerableTo(DamageSource damageSource, CallbackInfoReturnable<Boolean> cir){
+    private void isInvulnerableTo(DamageSource damageSource, CallbackInfoReturnable<Boolean> cir) {
         if (damageSource.isBypassInvul()) return;
         if (revive_Me$getCap() == null) return;
         if (!revive_Me$getCap().isFallen()) return;
-        if (revive_Me$getCap().isDying()) return;
 
         if ((damageSource.getEntity() instanceof Player)
                 && damageSource.getEntity().isCrouching() && revive_Me$getCap().getKillTime() == 0) {

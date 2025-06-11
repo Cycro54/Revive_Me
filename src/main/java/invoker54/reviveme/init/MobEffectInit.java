@@ -2,6 +2,7 @@ package invoker54.reviveme.init;
 
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.potion.FallenPotionEffect;
+import invoker54.reviveme.common.potion.KillRevivePotionEffect;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
@@ -19,12 +20,14 @@ public class MobEffectInit {
 
     public static final MobEffect FALLEN_EFFECT = new FallenPotionEffect(MobEffectCategory.NEUTRAL);
 
+    public static final MobEffect KILL_REVIVE_EFFECT = new KillRevivePotionEffect(MobEffectCategory.HARMFUL);
+
     @SubscribeEvent
-    public static void registerEffects(RegisterEvent event){
+    public static void registerEffects(RegisterEvent event) {
         event.register(ForgeRegistries.Keys.MOB_EFFECTS,
                 helper -> {
-            helper.register(new ResourceLocation(ReviveMe.MOD_ID, "fallen_effect"), FALLEN_EFFECT);
-
+                    helper.register(new ResourceLocation(ReviveMe.MOD_ID, "fallen_effect"), FALLEN_EFFECT);
+                    helper.register(new ResourceLocation(ReviveMe.MOD_ID, "kill_revive_effect"), KILL_REVIVE_EFFECT);
                 });
     }
 }

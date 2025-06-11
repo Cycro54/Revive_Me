@@ -16,20 +16,20 @@ public class SyncClientCapMsg {
     //The data
     private final Tag nbtData;
 
-    public SyncClientCapMsg(Tag nbtData){
+    public SyncClientCapMsg(Tag nbtData) {
         this.nbtData = nbtData;
     }
 
-    public static void Encode(SyncClientCapMsg msg, FriendlyByteBuf buffer){
+    public static void Encode(SyncClientCapMsg msg, FriendlyByteBuf buffer) {
         buffer.writeNbt((CompoundTag) msg.nbtData);
     }
 
-    public static SyncClientCapMsg Decode(FriendlyByteBuf buffer){
+    public static SyncClientCapMsg Decode(FriendlyByteBuf buffer) {
         return new SyncClientCapMsg(buffer.readNbt());
     }
 
     //This is how the Network Handler will handle the message
-    public static void handle(SyncClientCapMsg msg, Supplier<NetworkEvent.Context> contextSupplier){
+    public static void handle(SyncClientCapMsg msg, Supplier<NetworkEvent.Context> contextSupplier) {
         NetworkEvent.Context context = contextSupplier.get();
 
         context.enqueueWork(() -> {

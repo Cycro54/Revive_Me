@@ -17,9 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FallenPotionEffect extends MobEffect {
-    public static final int effectColor = new Color(35, 5, 5,255).getRGB();
+    public static final int effectColor = new Color(35, 5, 5, 255).getRGB();
 
-    public FallenPotionEffect(MobEffectCategory category){
+    public FallenPotionEffect(MobEffectCategory category) {
         super(category, effectColor);
     }
 
@@ -29,20 +29,20 @@ public class FallenPotionEffect extends MobEffect {
     }
 
     @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
-    public static class PotionEvents{
+    public static class PotionEvents {
 
         //This will set the used reviveMethod to none in the fallen capability (unless the player has been downed again)
         @SubscribeEvent
-        public static void removeFallMethod(MobEffectEvent.Expired event){
+        public static void removeFallMethod(MobEffectEvent.Expired event) {
             removePenalties(event.getEntity(), event.getEffectInstance());
         }
 
         @SubscribeEvent
-        public static void onRemove(MobEffectEvent.Remove event){
+        public static void onRemove(MobEffectEvent.Remove event) {
             removePenalties(event.getEntity(), event.getEffectInstance());
         }
 
-        public static void removePenalties(LivingEntity entity, MobEffectInstance effect){
+        public static void removePenalties(LivingEntity entity, MobEffectInstance effect) {
             if (effect == null) return;
             if (!(effect.getEffect() instanceof FallenPotionEffect)) return;
             if (!(entity instanceof Player player)) return;
@@ -50,8 +50,7 @@ public class FallenPotionEffect extends MobEffect {
             FallenCapability cap = FallenCapability.GetFallCap(player);
             if (cap.isFallen()) return;
 
-            cap.setSacrificedItemsUsed(false);
-            cap.setReviveChanceUsed(false);
+            cap.resetSelfReviveCount();
             cap.setPenaltyMultiplier(0);
         }
 

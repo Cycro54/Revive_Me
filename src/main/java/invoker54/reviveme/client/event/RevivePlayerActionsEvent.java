@@ -1,8 +1,10 @@
 package invoker54.reviveme.client.event;
 
+import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.RestartDeathTimerMsg;
 import net.minecraft.client.Minecraft;
@@ -12,23 +14,21 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.UUID;
 
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = ReviveMe.MOD_ID)
 public class RevivePlayerActionsEvent {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final ModLogger LOGGER = ModLogger.getLogger(RevivePlayerActionsEvent.class, ReviveMeConfig.debugMode);
     private static final Minecraft inst = Minecraft.getInstance();
 
     @SubscribeEvent
-    public static void reviveCheck(TickEvent.PlayerTickEvent event){
+    public static void reviveCheck(TickEvent.PlayerTickEvent event) {
         if (event.side == LogicalSide.SERVER) return;
 
-        if(event.phase == TickEvent.Phase.END) return;
+        if (event.phase == TickEvent.Phase.END) return;
 
-        if(event.player != inst.player) return;
+        if (event.player != inst.player) return;
 
         FallenCapability myCap = FallenCapability.GetFallCap(inst.player);
         UUID myUUID = inst.player.getUUID();
@@ -55,12 +55,12 @@ public class RevivePlayerActionsEvent {
         }
 
         //Check if I'm holding the use button down
-        if(!cancelEvent) {
+        if (!cancelEvent) {
             //System.out.println("Am I holding use down?: " + inst.options.keyUse.isDown());
             cancelEvent = !VanillaKeybindHandler.useHeld;
         }
 
-        if (cancelEvent){
+        if (cancelEvent) {
             String targPlayerUUID = "";
             myCap.setOtherPlayer(null);
 
@@ -73,5 +73,22 @@ public class RevivePlayerActionsEvent {
 
             NetworkHandler.INSTANCE.sendToServer(new RestartDeathTimerMsg(targPlayerUUID, inst.player.getStringUUID()));
         }
+    }
+
+    @SubscribeEvent
+    public static void reviveItemUse(TickEvent.PlayerTickEvent event) {
+        if (event.side == LogicalSide.SERVER) return;
+
+        if (event.phase == TickEvent.Phase.END) return;
+
+        if (event.player != inst.player) return;
+
+        if (!(inst.crosshairPickEntity instanceof Player)) return;
+
+        FallenCapability cap = FallenCapability.GetFallCap((Player) inst.crosshairPickEntity);
+        if (!cap.isFallen()) return;
+        if (!inst.player.isUsingItem()) return;
+
+        inst.gameMode.releaseUsingItem(event.player);
     }
 }

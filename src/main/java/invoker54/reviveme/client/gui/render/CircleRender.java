@@ -13,12 +13,12 @@ public class CircleRender {
 
     /**
      * Draw an arc centred around the zero point.  Setup translatef, colour and line width etc before calling.
+     *
      * @param radius
      * @param startAngle clockwise starting from 12 O'clock (degrees)
-     * @param endAngle (degreesO
+     * @param endAngle   (degreesO
      */
-    public static void drawArc(PoseStack stack, float origX, float origY, double radius, double startAngle, double endAngle, int colorCode)
-    {
+    public static void drawArc(PoseStack stack, float origX, float origY, double radius, double startAngle, double endAngle, int colorCode) {
         stack.pushPose();
         Matrix4f lastPos = stack.last().pose();
         //This is how much the angle will increase
@@ -62,7 +62,7 @@ public class CircleRender {
         bufferbuilder.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
 
         //Places a point in the middle of the circle only if it isn't going to be a full circle
-        if(deltaAngle < 360)
+        if (deltaAngle < 360)
             bufferbuilder.vertex(lastPos, origX, origY, 0).color(f, f1, f2, f3).endVertex();
 
         do {
@@ -135,15 +135,14 @@ public class CircleRender {
 //        //GL11.glEnd();
     }
 
-    public static void drawArcWorld(PoseStack stack, Vector3d origin, double radius, double startAngle, double endAngle, int colorCode)
-    {
+    public static void drawArcWorld(PoseStack stack, Vector3d origin, double radius, double startAngle, double endAngle, int colorCode) {
         Matrix4f lastPos = stack.last().pose();
         final double angleIncrement = Math.toRadians(5.0);
         float direction = (endAngle >= startAngle) ? -1.0F : 1.0F;
         double deltaAngle = Math.abs(endAngle - startAngle);
         deltaAngle %= 360.0;
 
-        startAngle -= Math.floor(startAngle/360.0);
+        startAngle -= Math.floor(startAngle / 360.0);
         startAngle = Math.toRadians(startAngle);
         deltaAngle = Math.toRadians(deltaAngle);
 
@@ -153,16 +152,16 @@ public class CircleRender {
         double arcPos = 0;
         boolean arcFinished = false;
 
-        float f3 = (float)(colorCode >> 24 & 255) / 255.0F;
-        float f = (float)(colorCode >> 16 & 255) / 255.0F;
-        float f1 = (float)(colorCode >> 8 & 255) / 255.0F;
-        float f2 = (float)(colorCode & 255) / 255.0F;
+        float f3 = (float) (colorCode >> 24 & 255) / 255.0F;
+        float f = (float) (colorCode >> 16 & 255) / 255.0F;
+        float f1 = (float) (colorCode >> 8 & 255) / 255.0F;
+        float f2 = (float) (colorCode & 255) / 255.0F;
 
         RenderSystem.disableTexture();
         BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
         bufferbuilder.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
 
-        if(Math.abs(endAngle - startAngle) < 360)
+        if (Math.abs(endAngle - startAngle) < 360)
             bufferbuilder.vertex(lastPos, (float) origin.x, (float) origin.y, (float) origin.z).color(f, f1, f2, f3).endVertex();
 
         //System.out.println("COORDINATES START ");

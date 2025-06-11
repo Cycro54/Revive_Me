@@ -13,10 +13,10 @@ import net.minecraftforge.network.PacketDistributor;
 public class SyncConfigEvent {
 
     @SubscribeEvent
-    public static void onUpdateConfig(TickEvent.ServerTickEvent event){
+    public static void onUpdateConfig(TickEvent.ServerTickEvent event) {
         if (event.type == TickEvent.Type.CLIENT) return;
         if (event.phase == TickEvent.Phase.START) return;
-        if (ReviveMeConfig.isDirty()){
+        if (ReviveMeConfig.isDirty()) {
             //Then finally send the config data to all players
             NetworkHandler.INSTANCE.send(PacketDistributor.ALL.noArg(), new SyncConfigMsg(ReviveMeConfig.serialize()));
 

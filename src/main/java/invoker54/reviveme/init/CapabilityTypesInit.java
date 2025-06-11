@@ -10,7 +10,7 @@ import net.minecraftforge.fml.common.Mod;
 public class CapabilityTypesInit {
 
     @SubscribeEvent
-    public static void registerCaps(RegisterCapabilitiesEvent event){
+    public static void registerCaps(RegisterCapabilitiesEvent event) {
         event.register(FallenCapability.class);
     }
 }

@@ -1,6 +1,8 @@
 package invoker54.reviveme.init;
 
+import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.ReviveMe;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -8,15 +10,13 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegisterEvent;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class SoundInit {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final ModLogger LOGGER = ModLogger.getLogger(SoundInit.class, ReviveMeConfig.debugMode);
 
     private static final List<Pair<ResourceLocation, SoundEvent>> sounds = new ArrayList<>();
 
@@ -32,7 +32,7 @@ public class SoundInit {
     //MISC SOUNDS
     public static SoundEvent CALL_FOR_HELP = addSound("call_for_help");
 
-    public static SoundEvent addSound(String name){
+    public static SoundEvent addSound(String name) {
         ResourceLocation soundSource = new ResourceLocation(ReviveMe.MOD_ID, name);
         SoundEvent event = new SoundEvent(soundSource);
         sounds.add(Pair.of(soundSource, event));
@@ -40,11 +40,11 @@ public class SoundInit {
     }
 
     @SubscribeEvent
-    public static void registerSounds(final RegisterEvent event){
+    public static void registerSounds(final RegisterEvent event) {
 
         event.register(ForgeRegistries.Keys.SOUND_EVENTS,
                 helper -> {
-                    for (var pair : sounds){
+                    for (var pair : sounds) {
                         helper.register(pair.getKey(), pair.getValue());
                     }
                 });

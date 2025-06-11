@@ -13,7 +13,7 @@ import net.minecraftforge.fml.common.Mod;
 public class CommandInit {
 
     @SubscribeEvent
-    public static void onRegisterCommandEvent(RegisterCommandsEvent event){
+    public static void onRegisterCommandEvent(RegisterCommandsEvent event) {
         CommandDispatcher<CommandSourceStack> commandDispatcher = event.getDispatcher();
 
         ReviveCommand.register(commandDispatcher);

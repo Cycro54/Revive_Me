@@ -1,6 +1,6 @@
 package invoker54.reviveme.mixin;
 
-import invoker54.invocore.client.ClientUtil;
+import invoker54.invocore.client.util.ClientUtil;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.client.gui.components.AbstractWidget;
