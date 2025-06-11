@@ -2,17 +2,17 @@ package invoker54.reviveme.client.event;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import invoker54.invocore.client.ClientUtil;
-import invoker54.invocore.client.TextUtil;
+import invoker54.invocore.client.util.ClientUtil;
+import invoker54.invocore.client.util.InvoText;
+import invoker54.invocore.client.util.InvoZone;
+import invoker54.invocore.client.util.TextUtil;
 import invoker54.reviveme.ReviveMe;
+import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.client.gui.render.CircleRender;
 import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
@@ -26,7 +26,7 @@ import org.apache.logging.log4j.Logger;
 import java.awt.*;
 import java.text.DecimalFormat;
 
-import static invoker54.invocore.client.ClientUtil.mC;
+import static invoker54.invocore.client.util.ClientUtil.mC;
 import static invoker54.reviveme.client.event.FallScreenEvent.timerIMG;
 import static invoker54.reviveme.client.event.ReviveScreenEvent.bgColor;
 import static invoker54.reviveme.client.event.ReviveScreenEvent.progressColor;
@@ -48,7 +48,7 @@ public class RenderFallPlateEvent {
             if (!(entity instanceof Player player)) continue;
             if (entity.equals(mC.player)) continue;
             float distance = entity.distanceTo(mC.player);
-            if (distance > 25) continue;
+            if (distance > 30) continue;
 
             FallenCapability cap = FallenCapability.GetFallCap(player);
             PoseStack stack = event.getPoseStack();
@@ -72,111 +72,97 @@ public class RenderFallPlateEvent {
             stack.scale(0.5F, 0.5F, 0.5F);
 
             if (cap.getOtherPlayer() == null) {
-                //This txt is for showing how the long the player has left to die
-                if (!mC.player.isCrouching() && !player.isDeadOrDying()) {
-                    //Green circular progress
-                    int radius = 22;
-                    int modSize = 40;
-                    if (cap.GetTimeLeft(false) <= 0)
-                        CircleRender.drawArc(stack, 0, 0, radius, 0, 360, greenProgCircle);
-                    else CircleRender.drawArc(stack, 0, 0, radius, 0, cap.GetTimeLeft(true) * 360, greenProgCircle);
+                int radius = 22;
+                InvoText chosenText = null;
+                int chosenColor = 0;
+                boolean canRender = false;
 
-                    //Timer texture
-                    timerIMG.setActualSize(40, 40);
-                    timerIMG.moveTo(-(timerIMG.getWidth() / 2), -(timerIMG.getHeight() / 2));
-                    timerIMG.RenderImage(stack);
+                if (!mC.player.isCrouching() && !player.isDeadOrDying()){
+                    canRender = true;
+                    chosenColor = greenProgCircle;
 
-//                    //Penalty txt
                     float seconds = cap.GetTimeLeft(false);
                     seconds += (seconds <= 0 ? 0 : 1);
-
-                    MutableComponent penaltyAmount = new TextComponent((seconds <= 0) ? "INF" : Integer.toString((int) seconds))
-                            .withStyle(ChatFormatting.BOLD)
-                            .withStyle(cap.hasEnough(inst.player) ? ChatFormatting.GREEN : ChatFormatting.RED);
-
-                    float scaleFactor = (timerIMG.getWidth() / 64F);
-                    TextUtil.renderText(stack, penaltyAmount, 1, false, timerIMG.x0 + (17 * scaleFactor), 30 * scaleFactor,
-                            timerIMG.y0 + (17 * scaleFactor), 30 * scaleFactor, 0, TextUtil.txtAlignment.MIDDLE);
+                    chosenText = InvoText.literal((seconds <= 0) ? "INF" : Integer.toString((int) seconds))
+                            .withStyle(true, ChatFormatting.BOLD)
+                            .withStyle(false,cap.hasEnough(inst.player) ? ChatFormatting.GREEN : ChatFormatting.RED);
                 }
-                //This txt is for showing if the player wishes to kill the fallen player
-                else if (mC.player.isCrouching() || player.isDeadOrDying()) {
-                    //Green circular progress
-                    int radius = 22;
+                else if (mC.player.isCrouching() || player.isDeadOrDying()){
+                    canRender = true;
+                    chosenColor = redProgCircle;
+
+                    chosenText = InvoText.literal(Integer.toString((int) Math.ceil(cap.getKillTime())))
+                            .withStyle(true,ChatFormatting.BOLD, ChatFormatting.RED);
+                }
+
+                if (canRender) {
+                    float endAngle = 360;
+                    if (inst.player.isCrouching()){
+                        endAngle = endAngle * (cap.getKillTime() / ReviveMeConfig.reviveKillTime);
+                    }
+                    else if (ReviveMeConfig.timeLeft != 0) endAngle *= cap.GetTimeLeft(true);
+
                     if (cap.GetTimeLeft(false) <= 0)
-                        CircleRender.drawArc(stack, 0, 0, radius, 0, 360, redProgCircle);
-                    else CircleRender.drawArc(stack, 0, 0, radius, 0, cap.GetTimeLeft(true) * 360, redProgCircle);
+                        CircleRender.drawArc(stack, 0, 0, radius, 0, endAngle, chosenColor);
+                    else CircleRender.drawArc(stack, 0, 0, radius, 0, endAngle, chosenColor);
 
-                    //Timer texture
-                    timerIMG.setActualSize(40, 40);
-                    timerIMG.moveTo(-(timerIMG.getWidth() / 2), -(timerIMG.getHeight() / 2));
-                    timerIMG.RenderImage(stack);
+                    InvoZone timerZone = timerIMG.getRenderZone();
+                    timerZone.setHeight(40).setWidth(40);
+                    timerZone.centerX(0).centerY(0);
+                    timerIMG.render(stack);
 
-                    MutableComponent killTxt = new TextComponent("" + cap.getKillTime()).withStyle(ChatFormatting.BOLD, ChatFormatting.RED);
-
-                    float scaleFactor = (timerIMG.getWidth() / 64F);
-                    TextUtil.renderText(stack, killTxt, false, timerIMG.x0 + (17 * scaleFactor), 30 * scaleFactor,
-                            timerIMG.y0 + (17 * scaleFactor), 30 * scaleFactor, 0, TextUtil.txtAlignment.MIDDLE);
+                    TextUtil.renderText(stack, chosenText.getText(),  false, 1,
+                            timerZone.inflate(-timerZone.width() / 4, -timerZone.height() / 4), TextUtil.txtAlignment.MIDDLE);
                 }
 
-                MutableComponent message = null;
-                int radius = 30;
-
+                InvoText message = null;
                 if (mC.crosshairPickEntity == player && !player.isDeadOrDying()) {
-
                     if (mC.player.isCrouching()) {
                         if (cap.getKillTime() > 0) {
-                            message = new TranslatableComponent("revive-me.fall_plate.cant_kill");
+                            message = InvoText.translate("revive-me.fall_plate.cant_kill");
                         } else {
-                            message = new TranslatableComponent("revive-me.fall_plate.kill");
-                            message = new TextComponent(message.getString()
-                                    .replace("{attack}", inst.options.keyAttack.getKey().getDisplayName().getString()));
+                            message = InvoText.translate("revive-me.fall_plate.kill").setArgs(
+                                    InvoText.literal(VanillaKeybindHandler.getKey(inst.options.keyAttack).getDisplayName().getString())
+                                            .withStyle(true, ChatFormatting.YELLOW, ChatFormatting.BOLD).getText()
+                            );
                         }
                     } else if (cap.hasEnough(mC.player)) {
-                        message = new TranslatableComponent("revive-me.fall_plate.revive");
-                        message = new TextComponent(message.getString()
-                                .replace("{use}", inst.options.keyUse.getKey().getDisplayName().getString()));
+                        message = InvoText.translate("revive-me.fall_plate.revive").setArgs(
+                                InvoText.literal(VanillaKeybindHandler.getKey(inst.options.keyUse).getDisplayName().getString())
+                                        .withStyle(true, ChatFormatting.YELLOW, ChatFormatting.BOLD).getText()
+                        );
 
                     }
                 }
                 if (message == null && cap.isCallingForHelp()) {
-                    message = new TextComponent("").append(new TextComponent("ABBA ")
-                                    .withStyle(ChatFormatting.BOLD, ChatFormatting.RED, ChatFormatting.OBFUSCATED))
-                            .append(new TextComponent("[").withStyle(ChatFormatting.BOLD))
-                            .append(new TranslatableComponent("revive-me.call_for_help")
-                                    .withStyle(ChatFormatting.BOLD, ChatFormatting.GOLD))
-                            .append(new TextComponent("]").withStyle(ChatFormatting.BOLD))
-                            .append(new TextComponent(" ABBA")
-                                    .withStyle(ChatFormatting.BOLD, ChatFormatting.RED, ChatFormatting.OBFUSCATED));
-//                    message = (new TranslationTextComponent("revive-me.call_for_help")
-//                            .withStyle(ChatFormatting.GOLD));
+                    message = InvoText.literal("")
+                            .append(InvoText.literal("ABBA ").withStyle(true,ChatFormatting.BOLD, ChatFormatting.RED, ChatFormatting.OBFUSCATED))
+                            .append(InvoText.literal("[").withStyle(true, ChatFormatting.BOLD).getText())
+                            .append(InvoText.translate("revive-me.call_for_help").withStyle(true,ChatFormatting.BOLD, ChatFormatting.GOLD))
+                            .append(InvoText.literal("]").withStyle(true,ChatFormatting.BOLD))
+                            .append(InvoText.literal(" ABBA").withStyle(true,ChatFormatting.BOLD, ChatFormatting.RED, ChatFormatting.OBFUSCATED));
                 }
 
                 if (message != null) {
-                    int txtWidth = mC.font.width(message);
+                    int txtWidth = mC.font.width(message.getText());
                     int padding = 2;
-
                     int width = txtWidth + (padding * 2);
                     int height = (mC.font.lineHeight + (padding * 2));
                     int x0 = (-(width) / 2);
                     int y0 = -(height + radius);
+                    InvoZone txtZone = new InvoZone(x0, width, y0, height);
 
-//                    ClientUtil.blitColor(stack,   x0- 1, width + 2, y0 - 1, 1, whiteBg);
-//                    ClientUtil.blitColor(stack,   x0- 1, width + 2, y0 + height, 1, whiteBg);
-//                    ClientUtil.blitColor(stack,   x0- 1, 1, y0, height + 1, whiteBg);
-//                    ClientUtil.blitColor(stack,   x0+width, 1, y0, height + 1, whiteBg);
-                    ClientUtil.blitColor(stack, x0, width, y0, height, blackBg);
-
-                    TextUtil.renderText(stack, message, false, x0, width, y0, height,
-                            2, TextUtil.txtAlignment.MIDDLE);
-//                    TextUtil.renderText(message, stack, -txtWidth / 2F, -(height + radius + padding), false);
+                    ClientUtil.blitColor(stack, txtZone, blackBg);
+                    TextUtil.renderText(stack, message.getText(),  false, 1,
+                            txtZone.inflate(-2,-2), TextUtil.txtAlignment.MIDDLE);
                 }
             }
             else if (!mC.player.getUUID().equals(cap.getOtherPlayer())){
                 int radius = 20;
 
                 //region Render the revive text
-                MutableComponent message = ReviveScreenEvent.beingRevivedText;
-                int txtWidth = mC.font.width(message);
+                InvoText message = ReviveScreenEvent.beingRevivedText;
+                int txtWidth = mC.font.width(message.getText());
                 int padding = 1;
 
                 int width = txtWidth + (padding * 2);
@@ -185,22 +171,22 @@ public class RenderFallPlateEvent {
                 ClientUtil.blitColor(stack, -(width) / 2, width, -(height + radius), height, blackBg);
 
                 height = mC.font.lineHeight;
-                TextUtil.renderText(message, stack, -txtWidth / 2F, -(height + radius + padding), false);
+                TextUtil.renderText(message.getText(), stack, -txtWidth / 2F, -(height + radius + padding), false);
                 //endregion
 
                 int xOrigin = -20;
                 int yOrigin = -10;
 
                 //progress bar background
-                Gui.fill(event.getPoseStack(), xOrigin - padding, padding,
-                        Math.abs(xOrigin - padding), yOrigin - padding, bgColor); //prev color: 2302755
+                ClientUtil.blitColor(stack,  xOrigin,
+                        xOrigin * 2F,0, yOrigin, bgColor); //prev color: 2302755
 
                 float progress = cap.getProgress();
 
                 //System.out.println(progress);
 
                 //Actual progress bar
-                ClientUtil.blitColor(event.getPoseStack(),  xOrigin * progress,
+                ClientUtil.blitColor(stack,  xOrigin * progress,
                         xOrigin * -progress * 2F,0, yOrigin, progressColor);
             }
 

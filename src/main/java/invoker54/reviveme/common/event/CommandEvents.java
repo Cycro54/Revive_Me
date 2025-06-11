@@ -1,6 +1,7 @@
 package invoker54.reviveme.common.event;
 
 import com.mojang.brigadier.context.ParsedCommandNode;
+import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
@@ -11,14 +12,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.CommandEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class CommandEvents {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final ModLogger LOGGER = ModLogger.getLogger(CommandEvents.class, ReviveMeConfig.debugMode);
 
     @SubscribeEvent
     public static void onCommand(CommandEvent event){

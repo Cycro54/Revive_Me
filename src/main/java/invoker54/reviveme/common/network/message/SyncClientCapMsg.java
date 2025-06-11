@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 
 public class SyncClientCapMsg {
     //The data
-    private final Tag nbtData;
+    private Tag nbtData;
 
     public SyncClientCapMsg(Tag nbtData){
         this.nbtData = nbtData;
@@ -35,18 +35,17 @@ public class SyncClientCapMsg {
         context.enqueueWork(() -> {
             //System.out.println("Syncing cap data for a client...");
 
-            ClientLevel Level = Minecraft.getInstance().level;
-            if (Level == null) return;
+            ClientLevel world = Minecraft.getInstance().level;
+            if (world == null) return;
 
             CompoundTag nbt = (CompoundTag) msg.nbtData;
 
             for (String key : nbt.getAllKeys()) {
-                Player player = Level.getPlayerByUUID(UUID.fromString(key));
+                Player player = world.getPlayerByUUID(UUID.fromString(key));
                 if (player == null) continue;
 
                 FallenCapability.GetFallCap(player).readNBT(nbt.get(key));
             }
-
         });
         context.setPacketHandled(true);
     }

@@ -50,8 +50,7 @@ public class FallenPotionEffect extends MobEffect {
             FallenCapability cap = FallenCapability.GetFallCap(player);
             if (cap.isFallen()) return;
 
-            cap.setSacrificedItemsUsed(false);
-            cap.setReviveChanceUsed(false);
+            cap.resetSelfReviveCount();
             cap.setPenaltyMultiplier(0);
         }
 

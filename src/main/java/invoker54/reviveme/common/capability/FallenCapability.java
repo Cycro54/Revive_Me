@@ -1,48 +1,51 @@
 package invoker54.reviveme.common.capability;
 
-import invoker54.invocore.client.ClientUtil;
+import invoker54.invocore.common.ModLogger;
+import invoker54.invocore.common.util.CommonUtil;
 import invoker54.reviveme.common.api.FallenProvider;
 import invoker54.reviveme.common.config.ReviveMeConfig;
-import net.minecraft.client.renderer.EffectInstance;
+import invoker54.reviveme.common.event.FallenTimerEvent;
+import invoker54.reviveme.init.MobEffectInit;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.commons.lang3.tuple.Pair;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class FallenCapability {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final ModLogger LOGGER = ModLogger.getLogger(FallenCapability.class, ReviveMeConfig.debugMode);
 
     public static final String FALLEN_BOOL = "isFallenREVIVE";
     public static final String FELL_START_LONG = "fellStartREVIVE";
     public static final String FELL_END_DOUBLE = "fellEndREVIVE";
     public static final String REVIVE_START_LONG = "revStartREVIVE";
     public static final String REVIVE_END_INT = "revEndREVIVE";
-    public static final String PENALTY_ENUM = "penaltyTypeREVIVE";
-    public static final String PENALTY_DOUBLE = "penaltyDoubleREVIVE";
-    public static final String PENALTY_ITEM = "penaltyItemREVIVE";
     public static final String OTHERPLAYER_UUID = "otherPlayerREVIVE";
-    public static final String SACRIFICEITEMS_COMPOUND = "sacrificeItemCompoundREVIVE";
-    public static final String SACRIFICEITEMS_BOOL = "sacrificeItemsBoolREVIVE";
-    public static final String REVIVECHANCE_BOOL = "reviveChanceBoolREVIVE";
     public static final String PENALTY_MULTIPLIER_INT = "penaltyMultiplierIntREVIVE";
     public static final String CALLED_FOR_HELP_LONG = "calledForHelpLong";
     public static final String SAVED_EFFECTS_TAG = "savedEffectsTag";
+    public static final String DOWNED_BY_PLAYER_BOOL = "DOWNED_BY_PLAYER_BOOL";
+
+    public static final String SELF_REVIVE_OPTIONS_STRING = "SELF_REVIVE_OPTIONS_STRING";
+    public static final String SACRIFICEITEMS_COMPOUND = "SACRIFICEITEMS_COMPOUND";
+    public static final String STATUS_EFFECTS_COMPOUND = "STATUS_EFFECTS_COMPOUND";
+    public static final String SELF_REVIVE_COUNT_INT = "SELF_REVIVE_COUNT_INT";
     //endregion
 
     public FallenCapability(Level level){
@@ -59,16 +62,9 @@ public class FallenCapability {
     protected double fellEnd = 0;
     protected DamageSource damageSource = DamageSource.OUT_OF_WORLD;
     protected boolean isFallen = false;
-    protected boolean isDying = false;
     protected UUID otherPlayer = null;
-    protected Double penaltyAmount = 0D;
-    protected ItemStack penaltyItem = ItemStack.EMPTY;
-    protected PENALTYPE penaltyType = PENALTYPE.HEALTH;
     protected long calledForHelpTime = 0;
 
-    protected List<ItemStack> sacrificialItems = new ArrayList<>();
-    protected boolean sacrificedItemsUsed = false;
-    protected boolean reviveChanceUsed = false;
     protected int penaltyMultiplier = 0;
 
     protected CompoundTag savedEffectsTag = new CompoundTag();
@@ -81,8 +77,28 @@ public class FallenCapability {
         ITEM
     }
 
+    public enum SELFREVIVETYPE{
+        CHANCE,
+        RANDOM_ITEMS,
+        SPECIFIC_ITEM,
+        KILL,
+        STATUS_EFFECTS,
+        EXPERIENCE
+    }
+    protected List<SELFREVIVETYPE> selfReviveTypeList = new ArrayList<>(ReviveMeConfig.selfReviveOptions);
+    protected List<ItemStack> sacrificialItems = new ArrayList<>();
+    protected List<MobEffect> negativeStatusEffects = new ArrayList<>();
+    protected int selfReviveCount = 0;
+    protected boolean isDownedByPlayer = false;
+
     public static FallenCapability GetFallCap(LivingEntity player){
         return player.getCapability(FallenProvider.FALLENDATA).orElseGet(FallenCapability::new);
+    }
+
+    public boolean canSelfRevive(){
+        if (ReviveMeConfig.maxSelfRevives != -1 && getSelfReviveCount() >= ReviveMeConfig.maxSelfRevives) return false;
+        if (ReviveMeConfig.disableSelfReviveIfPlayerDowned && isDownedByPlayer) return false;
+        return true;
     }
 
     public void callForHelp(){
@@ -97,17 +113,8 @@ public class FallenCapability {
         return Math.min(timePassed/(ReviveMeConfig.reviveHelpCooldown*20),1);
     }
 
-    public void setPenalty(PENALTYPE type, Double amount, String penaltyItem){
-        this.penaltyItem = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(penaltyItem)));
-        this.setPenalty(type, amount);
-    }
-    public void setPenalty(PENALTYPE type, Double amount){
-        this.penaltyAmount = amount;
-        this.penaltyType = type;
-    }
-
     public float getPenaltyAmount(Player player){
-        Double actualAmount = penaltyAmount;
+        Double actualAmount = ReviveMeConfig.penaltyAmount;
         if (actualAmount > 0 && actualAmount < 1){
             actualAmount *= countReviverPenaltyAmount(player);
         }
@@ -115,40 +122,44 @@ public class FallenCapability {
 
         return Math.round(actualAmount);
     }
-    public ItemStack getPenaltyItem() {return this.penaltyItem;}
-    public PENALTYPE getPenaltyType(){
-        return penaltyType;
-    }
 
     public void kill(Player player){
-        this.setDying();
-        player.setHealth(0.00000001F);
-        player.hurt(this.damageSource, 1);
-        if (!player.isDeadOrDying() || Float.isNaN(player.getHealth())) {
-            player.getCombatTracker().recordDamage(this.getDamageSource(), 1,1);
-            player.setHealth(0);
-            player.die(this.damageSource);
-        }
+        player.playSound(SoundEvents.PLAYER_DEATH, 1, (player.getRandom().nextFloat() - player.getRandom().nextFloat()) * 0.2F + 1.0F);
+        player.setHealth(0);
+        player.getCombatTracker().recordDamage(this.getDamageSource(), 1,1);
+        player.die(this.damageSource);
     }
 
     public double countReviverPenaltyAmount(Player reviver){
-        switch (penaltyType) {
+        switch (ReviveMeConfig.penaltyType) {
             case NONE: return 0;
             case HEALTH: return reviver.getHealth() + reviver.getAbsorptionAmount();
             case EXPERIENCE: return reviver.experienceLevel;
             case FOOD: return (reviver.getFoodData().getFoodLevel() + Math.max(reviver.getFoodData().getSaturationLevel(), 0));
-            case ITEM: return reviver.getInventory().countItem(this.penaltyItem.getItem());
+            case ITEM:{
+                ItemStack penaltyStack = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(ReviveMeConfig.penaltyItem)));
+                penaltyStack.deserializeNBT(ReviveMeConfig.penaltyItemData);
+                int count = 0;
+                for (int a = 0; a < reviver.getInventory().getContainerSize(); a++){
+                    ItemStack containerStack = reviver.getInventory().getItem(a);
+                    if (!penaltyStack.sameItem(containerStack)) continue;
+                    if (!ItemStack.tagMatches(containerStack, penaltyStack)) continue;
+                    count += containerStack.getCount();
+                }
+                return count;
+            }
         }
         return 0;
     }
     public boolean hasEnough(Player reviver){
         if (reviver.isCreative()) return true;
-        if (this.penaltyType == PENALTYPE.NONE) return true;
+        if (ReviveMeConfig.penaltyType == PENALTYPE.NONE) return true;
         return countReviverPenaltyAmount(reviver) - this.getPenaltyAmount(reviver) >= 0;
     }
 
     public void setDamageSource(DamageSource damageSource){
         this.damageSource = damageSource;
+        this.isDownedByPlayer = (this.damageSource.getEntity() instanceof Player);
     }
 
     public DamageSource getDamageSource(){
@@ -166,11 +177,11 @@ public class FallenCapability {
         return (float) (((fellStart + maxSeconds) - level.getGameTime())/20);
     }
 
-    public int getKillTime(){
+    public float getKillTime(){
         if (ReviveMeConfig.pvpTimer == -1) return -1;
         float maxSeconds = getPenaltyTicks(ReviveMeConfig.pvpTimer * 20);
 
-        return (int) Math.max (0, ((fellStart + maxSeconds) - level.getGameTime())/20f);
+        return Math.max (0, ((fellStart + maxSeconds) - level.getGameTime())/20f);
     }
 
     public boolean shouldDie(){
@@ -190,13 +201,6 @@ public class FallenCapability {
     public boolean isFallen() {
         return isFallen;
     }
-    public boolean isDying() {
-        return this.isDying;
-    }
-
-    public void setDying(){
-        this.isDying = true;
-    }
 
     public void setFallen(boolean fallen) {
         this.isFallen = fallen;
@@ -206,6 +210,10 @@ public class FallenCapability {
             SetTimeLeft(0, 1);
             setOtherPlayer(null);
         }
+    }
+
+    public boolean isDownedByPlayer(){
+        return isDownedByPlayer;
     }
 
     public UUID getOtherPlayer() {
@@ -233,16 +241,202 @@ public class FallenCapability {
         return Math.min (1, (level.getGameTime() - revStart) /(float) revEnd);
     }
 
-    public void setSacrificialItems(Inventory inventory){
-        if (inventory == null){
-            this.sacrificialItems.clear();
-            return;
+    public SELFREVIVETYPE getSelfReviveOption(int mouseButton){
+        return this.selfReviveTypeList.get(mouseButton);
+    }
+
+    public void useReviveOption(SELFREVIVETYPE selectedOption, Player player) {
+         Inventory playerInv = player.getInventory();
+
+        double penaltyPercentage = this.getSelfPenaltyPercentage();
+        this.selfReviveCount++;
+        this.selfReviveTypeList.remove(selectedOption);
+        this.selfReviveTypeList.add(selectedOption);
+        LOGGER.warn("Penalty percentage: " + (penaltyPercentage));
+
+        switch (selectedOption) {
+            case CHANCE: {
+                if (player.level.random.nextFloat() < (ReviveMeConfig.reviveChance * (1 - penaltyPercentage))) {
+                    FallenTimerEvent.revivePlayer(player, false);
+                    return;
+                }
+                break;
+            }
+            case RANDOM_ITEMS: {
+                if (this.getItemList().isEmpty()) break;
+                FallenTimerEvent.revivePlayer(player, false);
+                for (ItemStack sacrificeStack : this.getItemList()) {
+                    int count = FallenCapability.countItem(playerInv, sacrificeStack);
+                    int amountToLose = (int) Math.round(Math.max(1, count *
+                            (ReviveMeConfig.sacrificialItemPercent *(1+penaltyPercentage))));
+
+                    for (int a = 0; a < playerInv.getContainerSize(); a++) {
+                        ItemStack containerStack = playerInv.getItem(a);
+                        if (!sacrificeStack.sameItem(containerStack)) continue;
+                        if (!ItemStack.tagMatches(sacrificeStack, containerStack)) continue;
+                        int takeAway = (Math.min(amountToLose, containerStack.getCount()));
+                        amountToLose -= takeAway;
+                        containerStack.setCount(containerStack.getCount() - takeAway);
+                        if (amountToLose == 0) break;
+                    }
+                }
+                this.sacrificialItems.clear();
+                return;
+            }
+            case SPECIFIC_ITEM: {
+                Pair<Integer, List<ItemStack>> specificPair = this.getSpecificItem(player);
+                if (specificPair.getKey() >= ReviveMeConfig.specificItemCount) {
+                    FallenTimerEvent.revivePlayer(player, false);
+                    int amountLeft = specificPair.getKey();
+                    ItemStack defaultStack = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(ReviveMeConfig.specificItem)));
+                    defaultStack.deserializeNBT(ReviveMeConfig.specificItemData);
+
+                    for (int a = 0; a < playerInv.getContainerSize(); a++) {
+                        ItemStack containerStack = playerInv.getItem(a);
+                        if (!defaultStack.sameItem(containerStack)) continue;
+                        if (!ItemStack.tagMatches(defaultStack, containerStack)) continue;
+                        int takeAway = (Math.min(amountLeft, containerStack.getCount()));
+                        amountLeft -= takeAway;
+                        containerStack.setCount(containerStack.getCount() - takeAway);
+                        if (amountLeft == 0) break;
+                    }
+                    return;
+                }
+                break;
+            }
+            case KILL: {
+                FallenTimerEvent.revivePlayer(player, false);
+                int seconds = (int) (ReviveMeConfig.reviveKillTime * 20 * (1 - penaltyPercentage));
+                int killCount = ReviveMeConfig.reviveKillAmount;
+                player.addEffect(new MobEffectInstance(MobEffectInit.KILL_REVIVE_EFFECT, seconds,  killCount-1));
+                return;
+            }
+            case STATUS_EFFECTS: {
+                double invulnTime = ReviveMeConfig.reviveInvulnTime;
+                if (ReviveMeConfig.disableReviveEffects) ReviveMeConfig.reviveInvulnTime = 0D;
+                FallenTimerEvent.revivePlayer(player, false);
+                ReviveMeConfig.reviveInvulnTime = invulnTime;
+
+                int amp = 0;
+                int duration = (int) (20 * ReviveMeConfig.negativeEffectsTime * (1 + penaltyPercentage));
+                if (this.negativeStatusEffects.size() == 1) {
+                    amp = 1;
+                }
+
+                for (MobEffect effect : this.negativeStatusEffects) {
+                    player.addEffect(new MobEffectInstance(effect, duration, amp));
+                }
+                return;
+            }
+            case EXPERIENCE:{
+                if (player.experienceLevel < ReviveMeConfig.minReviveXPLevel) break;
+                FallenTimerEvent.revivePlayer(player, false);
+                player.giveExperienceLevels((int) -(player.experienceLevel * ReviveMeConfig.reviveXPLossPercentage
+                        * (1 + penaltyPercentage)));
+                return;
+            }
         }
+
+        this.kill(player);
+    }
+
+    public void resetSelfReviveCount(){
+        this.selfReviveCount = 0;
+    }
+
+    public void refreshSelfReviveTypes(Player player){
+        if (!this.selfReviveTypeList.containsAll(ReviveMeConfig.selfReviveOptions) ||
+                this.selfReviveTypeList.size() != ReviveMeConfig.selfReviveOptions.size())
+            this.selfReviveTypeList = new ArrayList<>(ReviveMeConfig.selfReviveOptions);
+
+        if (ReviveMeConfig.randomizeSelfReviveOptions) Collections.shuffle(this.selfReviveTypeList);
+
+        if (this.selfReviveTypeList.contains(SELFREVIVETYPE.RANDOM_ITEMS)){
+            setSacrificialItems(player.getInventory());
+        }
+        if (this.selfReviveTypeList.contains(SELFREVIVETYPE.STATUS_EFFECTS)){
+            List<MobEffect> negativeEffects = ForgeRegistries.MOB_EFFECTS.getValues().stream().filter(
+                    (effect) -> effect.getCategory() == MobEffectCategory.HARMFUL && !ReviveMeConfig.harmfulEffectsBlackList
+                            .contains(effect.getRegistryName().toString())).collect(Collectors.toList());
+
+//            negativeEffects.forEach(e -> LOGGER.warn(e.getRegistryName().toString()));
+            this.negativeStatusEffects.clear();
+            this.negativeStatusEffects.addAll(
+                    CommonUtil.pickRandomObjectsFromList(Math.random() > 0.5F ? 1 : 2, negativeEffects));
+        }
+
+        int count = 0;
+        if (ReviveMeConfig.onlyUseAvailableOptions) {
+            for (int a = 0; a < this.selfReviveTypeList.size(); a++) {
+                if (count == 2) break;
+
+                switch (this.selfReviveTypeList.get(a)) {
+                    case RANDOM_ITEMS:
+                        if (getItemList().isEmpty()) continue;
+                        break;
+                    case SPECIFIC_ITEM:
+                        if (getSpecificItem(player).getKey() == 0) continue;
+                        break;
+                    case EXPERIENCE:
+                        if (player.experienceLevel < ReviveMeConfig.minReviveXPLevel) continue;
+                        break;
+                    default:
+                        break;
+                }
+                this.selfReviveTypeList.add(0, this.selfReviveTypeList.remove(a));
+                count++;
+            }
+        }
+    }
+
+    public Pair<Integer, List<ItemStack>> getSpecificItem(Player player){
+        ItemStack defaultStack = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(ReviveMeConfig.specificItem)));
+        defaultStack.deserializeNBT(ReviveMeConfig.specificItemData);
+        Inventory playerInv = player.getInventory();
+
+        List<ItemStack> stackList = new ArrayList<>();
+        int countNeeded = ReviveMeConfig.specificItemCount;
+        int count = 0;
+
+        for (int a = 0; a < playerInv.getContainerSize(); a++) {
+            ItemStack containerStack = playerInv.getItem(a);
+            if (!defaultStack.sameItem(containerStack)) continue;
+            if (!ItemStack.tagMatches(containerStack, defaultStack)) continue;
+            stackList.add(containerStack);
+            count += containerStack.getCount();
+            if (count >= countNeeded) break;
+        }
+        if (count == 0){
+            stackList.add(defaultStack);
+        }
+        count = Math.min(count, countNeeded);
+
+        return Pair.of(count, stackList);
+    }
+
+    public List<MobEffect> getNegativeStatusEffects(){
+        return new ArrayList<>(this.negativeStatusEffects);
+    }
+
+    public double getSelfPenaltyPercentage(){
+        return this.getSelfReviveCount() * ReviveMeConfig.selfPenaltyPercentage;
+    }
+
+    //This is how many self revive options have been used since last refresh
+    public int getSelfReviveCount(){
+        return this.selfReviveCount;
+    }
+
+    public void setSacrificialItems(Inventory inventory){
+        if (inventory == null) return;
+        Pair<Integer, List<ItemStack>> specificPair = getSpecificItem(inventory.player);
+
 
         //Generate a sacrificial item list
         ArrayList<ItemStack> playerItems = new ArrayList<>();
         for (ItemStack newStack : inventory.items) {
             if (!newStack.isStackable()) continue;
+            if (specificPair.getValue().contains(newStack)) continue;
             if (playerItems.stream().anyMatch(listStack ->
                     listStack.sameItem(newStack) && ItemStack.tagMatches(listStack, newStack))) continue;
             if (newStack.isEmpty()) continue;
@@ -261,6 +455,7 @@ public class FallenCapability {
     }
 
     public boolean isSacrificialItem(ItemStack mainStack) {
+        if (!canSelfRevive()) return false;
         return this.sacrificialItems.stream().anyMatch(
                 sacrificialStack -> sacrificialStack.sameItem(mainStack) &&
                         ItemStack.tagMatches(mainStack, sacrificialStack));
@@ -276,19 +471,6 @@ public class FallenCapability {
             count += containerStack.getCount();
         }
         return count;
-    }
-
-    public boolean usedSacrificedItems(){
-        return this.sacrificedItemsUsed;
-    }
-    public void setSacrificedItemsUsed(boolean flag){
-        this.sacrificedItemsUsed = flag;
-    }
-    public boolean usedChance(){
-        return this.reviveChanceUsed;
-    }
-    public void setReviveChanceUsed(boolean flag){
-        this.reviveChanceUsed= flag;
     }
     public int getPenaltyMultiplier(){
         return this.penaltyMultiplier;
@@ -332,9 +514,22 @@ public class FallenCapability {
         cNBT.putBoolean(FALLEN_BOOL, this.isFallen);
         cNBT.putLong(REVIVE_START_LONG, this.revStart);
         cNBT.putInt(REVIVE_END_INT, this.revEnd/20);
-        cNBT.putString(PENALTY_ENUM, this.penaltyType.name());
-        cNBT.putDouble(PENALTY_DOUBLE, this.penaltyAmount);
-        cNBT.putString(PENALTY_ITEM, ForgeRegistries.ITEMS.getKey(this.penaltyItem.getItem()).toString());
+
+        //Save Self revive option list
+        String selfReviveListString = "";
+        for (SELFREVIVETYPE selfrevivetype : this.selfReviveTypeList){
+            selfReviveListString = selfReviveListString.concat(selfrevivetype.name()+",");
+        }
+        cNBT.putString(SELF_REVIVE_OPTIONS_STRING, selfReviveListString);
+
+        //Save Self revive status effects
+        CompoundTag statusEffectNBT = new CompoundTag();
+        int count = 0;
+        for (MobEffect effect : this.negativeStatusEffects){
+            statusEffectNBT.putByte(Integer.toString(count), (byte) MobEffect.getId(effect));
+            count++;
+        }
+        cNBT.put(STATUS_EFFECTS_COMPOUND, statusEffectNBT);
 
         //The saved sacrificial items
         CompoundTag itemCompound = new CompoundTag();
@@ -343,10 +538,6 @@ public class FallenCapability {
 //            ItemList.append(ForgeRegistries.ITEMS.getKey(item)).append(",");
         }
         cNBT.put(SACRIFICEITEMS_COMPOUND, itemCompound);
-        //If the player sacrificed items
-        cNBT.putBoolean(SACRIFICEITEMS_BOOL, this.sacrificedItemsUsed);
-        //If the player used the chance
-        cNBT.putBoolean(REVIVECHANCE_BOOL, this.reviveChanceUsed);
         //How many times the player fell with penalty timer active
         cNBT.putInt(PENALTY_MULTIPLIER_INT, this.penaltyMultiplier);
 
@@ -355,6 +546,11 @@ public class FallenCapability {
         cNBT.put(SAVED_EFFECTS_TAG, this.savedEffectsTag);
         if(this.otherPlayer != null)
             cNBT.putUUID(OTHERPLAYER_UUID, this.otherPlayer);
+
+        cNBT.putInt(SELF_REVIVE_COUNT_INT, this.selfReviveCount);
+
+        cNBT.putBoolean(DOWNED_BY_PLAYER_BOOL, this.isDownedByPlayer());
+
         return cNBT;
     }
     public void readNBT(Tag nbt){
@@ -362,8 +558,21 @@ public class FallenCapability {
         this.SetTimeLeft(cNBT.getLong(FELL_START_LONG), cNBT.getDouble(FELL_END_DOUBLE));
         this.setFallen(cNBT.getBoolean(FALLEN_BOOL));
         this.setProgress(cNBT.getLong(REVIVE_START_LONG), cNBT.getInt(REVIVE_END_INT));
-        this.setPenalty(PENALTYPE.valueOf(cNBT.getString(PENALTY_ENUM)), cNBT.getDouble(PENALTY_DOUBLE), cNBT.getString(PENALTY_ITEM));
+        this.selfReviveTypeList.clear();
+        for (String s : cNBT.getString(SELF_REVIVE_OPTIONS_STRING).split(",")) {
+            try {
+                this.selfReviveTypeList.add(SELFREVIVETYPE.valueOf(s));
+            } catch (Exception ignored) {
+            }
+        }
+        if (this.selfReviveTypeList.isEmpty()) this.selfReviveTypeList.addAll(ReviveMeConfig.selfReviveOptions);
 
+        //Save Self revive status effects
+        this.negativeStatusEffects.clear();
+        CompoundTag statusEffectNBT = cNBT.getCompound(STATUS_EFFECTS_COMPOUND);
+        for (String s : statusEffectNBT.getAllKeys()){
+            this.negativeStatusEffects.add(MobEffect.byId(statusEffectNBT.getByte(s)));
+        }
         sacrificialItems.clear();
         CompoundTag itemCompound = cNBT.getCompound(SACRIFICEITEMS_COMPOUND);
         if (!itemCompound.isEmpty()){
@@ -373,8 +582,6 @@ public class FallenCapability {
                 sacrificialItems.add(sacrificeStack);
             }
         }
-        this.sacrificedItemsUsed = cNBT.getBoolean(SACRIFICEITEMS_BOOL);
-        this.reviveChanceUsed = cNBT.getBoolean(REVIVECHANCE_BOOL);
         this.penaltyMultiplier = cNBT.getInt(PENALTY_MULTIPLIER_INT);
 
         this.calledForHelpTime = cNBT.getLong(CALLED_FOR_HELP_LONG);
@@ -387,5 +594,9 @@ public class FallenCapability {
         else {
             this.setOtherPlayer(null);
         }
+
+        this.selfReviveCount = cNBT.getInt(SELF_REVIVE_COUNT_INT);
+
+        this.isDownedByPlayer = cNBT.getBoolean(DOWNED_BY_PLAYER_BOOL);
     }
 }

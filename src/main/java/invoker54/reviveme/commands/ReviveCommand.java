@@ -3,13 +3,13 @@ package invoker54.reviveme.commands;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import invoker54.invocore.client.util.InvoText;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.event.FallenTimerEvent;
 import invoker54.reviveme.common.network.NetworkHandler;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 
@@ -39,8 +39,8 @@ public class ReviveCommand {
         FallenCapability cap = FallenCapability.GetFallCap(caller);
 
         if (caller.isDeadOrDying() || !cap.isFallen()){
-            NetworkHandler.sendMessage(caller.getDisplayName().copy().append(new TranslatableComponent("revive-me.commands.revive_fail")),
-                    true, caller);
+            InvoText failTxt = InvoText.translate("revive-me.commands.revive_fail", caller.getDisplayName());
+            NetworkHandler.sendMessage(failTxt.getText(), true, caller);
             return 1;
         }
 

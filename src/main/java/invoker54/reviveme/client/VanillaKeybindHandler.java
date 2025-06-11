@@ -1,20 +1,19 @@
 package invoker54.reviveme.client;
 
-import invoker54.invocore.client.ClientUtil;
+import com.mojang.blaze3d.platform.InputConstants;
+import invoker54.invocore.client.util.ClientUtil;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Options;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 
 public class VanillaKeybindHandler {
-    private static final Logger LOGGER = LogManager.getLogger();
     private static List<KeyMapping> vanillaKeyMappings;
     private static List<KeyMapping> movementMappings;
     public static boolean attackHeld = false;
     public static boolean useHeld = false;
+    public static boolean overrideKeyblock = false;
 
     public static void initializeKeybindList(){
 //        LOGGER.error("Vanilla key mappings was null! populating...");
@@ -39,5 +38,12 @@ public class VanillaKeybindHandler {
         if (keyMapping == null) return false;
 
         return movementMappings.contains(keyMapping);
+    }
+
+    public static InputConstants.Key getKey(KeyMapping keyBinding){
+        overrideKeyblock = true;
+        InputConstants.Key key = keyBinding.getKey();
+        overrideKeyblock = false;
+        return key;
     }
 }

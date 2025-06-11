@@ -1,21 +1,19 @@
 package invoker54.reviveme.client.event;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import invoker54.invocore.client.ClientUtil;
+import invoker54.invocore.client.util.ClientUtil;
+import invoker54.invocore.client.util.InvoText;
+import invoker54.invocore.client.util.InvoZone;
+import invoker54.invocore.client.util.TextUtil;
 import invoker54.reviveme.common.capability.FallenCapability;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.client.gui.OverlayRegistry;
 
 import java.awt.*;
 
 public class ReviveScreenEvent {
-    private static final Minecraft inst = Minecraft.getInstance();
-    public static MutableComponent beingRevivedText = new TranslatableComponent("reviveScreen.being_revived");
-    public static MutableComponent revivingText = new TranslatableComponent("reviveScreen.reviving");
+    private static Minecraft inst = Minecraft.getInstance();
+    public static InvoText beingRevivedText = InvoText.translate("reviveScreen.being_revived");
+    public static InvoText revivingText = InvoText.translate("reviveScreen.reviving");
 
     public static final int bgColor = new Color(35,35,35,255).getRGB();
     public static final int revColor = new Color(77, 77, 77, 121).getRGB();
@@ -27,43 +25,34 @@ public class ReviveScreenEvent {
 
             //MAKE SURE this only happens if you are being revived, or reviving someone
             if (cap.getOtherPlayer() == null) return;
+            InvoZone workZone = new InvoZone(0, width, 0, height);
 
-            int startTextHeight = (height / 5);
-            Font font = inst.font;
-
-            MutableComponent titleText;
+            InvoText titleText;
             //Only do the red if you are the fallen
             if (cap.isFallen()) {
-                Gui.fill(stack, 0, 0, width, height, 1615855616);
+                ClientUtil.blitColor(stack, workZone, 1615855616);
                 titleText = beingRevivedText;
             } else {
-                Gui.fill(stack, 0, 0, width, height, revColor);
+                ClientUtil.blitColor(stack, workZone, revColor);
                 titleText = revivingText;
             }
 
+            InvoZone textZone = workZone.copy().splitHeight(5, 1);
+            textZone.setY(textZone.down()).setHeight(16);
             //Being Revived text
-            stack.pushPose();
-            stack.scale(2, 2, 2);
-            Gui.drawCenteredString(stack, font, titleText, (width / 2) / 2, (startTextHeight - 5) / 2, 16777215);
-            stack.popPose();
+            TextUtil.renderText(stack, titleText.getText(), true, 1, textZone, TextUtil.txtAlignment.MIDDLE);
 
-            int xOrigin = width / 2;
-            int yOrigin = height / 2;
-
-
-            RenderSystem.disableDepthTest();
+            InvoZone barZone = workZone.copy().setHeight(16).splitWidth(2,1).center(workZone);
             //progress bar background
-            Gui.fill(stack, (int) (xOrigin * 0.5f), yOrigin + 8,
-                    (int) (xOrigin * 1.5f), yOrigin - 8, bgColor); //prev color: 2302755
+            ClientUtil.blitColor(stack, barZone, bgColor);
 
             float progress = Math.min(cap.getProgress(), 1);
 
             //System.out.println(progress);
 
             //Actual progress bar
-            ClientUtil.blitColor(stack, (xOrigin * (1 - 0.5f * progress)), xOrigin * progress,
-                    yOrigin - 6, 12, progressColor);
-            RenderSystem.enableDepthTest();
+            ClientUtil.blitColor(stack, barZone.copy().splitWidth(1, progress)
+                    .inflate(0,-2).center(barZone), progressColor);
         });
     }
 }
