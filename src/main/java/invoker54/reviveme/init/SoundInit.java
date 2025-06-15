@@ -1,6 +1,8 @@
 package invoker54.reviveme.init;
 
+import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.ReviveMe;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -16,7 +18,7 @@ import java.util.List;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class SoundInit {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final ModLogger LOGGER = ModLogger.getLogger(SoundInit.class, ReviveMeConfig.debugMode);
 
     private static final List<Pair<ResourceLocation, SoundEvent>> sounds = new ArrayList<>();
 

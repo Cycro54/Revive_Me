@@ -39,10 +39,10 @@ public class NetworkHandler {
         INSTANCE.registerMessage(0, SyncClientCapMsg.class, SyncClientCapMsg::Encode, SyncClientCapMsg::Decode, SyncClientCapMsg::handle);
         INSTANCE.registerMessage(1, RestartDeathTimerMsg.class, RestartDeathTimerMsg::Encode, RestartDeathTimerMsg::Decode, RestartDeathTimerMsg::handle);
         INSTANCE.registerMessage(2, InstaKillMsg.class, InstaKillMsg::Encode, InstaKillMsg::Decode, InstaKillMsg::handle);
-        INSTANCE.registerMessage(3, ReviveChanceMsg.class, (message, buf) -> {}, it -> new ReviveChanceMsg(), ReviveChanceMsg::handle);
-        INSTANCE.registerMessage(4, SacrificeItemsMsg.class, (message, buf) -> {}, it -> new SacrificeItemsMsg(), SacrificeItemsMsg::handle);
-        INSTANCE.registerMessage(5, SyncConfigMsg.class, SyncConfigMsg::Encode, SyncConfigMsg::Decode, SyncConfigMsg::handle);
-        INSTANCE.registerMessage(6, CallForHelpMsg.class, (msg,buf)->{}, it -> new CallForHelpMsg(), CallForHelpMsg::handle);
+        INSTANCE.registerMessage(3, SyncConfigMsg.class, SyncConfigMsg::Encode, SyncConfigMsg::Decode, SyncConfigMsg::handle);
+        INSTANCE.registerMessage(4, CallForHelpMsg.class, (msg, buf) -> {
+        }, it -> new CallForHelpMsg(), CallForHelpMsg::handle);
+        INSTANCE.registerMessage(5, SelfReviveMsg.class, SelfReviveMsg::encode, SelfReviveMsg::decode, SelfReviveMsg::handle);
     }
 
     //Custom method used to send data to players
