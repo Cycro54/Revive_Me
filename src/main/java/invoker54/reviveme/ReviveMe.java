@@ -4,8 +4,6 @@ import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.init.AttachmentTypesInit;
 import invoker54.reviveme.init.MobEffectInit;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.Slot;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -28,8 +26,6 @@ public class ReviveMe
         MobEffectInit.registerEffects(modEventBus);
         //This is for configs
         modContainer.registerConfig(ModConfig.Type.COMMON, ReviveMeConfig.COMMON_SPEC, "reviveme-common.toml");
-        Player player;
-        Slot slot;
     }
 
     public static ResourceLocation makeResource(String id){

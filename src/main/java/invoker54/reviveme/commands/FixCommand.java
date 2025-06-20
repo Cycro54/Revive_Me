@@ -50,7 +50,7 @@ public class FixCommand {
         //TODO: Remove this in future versions.
         caller.setInvulnerable(false);
 
-        NetworkInit.sendMessage((Component.translatable("revive-me.commands.fix")),
+        NetworkInit.sendMessage((Component.translatable("revive_me.commands.fix")),
                 true, caller);
 
         //This should fix the player if they are downed

@@ -17,10 +17,6 @@ public record SyncConfigMsg(CompoundTag configTag) implements CustomPacketPayloa
     public static final StreamCodec<FriendlyByteBuf, SyncConfigMsg> CODEC =
             StreamCodec.of(SyncConfigMsg::encode, SyncConfigMsg::new);
 
-    public SyncConfigMsg(CompoundTag configTag){
-        this.configTag = configTag;
-    }
-
     public SyncConfigMsg(FriendlyByteBuf buf){
         this(buf.readNbt());
     }

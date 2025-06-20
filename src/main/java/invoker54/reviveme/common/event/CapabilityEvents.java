@@ -1,6 +1,8 @@
 package invoker54.reviveme.common.event;
 
+import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.ReviveMe;
+import invoker54.reviveme.client.event.FallScreenEvent;
 import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.payload.SyncClientCapMsg;
@@ -15,6 +17,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 @EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class CapabilityEvents {
+    private static final ModLogger LOGGER = ModLogger.getLogger(FallScreenEvent.class, ReviveMeConfig.debugMode);
 
     @SubscribeEvent
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent event){
@@ -23,6 +26,16 @@ public class CapabilityEvents {
 
         PacketDistributor.sendToPlayersTrackingEntityAndSelf(event.getEntity(), new SyncClientCapMsg(event.getEntity().getUUID(), cap.writeNBT()));
         PacketDistributor.sendToPlayer((ServerPlayer) event.getEntity(), new SyncConfigMsg(ReviveMeConfig.serialize()));
+    }
+
+    @SubscribeEvent
+    public static void onLogout(PlayerEvent.PlayerLoggedOutEvent event){
+        if (!ReviveMeConfig.dieOnDisconnect) return;
+        Player player = event.getEntity();
+        if (!player.isAlive()) return;
+        FallenData cap = FallenData.get(player);
+        if (!cap.isFallen()) return;
+        cap.kill(player);
     }
 
     @SubscribeEvent

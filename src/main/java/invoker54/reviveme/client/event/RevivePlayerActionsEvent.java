@@ -1,8 +1,10 @@
 package invoker54.reviveme.client.event;
 
+import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.common.capability.FallenData;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.payload.RestartDeathTimerMsg;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
@@ -11,14 +13,12 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.UUID;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = ReviveMe.MOD_ID)
 public class RevivePlayerActionsEvent {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final ModLogger LOGGER = ModLogger.getLogger(RevivePlayerActionsEvent.class, ReviveMeConfig.debugMode);
     private static final Minecraft inst = Minecraft.getInstance();
 
     @SubscribeEvent
@@ -70,5 +70,18 @@ public class RevivePlayerActionsEvent {
             PacketDistributor.sendToServer(new RestartDeathTimerMsg());
 //            NetworkHandler.INSTANCE.sendToServer(new RestartDeathTimerMsg(targPlayerUUID, inst.player.getStringUUID()));
         }
+    }
+
+    @SubscribeEvent
+    public static void reviveItemUse(PlayerTickEvent.Pre event) {
+        if (event.getEntity() != inst.player) return;
+
+        if (!(inst.crosshairPickEntity instanceof Player)) return;
+
+        FallenData cap = FallenData.get((Player) inst.crosshairPickEntity);
+        if (!cap.isFallen()) return;
+        if (!inst.player.isUsingItem()) return;
+
+        inst.gameMode.releaseUsingItem(event.getEntity());
     }
 }

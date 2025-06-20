@@ -1,6 +1,9 @@
 package invoker54.reviveme.common.event;
 
-import invoker54.invocore.common.MathUtil;
+import com.mojang.serialization.JavaOps;
+import invoker54.invocore.client.util.InvoText;
+import invoker54.invocore.common.ModLogger;
+import invoker54.invocore.common.util.MathUtil;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
@@ -9,8 +12,10 @@ import invoker54.reviveme.init.MobEffectInit;
 import invoker54.reviveme.init.NetworkInit;
 import invoker54.reviveme.init.SoundInit;
 import invoker54.reviveme.mixin.FoodMixin;
-import net.minecraft.network.chat.Component;
+import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.protocol.game.ClientboundSetHealthPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -19,7 +24,6 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -31,6 +35,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 @EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class FallenTimerEvent {
+    private static final ModLogger LOGGER = ModLogger.getLogger(FallenTimerEvent.class, ReviveMeConfig.debugMode);
 
     @SubscribeEvent
     public static void changeGamemode(PlayerEvent.PlayerChangeGameModeEvent event){
@@ -103,7 +108,7 @@ public class FallenTimerEvent {
         if (!reviver.isCreative()) {
             int amount = (int) cap.getPenaltyAmount(reviver);
             int leftoverAmount = 0;
-            switch (cap.getPenaltyType()) {
+            switch (ReviveMeConfig.penaltyType) {
                 case NONE:
                     break;
                 case HEALTH:
@@ -122,19 +127,28 @@ public class FallenTimerEvent {
                     ((ServerPlayer)reviver).connection.send(new ClientboundSetHealthPacket(reviver.getHealth(),
                             reviver.getFoodData().getFoodLevel(), reviver.getFoodData().getSaturationLevel()));
                     break;
-                case ITEM:
-                    Item penaltyItem = cap.getPenaltyItem().getItem();
+                case ITEM: {
+                    ItemStack penaltyStack = new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(ReviveMeConfig.penaltyItem)));
+                    try {
+                        penaltyStack.applyComponents(DataComponentPatch.CODEC.decode(JavaOps.INSTANCE, ReviveMeConfig.penaltyItemData).getOrThrow().getFirst());
+                    } catch (Exception e) {
+//                        throw new RuntimeException(e);
+                        LOGGER.warn(e.getMessage());
+                    }
                     Inventory playerInv = reviver.getInventory();
                     for (int a = 0; a < playerInv.getContainerSize(); a++) {
                         ItemStack currStack = playerInv.getItem(a);
-                        if (currStack.getItem() == penaltyItem) {
-                            int takeAway = (Math.min(amount, currStack.getCount()));
-                            amount -= takeAway;
-                            currStack.setCount(currStack.getCount() - takeAway);
-                        }
+                        if (!ItemStack.isSameItem(penaltyStack, currStack)) continue;
+                        if (!ItemStack.isSameItemSameComponents(penaltyStack, currStack)) continue;
+
+                        int takeAway = (Math.min(amount, currStack.getCount()));
+                        amount -= takeAway;
+                        currStack.setCount(currStack.getCount() - takeAway);
+
                         if (amount == 0) break;
                     }
                     break;
+                }
             }
         }
 
@@ -202,8 +216,9 @@ public class FallenTimerEvent {
         fallen.level().playSound(null, fallen.getX(), fallen.getY(), fallen.getZ(),
                 SoundInit.REVIVED, SoundSource.PLAYERS, 1.0F, MathUtil.randomFloat(0.7F, 1.0F));
 
-        NetworkInit.sendMessage(fallen.getDisplayName().copy().append(Component.translatable("revive-me.commands.revive_pass")),
-                isCommand, fallen);
+        InvoText reviveTxt = InvoText.translate("revive_me.commands.revive_pass",
+                fallen.getDisplayName());
+        NetworkInit.sendMessage(reviveTxt.getText(), isCommand, fallen);
 
         PacketDistributor.sendToPlayersTrackingEntityAndSelf(fallen, new SyncClientCapMsg(fallen.getUUID(), cap.writeNBT()));
     }

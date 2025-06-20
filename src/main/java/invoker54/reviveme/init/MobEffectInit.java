@@ -1,6 +1,7 @@
 package invoker54.reviveme.init;
 
 import invoker54.reviveme.common.potion.FallenPotionEffect;
+import invoker54.reviveme.common.potion.KillRevivePotionEffect;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.effect.MobEffect;
@@ -20,6 +21,9 @@ public class MobEffectInit {
 
     public static final Holder<MobEffect> FALLEN_EFFECT =
             MOB_EFFECTS.register("fallen_effect", () -> new FallenPotionEffect(MobEffectCategory.NEUTRAL));
+
+    public static final Holder<MobEffect> KILL_REVIVE_EFFECT =
+            MOB_EFFECTS.register("kill_revive_effect", () -> new KillRevivePotionEffect(MobEffectCategory.HARMFUL));
 
     public static void registerEffects(IEventBus eventBus){
         MOB_EFFECTS.register(eventBus);

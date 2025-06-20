@@ -1,13 +1,11 @@
 package invoker54.reviveme.client.event;
 
-import invoker54.invocore.client.ClientUtil;
+import invoker54.invocore.client.util.ClientUtil;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
-import invoker54.reviveme.common.network.payload.InstaKillMsg;
-import invoker54.reviveme.common.network.payload.ReviveChanceMsg;
-import invoker54.reviveme.common.network.payload.SacrificeItemsMsg;
+import invoker54.reviveme.common.network.payload.SelfReviveMsg;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.world.InteractionHand;
@@ -35,35 +33,26 @@ public class FallenPlayerActionsEvent {
 
         FallenData cap = FallenData.get(inst.player);
 
-        if (!cap.isFallen()) {
-            if (timeHeld != 0) timeHeld = 0;
+        if (!cap.isFallen()) return;
+        if (!VanillaKeybindHandler.useHeld && !VanillaKeybindHandler.attackHeld) {
+            timeHeld = 0;
             return;
         }
-
-        boolean flag = (ReviveMeConfig.selfReviveMultiplayer || (ClientUtil.getMinecraft().hasSingleplayerServer() &&
-                ClientUtil.getMinecraft().getSingleplayerServer().getPlayerList().getPlayers().size() == 1));
 
         //This will be chance
         if (VanillaKeybindHandler.attackHeld) {
             timeHeld++;
-            if (!ClientUtil.getPlayer().swinging) {
-                ClientUtil.getPlayer().swing(InteractionHand.MAIN_HAND);
-            }
-
-            if (timeHeld == 40) {
-                if (flag) PacketDistributor.sendToServer(new ReviveChanceMsg());
-                else if (ReviveMeConfig.canGiveUp) PacketDistributor.sendToServer(new InstaKillMsg());
-            }
+            if (!ClientUtil.getPlayer().swinging) ClientUtil.getPlayer().swing(InteractionHand.MAIN_HAND);
+            if (timeHeld == 40) PacketDistributor.sendToServer(new SelfReviveMsg(0));
         }
         //This will use items
-        else if (VanillaKeybindHandler.useHeld && flag && (!cap.usedChance() || !cap.getItemList().isEmpty())) {
+        else if (VanillaKeybindHandler.useHeld && cap.canSelfRevive()) {
             timeHeld++;
             ClientUtil.getPlayer().swing(InteractionHand.MAIN_HAND);
+            if (timeHeld == 40) PacketDistributor.sendToServer(new SelfReviveMsg(1));
+        }
 
-            if (timeHeld == 40) {
-                PacketDistributor.sendToServer(new SacrificeItemsMsg());
-            }
-        } else if (timeHeld != 0) timeHeld = 0;
+
     }
 
     @SubscribeEvent
@@ -71,10 +60,6 @@ public class FallenPlayerActionsEvent {
         Player player = event.getPlayer();
         FallenData cap = FallenData.get(player);
         if (!cap.isFallen()) return;
-        boolean isSinglePlayer = (ClientUtil.getMinecraft().hasSingleplayerServer() &&
-                ClientUtil.getMinecraft().getSingleplayerServer().getPlayerList().getPlayers().size() == 1);
-        if (!ReviveMeConfig.canGiveUp && !isSinglePlayer &&
-                (!ReviveMeConfig.selfReviveMultiplayer || cap.usedSacrificedItems() && cap.usedChance())) return;
 
         float f = 1.0F;
         if (player.getAbilities().flying) {

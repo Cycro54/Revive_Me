@@ -1,7 +1,9 @@
 package invoker54.reviveme.common.network.payload;
 
-import invoker54.invocore.common.MathUtil;
+import invoker54.invocore.common.ModLogger;
+import invoker54.invocore.common.util.MathUtil;
 import invoker54.reviveme.common.capability.FallenData;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.init.NetworkInit;
 import invoker54.reviveme.init.SoundInit;
 import net.minecraft.network.FriendlyByteBuf;
@@ -10,14 +12,12 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import static invoker54.reviveme.ReviveMe.makeResource;
 
 public record CallForHelpMsg() implements CustomPacketPayload {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final ModLogger LOGGER = ModLogger.getLogger(CallForHelpMsg.class, ReviveMeConfig.debugMode);
 
     public static final CustomPacketPayload.Type<CallForHelpMsg> TYPE =
             new CustomPacketPayload.Type<>(makeResource(NetworkInit.createID(CallForHelpMsg.class)));

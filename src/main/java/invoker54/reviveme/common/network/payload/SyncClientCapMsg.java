@@ -21,11 +21,6 @@ public record SyncClientCapMsg(String uuid, CompoundTag capDataTag) implements C
     public static final StreamCodec<FriendlyByteBuf, SyncClientCapMsg> CODEC =
             StreamCodec.of(SyncClientCapMsg::encode, SyncClientCapMsg::new);
 
-    public SyncClientCapMsg(String uuid, CompoundTag capDataTag){
-        this.uuid = uuid;
-        this.capDataTag = capDataTag;
-    }
-
     public SyncClientCapMsg(UUID uuid, CompoundTag capDataTag){
         this(uuid.toString(), capDataTag);
     }

@@ -1,6 +1,5 @@
 package invoker54.reviveme.common.potion;
 
-import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenData;
 import net.minecraft.world.effect.MobEffect;
@@ -15,11 +14,9 @@ import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 
 import java.awt.*;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FallenPotionEffect extends MobEffect {
     public static final int effectColor = new Color(35, 5, 5,255).getRGB();
-    public static ModLogger LOGGER = ModLogger.getLogger(new AtomicBoolean(true));
 
     public FallenPotionEffect(MobEffectCategory category){
         super(category, effectColor);
@@ -54,8 +51,7 @@ public class FallenPotionEffect extends MobEffect {
             FallenData cap = FallenData.get(player);
             if (cap.isFallen()) return;
 
-            cap.setSacrificedItemsUsed(false);
-            cap.setReviveChanceUsed(false);
+            cap.resetSelfReviveCount();
             cap.setPenaltyMultiplier(0);
         }
 

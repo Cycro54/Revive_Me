@@ -2,6 +2,7 @@ package invoker54.reviveme.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
+import invoker54.invocore.client.util.InvoText;
 import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.event.FallenTimerEvent;
 import invoker54.reviveme.init.NetworkInit;
@@ -39,12 +40,12 @@ public class ReviveCommand {
         if (caller.isDeadOrDying() || !cap.isFallen()){
 
             caller.server.getPlayerList().broadcastSystemMessage(
-                    caller.getDisplayName().copy().append(Component.translatable("revive-me.commands.revive_fail")), false);
+                    caller.getDisplayName().copy().append(Component.translatable("revive_me.commands.revive_fail")), false);
             return 1;
         }
         if (caller.isDeadOrDying() || !cap.isFallen()){
-            NetworkInit.sendMessage(caller.getDisplayName().copy().append(Component.translatable("revive-me.commands.revive_fail")),
-                    true, caller);
+            InvoText failTxt = InvoText.translate("revive_me.commands.revive_fail", caller.getDisplayName());
+            NetworkInit.sendMessage(failTxt.getText(), true, caller);
             return 1;
         }
 
