@@ -404,8 +404,8 @@ public final class ReviveMeConfig {
 
             builder.push("General Settings");
             List<String> defaultSelfReviveList = new ArrayList<>(Arrays.asList(FallenData.SELFREVIVETYPE.SPECIFIC_ITEM.name(), FallenData.SELFREVIVETYPE.RANDOM_ITEMS.name(), FallenData.SELFREVIVETYPE.CHANCE.name(), FallenData.SELFREVIVETYPE.KILL.name(), FallenData.SELFREVIVETYPE.STATUS_EFFECTS.name(), FallenData.SELFREVIVETYPE.EXPERIENCE.name()));
-            selfReviveOptions = builder.comment("List of all your self-revive options (Duplicate options are allowed). Self-revive options refresh from this list when the revive penalty ends.\r OPTIONS: CHANCE, RANDOM_ITEMS, SPECIFIC_ITEM, KILL, STATUS_EFFECTS, EXPERIENCE")
-                    .defineList("SELF_REVIVE_OPTIONS", new ArrayList<>(defaultSelfReviveList), defaultSelfReviveList::contains);
+            selfReviveOptions = builder.comment("List of all your self-revive options (Duplicate options are allowed). Self-revive options refresh from this list when the revive penalty ends.\n OPTIONS: CHANCE, RANDOM_ITEMS, SPECIFIC_ITEM, KILL, STATUS_EFFECTS, EXPERIENCE")
+                    .defineList("SELF_REVIVE_OPTIONS", new ArrayList<>(defaultSelfReviveList), String::new, defaultSelfReviveList::contains);
             maxSelfRevives = builder.comment("Max self revives (setting to 0 will disable self-revive) (setting to -1 will disable the self-revive max) (In multiplayer self-revive will only be disabled when you reach the max) Refreshes when penalty timer ends.").defineInRange("Max_Self_revives", 3, -1, Integer.MAX_VALUE);
             disableSelfReviveIfPlayerDowned = builder.comment("If self-revive should be disabled if a player places you in the fallen state").define("Disable_Self_Revive_On_PVP", false);
             randomizeSelfReviveOptions = builder.comment("If the chosen self-revive options are picked randomly.").define("Randomize_Self_Revive_Options", true);
