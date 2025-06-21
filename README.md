@@ -10,7 +10,6 @@ Shtuff to do now
 * Fix Language localization issue
 * Add ability to invert certain Config blacklists to whitelists and vice-versa
 * (Config) Option to force self revival to use all self revive options first before refreshing the list.
-* Make 
   
 Shtuff to do later
 * Get the YSM (Yes! Steve Model) mod to work with my mod
