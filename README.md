@@ -1,7 +1,7 @@
 Shtuff to do now
-* Remove the /r in the Self Revive Options list config, causes the config to reload endlessly
-* Remove Instakill Msg
-* Fix double damage death issue with the MythicMobs mod
+* ~~ Remove the /r in the Self Revive Options list config, causes the config to reload endlessly ~~
+* ~~ Remove Instakill Msg ~~
+* ~~ Fix double damage death issue with the MythicMobs mod ~~
 * (Config) Chance will not instantly kill you anymore, instead it will refresh your self revive options.
 * (Config) Option to stop random item sacrifice from taking hotbar items.
 * Fix circle render not rendering correctly for fall screen death timer
