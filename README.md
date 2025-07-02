@@ -13,10 +13,9 @@ Shtuff to do now
 * ~Fix Kill timer not updating correctly~
 * ~Fix player revive not working~
 * (Config) Option to make player glow if they call for help
-* (Config) Option to automatically call for help if downed and not being revived
-* Get the YSM (Yes! Steve Model) mod to work with my mod
-  
+    
 Shtuff to do next large update
+* Get the YSM (Yes! Steve Model) mod to work with my mod
 * ~Fix black background for when witnessing someone revive someone else~
 * Make it so you can change what effects you revive with
 * (Config) Option to stop the premature removal of the fallen penalty timer effect.
@@ -28,3 +27,4 @@ Shtuff to maybe do
 * If more people ask for revive items with customizable options, I might add it: https://github.com/Cycro54/Revive_Me/issues/33
 * Also check this too for revive items: https://github.com/Cycro54/Revive_Me/issues/35
 * Add stats to statistic page for Revive me
+* (Config) If your timer runs out, instead of outright dying, you will be targetable by mobs.
