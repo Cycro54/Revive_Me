@@ -33,6 +33,9 @@ public abstract class KeyMappingMixin implements Comparable<KeyMapping>, net.min
     @Shadow private InputConstants.Key key;
     @Shadow @Final private static Map<String, KeyMapping> ALL;
     @Shadow @Final private String name;
+
+    @Shadow public abstract boolean matchesMouse(int p_90831_);
+
     @Unique
     private static final ModLogger LOGGERT = ModLogger.getLogger(KeyMappingMixin.class, ReviveMeConfig.debugMode);
 
@@ -119,6 +122,54 @@ public abstract class KeyMappingMixin implements Comparable<KeyMapping>, net.min
             return this.key;
         }
         return InputConstants.Type.KEYSYM.getOrCreate(-1);
+    }
+
+    @Inject(
+            method = "matchesMouse",
+            at = {
+                    @At(value = "HEAD")
+            },
+            cancellable = true)
+    private void matchesMouse(int keyValue, CallbackInfoReturnable<Boolean> cir){
+        if (ClientUtil.getWorld() == null) return;
+        if (ClientUtil.getPlayer() == null) return;
+        FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
+        if (!cap.isFallen()) return;
+
+        KeyMapping keybinding = ALL.get(this.name);
+        if (keybinding == null) return;
+
+        for (String s : ReviveMeConfig.allowedKeybinds){
+            if (s.isEmpty()) continue;
+            if (!this.getName().contains(s)) continue;
+            return;
+        }
+
+        if (!revive_Me_1_16_5$shouldPass(keybinding)) cir.setReturnValue(false);
+    }
+
+    @Inject(
+            method = "matches",
+            at = {
+                    @At(value = "HEAD")
+            },
+            cancellable = true)
+    private void matches(int scanCode, int keyValue, CallbackInfoReturnable<Boolean> cir){
+        if (ClientUtil.getWorld() == null) return;
+        if (ClientUtil.getPlayer() == null) return;
+        FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
+        if (!cap.isFallen()) return;
+
+        KeyMapping keybinding = ALL.get(this.name);
+        if (keybinding == null) return;
+
+        for (String s : ReviveMeConfig.allowedKeybinds){
+            if (s.isEmpty()) continue;
+            if (!this.getName().contains(s)) continue;
+            return;
+        }
+
+        if (!revive_Me_1_16_5$shouldPass(keybinding)) cir.setReturnValue(false);
     }
 
     @Inject(

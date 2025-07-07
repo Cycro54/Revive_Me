@@ -1,5 +1,7 @@
 package invoker54.reviveme.common.network.message;
 
+import invoker54.invocore.client.util.ClientUtil;
+import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.common.capability.FallenCapability;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -44,7 +46,13 @@ public class SyncClientCapMsg {
                 Player player = world.getPlayerByUUID(UUID.fromString(key));
                 if (player == null) continue;
 
-                FallenCapability.GetFallCap(player).readNBT(nbt.get(key));
+                FallenCapability cap = FallenCapability.GetFallCap(player);
+
+                cap.readNBT(nbt.get(key));
+                if (player == ClientUtil.getPlayer() && cap.isFallen()){
+                    VanillaKeybindHandler.useHeld = false;
+                    VanillaKeybindHandler.attackHeld = false;
+                }
             }
         });
         context.setPacketHandled(true);

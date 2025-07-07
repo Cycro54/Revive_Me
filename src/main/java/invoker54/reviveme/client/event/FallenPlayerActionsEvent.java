@@ -55,6 +55,7 @@ public class FallenPlayerActionsEvent {
             if (timeHeld == 40) NetworkHandler.INSTANCE.sendToServer(new SelfReviveMsg(1));
         }
 
+        timeHeld = Math.min(timeHeld, 41);
 
     }
 

@@ -32,8 +32,8 @@ public class FallEvent {
 
         instance.refreshSelfReviveTypes(player);
 
-        if (!instance.canSelfRevive() &&
-                (player.getServer() == null || (player.getServer() != null && player.getServer().getPlayerCount() < 1))) return false;
+        if (!instance.canSelfRevive() && ((!player.getServer().isDedicatedServer() &&
+                player.getServer().getPlayerCount() == 1))) return false;
 
 //        LOGGER.info("Are they fallen? " + instance.isFallen());
         if (!instance.isFallen()) {

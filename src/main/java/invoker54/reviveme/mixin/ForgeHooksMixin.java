@@ -17,6 +17,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.network.PacketDistributor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -68,8 +69,7 @@ public abstract class ForgeHooksMixin {
         nbt.put(player.getStringUUID(), myCap.writeNBT());
         nbt.put(targPlayer.getStringUUID(), targCap.writeNBT());
 
-        NetworkHandler.sendToPlayer(targPlayer, new SyncClientCapMsg(nbt));
-        NetworkHandler.sendToPlayer(player, new SyncClientCapMsg(nbt));
+        NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> targPlayer), new SyncClientCapMsg(nbt));
 
         cir.setReturnValue(InteractionResult.FAIL);
     }
@@ -85,9 +85,14 @@ public abstract class ForgeHooksMixin {
     private static void onLivingDeath(LivingEntity entity, DamageSource src, CallbackInfoReturnable<Boolean> cir){
         if (!(entity instanceof ServerPlayer)) return;
         if ((((ServerPlayer) entity).gameMode.getGameModeForPlayer() == GameType.CREATIVE)) return;
+
         boolean cancelled;
 
-        if (ReviveMeConfig.runDeathEventFirst){
+        if (!FallenCapability.GetFallCap(entity).canDie()){
+            entity.setHealth(1);
+            cancelled = true;
+        }
+        else if (ReviveMeConfig.runDeathEventFirst){
             cancelled = MinecraftForge.EVENT_BUS.post(new LivingDeathEvent(entity, src));
             if (!cancelled) cancelled = FallEvent.cancelEvent((Player) entity, src);
         }
