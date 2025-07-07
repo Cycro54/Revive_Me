@@ -80,7 +80,7 @@ public class FallScreenEvent {
     private static final InvoText waitText = InvoText.translate("fallenScreen.wait_text");
     private static final InvoText forceDeathText = InvoText.translate("fallenScreen.force_death_text");
     private static final InvoText cantForceDeathText = InvoText.translate("fallenScreen.cant_force_death_text");
-    private static final DecimalFormat df = new DecimalFormat("0.0");
+    private static final DecimalFormat df = new DecimalFormat("0.00");
     private static final int greenColor = new Color(39, 235, 86, 255).getRGB();
     private static final int whiteColor = new Color(255, 255, 255, 255).getRGB();
     private static final int blackFadeColor = new Color(0, 0, 0, 71).getRGB();
@@ -160,7 +160,7 @@ public class FallScreenEvent {
 
         forceDeathTextResult = forceDeathTextResult.setArgs(
                 InvoText.literal(VanillaKeybindHandler.getKey(inst.options.keyAttack).getDisplayName().getString()).getText(),
-                df.format(2 - (FallenPlayerActionsEvent.timeHeld / 20f)));
+                RenderFallPlateEvent.df.format(2 - (FallenPlayerActionsEvent.timeHeld / 20f)));
         InvoZone forceDeathTextZone = waitTextZone.copy().setY(waitTextZone.down() + 17).setWidth(workZone.width()).centerX(waitTextZone.middleX());
         TextUtil.renderText(stack, forceDeathTextResult.getText(), true, 1, forceDeathTextZone, TextUtil.txtAlignment.MIDDLE);
 
@@ -406,6 +406,7 @@ public class FallScreenEvent {
 
                 mainZone.setHeight(mainZone.height()/cap.getNegativeStatusEffects().size());
                 for (Effect effect : cap.getNegativeStatusEffects()){
+                    if (effect == null) continue;
                     TextureAtlasSprite sprite = potionspriteuploader.get(effect);
                     ClientUtil.Image effectIMG = new ClientUtil.Image(sprite.atlas().location(), sprite.getU0(),
                              (sprite.getU1()-sprite.getU0()),  sprite.getV0(),

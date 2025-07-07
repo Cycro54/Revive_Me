@@ -32,8 +32,8 @@ public class FallEvent {
 
         instance.refreshSelfReviveTypes(player);
 
-        if (!instance.canSelfRevive() &&
-                (player.getServer() == null || (player.getServer() != null && player.getServer().getPlayerCount() < 1))) return false;
+        if (!instance.canSelfRevive() && ((!player.getServer().isDedicatedServer() &&
+                player.getServer().getPlayerCount() == 1))) return false;
 
 //        LOGGER.info("Are they fallen? " + instance.isFallen());
         if (!instance.isFallen()) {
@@ -86,7 +86,6 @@ public class FallEvent {
 
             //System.out.println("Am I fallen?: " + FallenCapability.GetFallCap(player).isFallen());
             if (instance.getOtherPlayer() != null) {
-
                 PlayerEntity otherPlayer = player.level.getPlayerByUUID(instance.getOtherPlayer());
                 if (otherPlayer != null) {
                     FallenCapability otherCap = FallenCapability.GetFallCap(otherPlayer);

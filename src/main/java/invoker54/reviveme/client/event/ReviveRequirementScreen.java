@@ -91,7 +91,7 @@ public class ReviveRequirementScreen {
 
         if (ReviveMeConfig.penaltyType == FallenCapability.PENALTYPE.ITEM) {
             ItemStack penaltyStack = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(ReviveMeConfig.penaltyItem)));
-            penaltyStack.deserializeNBT(ReviveMeConfig.penaltyItemData);
+            penaltyStack.getOrCreateTag().merge(ReviveMeConfig.penaltyItemData);
             ClientUtil.blitItem(stack, chosenZone, penaltyStack);
         }
         if (chosenImg != null) {chosenImg.render(stack);}

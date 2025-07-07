@@ -56,7 +56,7 @@ public class ReviveScreenEvent {
         //progress bar background
         ClientUtil.blitColor(stack, barZone, bgColor);
 
-        float progress = Math.min(cap.getProgress(), 1);
+        float progress = cap.getProgress(true);
 
         //System.out.println(progress);
 
