@@ -131,7 +131,7 @@ public class FallenTimerEvent {
                     break;
                 case ITEM: {
                     ItemStack penaltyStack = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(ReviveMeConfig.penaltyItem)));
-                    penaltyStack.getOrCreateTag().merge(ReviveMeConfig.penaltyItemData);
+                    if (!ReviveMeConfig.penaltyItemData.isEmpty()) penaltyStack.getOrCreateTag().merge(ReviveMeConfig.penaltyItemData);
                     PlayerInventory playerInv = reviver.inventory;
                     for (int a = 0; a < playerInv.getContainerSize(); a++) {
                         ItemStack currStack = playerInv.getItem(a);

@@ -461,6 +461,7 @@ public final class ReviveMeConfig {
             specificItem = builder.comment("Item that you wish to sacrifice. Usage: MODID:ITEM").define("Item_ID", "minecraft:golden_apple");
             specificItemCount = builder.comment("How much of the specific item is needed.").defineInRange("Item_Count", 3, 0, Integer.MAX_VALUE);
             specificItemData = builder.comment("NBT Data for the specific item (Don't forget the curly brackets! {})").define("Item_Data", "{}", s -> {
+                        if (s == null) return false;
                         if (s.equals("{}")) return true;
                         try {
                             return !(JsonToNBT.parseTag((String) s)).isEmpty();
@@ -539,6 +540,7 @@ public final class ReviveMeConfig {
             penaltyAmount = builder.comment("Amount that will be taken from reviver, Numbers below 1 and greater than 0 will turn it into a percentage").define("Penalty_Amount", 10D);
             penaltyItem = builder.comment("Item used to revive fallen players (Only if you selected ITEM as penalty type). Usage: MODID:ITEM").define("Revive_Item", "minecraft:golden_apple");
             penaltyItemData = builder.comment("Item data used to revive fallen players (Only if you selected ITEM as penalty type) (Don't forget the curly brackets! {}).").define("Revive_Item_Data", "{}", s -> {
+                        if (s == null) return false;
                         if (s.equals("{}")) return true;
                         try {
                             return !(JsonToNBT.parseTag((String) s)).isEmpty();
