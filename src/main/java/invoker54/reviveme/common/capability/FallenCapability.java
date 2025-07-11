@@ -16,7 +16,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -31,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class FallenCapability {
     private static final ModLogger LOGGER = ModLogger.getLogger(FallenCapability.class, ReviveMeConfig.debugMode);
@@ -148,7 +146,7 @@ public class FallenCapability {
             case FOOD: return (reviver.getFoodData().getFoodLevel() + Math.max(reviver.getFoodData().getSaturationLevel(), 0));
             case ITEM:{
                 ItemStack penaltyStack = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(ReviveMeConfig.penaltyItem)));
-                penaltyStack.getOrCreateTag().merge(ReviveMeConfig.penaltyItemData);
+                if (!ReviveMeConfig.penaltyItemData.isEmpty()) penaltyStack.getOrCreateTag().merge(ReviveMeConfig.penaltyItemData);
                 int count = 0;
                 for (int a = 0; a < reviver.getInventory().getContainerSize(); a++){
                     ItemStack containerStack = reviver.getInventory().getItem(a);
@@ -283,8 +281,8 @@ public class FallenCapability {
                 else if (!ReviveMeConfig.reviveChanceKillOnFail){
                     player.level.playSound(null, player.blockPosition(), SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, MathUtil.randomFloat(0.7F,1.0F), MathUtil.randomFloat(0.8F,1.0F));
 
-                    if (!this.canSelfRevive() &&
-                            (player.getServer() == null || (player.getServer() != null && player.getServer().getPlayerCount() < 1))) break;
+                    if (!this.canSelfRevive() && ((!player.getServer().isDedicatedServer() &&
+                            player.getServer().getPlayerCount() == 1))) break;
 
                     refreshSelfReviveTypes(player);
 
@@ -324,7 +322,7 @@ public class FallenCapability {
                     FallenTimerEvent.revivePlayer(player, false);
                     int amountLeft = specificPair.getKey();
                     ItemStack defaultStack = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(ReviveMeConfig.specificItem)));
-                    defaultStack.getOrCreateTag().merge(ReviveMeConfig.specificItemData);
+                    if (!ReviveMeConfig.specificItemData.isEmpty()) defaultStack.getOrCreateTag().merge(ReviveMeConfig.specificItemData);
 
                     for (int a = 0; a < playerInv.getContainerSize(); a++) {
                         ItemStack containerStack = playerInv.getItem(a);
@@ -422,7 +420,7 @@ public class FallenCapability {
 
     public Pair<Integer, List<ItemStack>> getSpecificItem(Player player){
         ItemStack defaultStack = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(ReviveMeConfig.specificItem)));
-        defaultStack.getOrCreateTag().merge(ReviveMeConfig.specificItemData);
+        if (!ReviveMeConfig.specificItemData.isEmpty()) defaultStack.getOrCreateTag().merge(ReviveMeConfig.specificItemData);
         Inventory playerInv = player.getInventory();
 
         List<ItemStack> stackList = new ArrayList<>();
