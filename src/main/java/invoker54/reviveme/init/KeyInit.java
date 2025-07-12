@@ -2,7 +2,9 @@ package invoker54.reviveme.init;
 
 import invoker54.invocore.client.keybind.CustomKeybind;
 import invoker54.invocore.client.keybind.KeybindsInit;
+import invoker54.invocore.client.util.ClientUtil;
 import invoker54.invocore.common.ModLogger;
+import invoker54.invocore.common.util.MathUtil;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
@@ -26,15 +28,15 @@ public class KeyInit {
         callForHelpKey = KeybindsInit.addBind(new CustomKeybind("callForHelpKey", GLFW.GLFW_KEY_R, ReviveMe.MOD_ID,
                 (action) -> {
                     if (action != GLFW.GLFW_PRESS) return;
-                    if (invoker54.invocore.client.util.ClientUtil.mC.screen != null) return;
-                    FallenCapability cap = FallenCapability.GetFallCap(invoker54.invocore.client.util.ClientUtil.getPlayer());
+                    if (ClientUtil.mC.screen != null) return;
+                    FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
                     if (!cap.isFallen()) return;
                     if (cap.callForHelpCooldown() < 1) return;
 
-                    float pitch = invoker54.invocore.common.util.MathUtil.randomFloat(0.8F, 1.0F);
+                    float pitch = MathUtil.randomFloat(0.8F, 1.0F);
                     float volume = 4;
 
-                    invoker54.invocore.client.util.ClientUtil.getPlayer().playSound(SoundInit.CALL_FOR_HELP, volume, pitch);
+                    ClientUtil.getPlayer().playSound(SoundInit.CALL_FOR_HELP, volume, pitch);
 
                     NetworkHandler.INSTANCE.sendToServer(new CallForHelpMsg());
                 }));

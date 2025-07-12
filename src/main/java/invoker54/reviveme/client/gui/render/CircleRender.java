@@ -54,6 +54,7 @@ public class CircleRender {
         //Setting up the render system
         BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
         RenderSystem.disableCull();
+        RenderSystem.disableDepthTest();
         RenderSystem.enableBlend();
         RenderSystem.disableTexture();
         RenderSystem.defaultBlendFunc();
@@ -84,6 +85,7 @@ public class CircleRender {
         RenderSystem.enableTexture();
         RenderSystem.disableBlend();
         RenderSystem.enableCull();
+        RenderSystem.enableDepthTest();
         stack.popPose();
 
 //        Matrix4f lastPos = stack.last().pose();

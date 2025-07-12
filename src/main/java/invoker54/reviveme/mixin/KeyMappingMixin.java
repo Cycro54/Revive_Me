@@ -55,9 +55,9 @@ public abstract class KeyMappingMixin implements Comparable<KeyMapping>, net.min
     private static void set(InputConstants.Key input, boolean isDown, CallbackInfo ci) {
         if (ClientUtil.getWorld() == null) return;
         if (ClientUtil.getPlayer() == null) return;
-        if (VanillaKeybindHandler.getKey(invoker54.invocore.client.util.ClientUtil.mC.options.keyUse).equals(input))
+        if (VanillaKeybindHandler.getKey(ClientUtil.mC.options.keyUse).equals(input))
             VanillaKeybindHandler.useHeld = isDown;
-        if (VanillaKeybindHandler.getKey(invoker54.invocore.client.util.ClientUtil.mC.options.keyAttack).equals(input))
+        if (VanillaKeybindHandler.getKey(ClientUtil.mC.options.keyAttack).equals(input))
             VanillaKeybindHandler.attackHeld = isDown;
         FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
         if (!cap.isFallen()) return;
@@ -77,9 +77,9 @@ public abstract class KeyMappingMixin implements Comparable<KeyMapping>, net.min
         Player player = ClientUtil.getPlayer();
 
         boolean isVanilla = VanillaKeybindHandler.isVanillaKeybind(keybinding);
-        boolean isKeyInventory = keybinding == invoker54.invocore.client.util.ClientUtil.mC.options.keyInventory;
-        boolean isKeyDrop = keybinding == invoker54.invocore.client.util.ClientUtil.mC.options.keyDrop;
-        boolean isKeySwapOffhand = keybinding == invoker54.invocore.client.util.ClientUtil.mC.options.keySwapOffhand;
+        boolean isKeyInventory = keybinding == ClientUtil.mC.options.keyInventory;
+        boolean isKeyDrop = keybinding == ClientUtil.mC.options.keyDrop;
+        boolean isKeySwapOffhand = keybinding == ClientUtil.mC.options.keySwapOffhand;
         boolean isSwapOrDrop = isKeyDrop || isKeySwapOffhand;
         ItemStack mainStack = player.getMainHandItem();
         boolean isSacrificialItem = FallenCapability.GetFallCap(player).isSacrificialItem(mainStack);
@@ -114,9 +114,9 @@ public abstract class KeyMappingMixin implements Comparable<KeyMapping>, net.min
     @Nonnull
     @Override
     public InputConstants.Key getKey() {
-        if (invoker54.invocore.client.util.ClientUtil.getWorld() == null) return this.key;
+        if (ClientUtil.getWorld() == null) return this.key;
         if (VanillaKeybindHandler.overrideKeyblock) return this.key;
-        Player player = invoker54.invocore.client.util.ClientUtil.getPlayer();
+        Player player = ClientUtil.getPlayer();
         FallenCapability cap = FallenCapability.GetFallCap(player);
 
         if (!cap.isFallen()) return this.key;
@@ -129,6 +129,54 @@ public abstract class KeyMappingMixin implements Comparable<KeyMapping>, net.min
             return this.key;
         }
         return InputConstants.Type.KEYSYM.getOrCreate(-1);
+    }
+
+    @Inject(
+            method = "matchesMouse",
+            at = {
+                    @At(value = "HEAD")
+            },
+            cancellable = true)
+    private void matchesMouse(int keyValue, CallbackInfoReturnable<Boolean> cir){
+        if (ClientUtil.getWorld() == null) return;
+        if (ClientUtil.getPlayer() == null) return;
+        FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
+        if (!cap.isFallen()) return;
+
+        KeyMapping keybinding = ALL.get(this.name);
+        if (keybinding == null) return;
+
+        for (String s : ReviveMeConfig.allowedKeybinds){
+            if (s.isEmpty()) continue;
+            if (!this.getName().contains(s)) continue;
+            return;
+        }
+
+        if (!revive_Me_1_16_5$shouldPass(keybinding)) cir.setReturnValue(false);
+    }
+
+    @Inject(
+            method = "matches",
+            at = {
+                    @At(value = "HEAD")
+            },
+            cancellable = true)
+    private void matches(int scanCode, int keyValue, CallbackInfoReturnable<Boolean> cir){
+        if (ClientUtil.getWorld() == null) return;
+        if (ClientUtil.getPlayer() == null) return;
+        FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
+        if (!cap.isFallen()) return;
+
+        KeyMapping keybinding = ALL.get(this.name);
+        if (keybinding == null) return;
+
+        for (String s : ReviveMeConfig.allowedKeybinds){
+            if (s.isEmpty()) continue;
+            if (!this.getName().contains(s)) continue;
+            return;
+        }
+
+        if (!revive_Me_1_16_5$shouldPass(keybinding)) cir.setReturnValue(false);
     }
 
     @Inject(
