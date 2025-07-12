@@ -1,7 +1,6 @@
 package invoker54.reviveme.client.event;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import invoker54.invocore.client.util.ClientUtil;
 import invoker54.invocore.client.util.InvoText;
@@ -88,6 +87,9 @@ public class FallScreenEvent {
 
     //Translation text for self revive
     private static final String fallenDirectory = "revive-me.fallenScreen.self_revive.";
+
+    private static final InvoText selfDestructTxt1 = InvoText.translate(fallenDirectory+"self_destruct_1");
+    private static final InvoText selfDestructTxt2 = InvoText.translate(fallenDirectory+"self_destruct_2").withStyle(true, ChatFormatting.RED);
     private static final InvoText chanceTxt = InvoText.translate(fallenDirectory+"chance_1");
     private static final InvoText randomItemFalseTxt = InvoText.translate(fallenDirectory+"random_items.false_1");
     private static final InvoText randomItemTxt = InvoText.translate(fallenDirectory+"random_items_1");
@@ -246,10 +248,11 @@ public class FallScreenEvent {
     }
 
     public static void renderReviveOption(int mouseButton, PoseStack stack, InvoZone workZone, FallenCapability cap, boolean beingHeld) {
+        boolean shouldPass = true;
         ClientUtil.blitColor(stack, workZone, blackFadeColor);
         InvoZone headerZone = workZone.copy().splitHeight(4, 1);
         InvoZone mainZone = workZone.copy().setY(headerZone.down()).setHeight(workZone.height()-headerZone.height());
-        InvoZone greenZone = mainZone.copy();
+        InvoZone progressZone = mainZone.copy();
         InvoText chosenTxt = null;
         FallenCapability.SELFREVIVETYPE selfReviveType = cap.getSelfReviveOption(mouseButton);
         ClientUtil.blitColor(stack, mainZone, new Color(0, 0, 0, 128).getRGB());
@@ -258,11 +261,14 @@ public class FallScreenEvent {
             case CHANCE: {
                 chosenTxt = chanceTxt;
                 int reviveChance = (int) (100*Float.parseFloat(df.format(Math.max(0, ReviveMeConfig.reviveChance*(1 - cap.getSelfPenaltyPercentage())))));
+                shouldPass = reviveChance > 0;
                 InvoText chanceNumberTxt =
                         InvoText.literal(reviveChance+"%")
-                                .withStyle(true,ChatFormatting.BOLD, (reviveChance <= 0 ? ChatFormatting.RED : ChatFormatting.GOLD));
+                                .withStyle(true,ChatFormatting.BOLD, (shouldPass ? ChatFormatting.GOLD : ChatFormatting.RED));
 
-                TextUtil.renderText(stack, chanceNumberTxt.getText(), true, 1, mainZone.copy().inflate(-4,0), TextUtil.txtAlignment.MIDDLE);
+                TextUtil.renderText(stack, chanceNumberTxt.getText(), true, 1, mainZone.copy()
+                        .splitHeight(6,4f).centerY(mainZone.middleY())
+                        .inflate(-12,0), TextUtil.txtAlignment.MIDDLE);
                 break;
             }
             case RANDOM_ITEMS: {
@@ -271,6 +277,7 @@ public class FallScreenEvent {
 
                 ArrayList<ItemStack> itemArrayList = cap.getItemList();
                 if (itemArrayList.isEmpty()){
+                    shouldPass = false;
                     TextUtil.renderText(stack, randomItemFalseTxt.withStyle(true,ChatFormatting.RED).getText(),
                             true, 0, mainZone.inflate(-4,-4), TextUtil.txtAlignment.MIDDLE);
                     break;
@@ -321,8 +328,7 @@ public class FallScreenEvent {
                 InvoZone countZone = itemZone.copy().setY(itemZone.down()).setHeight(mainZone.down()-itemZone.down())
                         .setWidth(mainZone.width()).setX(mainZone.x());
 
-                InvoText badText = InvoText.translate("revive-me.fallenScreen.self_revive.specific_item.false_1")
-                        .withStyle(true,ChatFormatting.RED, ChatFormatting.BOLD);
+                InvoText badText = specificItemFalseTxt.withStyle(true,ChatFormatting.RED, ChatFormatting.BOLD);
 
                 if (itemPair.getKey() >= ReviveMeConfig.specificItemCount) {
                     Inventory inventory = getPlayer().getInventory();
@@ -347,6 +353,7 @@ public class FallScreenEvent {
                             true, 1, countZone.setX(countZone.right()).copy().inflate(-4,-4), TextUtil.txtAlignment.MIDDLE);
                 }
                 else {
+                    shouldPass = false;
 //                    ClientUtil.blitItem(stack, itemZone, itemPair.getRight().get(0));
 //                    ClientUtil.blitColor(stack, mainZone, new Color(0,0,0,230).getRGB());
                     mainZone.splitHeight(2,1);
@@ -355,13 +362,15 @@ public class FallScreenEvent {
                             mainZone.copy().inflate(-4,-2), TextUtil.txtAlignment.MIDDLE);
 
                     mainZone.setY(mainZone.down());
-                    mainZone.splitHeight(2,1);
+                    if (ReviveMeConfig.showSpecificItemName) mainZone.splitHeight(2,1);
 
                     ClientUtil.blitItem(stack, mainZone.copy().setWidth(mainZone.height()).centerX(mainZone.middleX()), itemPair.getRight().get(0));
-                    InvoText itemNameTxt = InvoText.component((MutableComponent) itemPair.getRight().get(0)
-                            .getDisplayName()).withStyle(false, ChatFormatting.BOLD);
-                    TextUtil.renderText(stack, itemNameTxt.getText(), true, 1, mainZone.setY(mainZone.down())
-                            .inflate(-4,-4), TextUtil.txtAlignment.MIDDLE);
+                    if (ReviveMeConfig.showSpecificItemName){
+                        InvoText itemNameTxt = InvoText.component((MutableComponent) itemPair.getRight().get(0)
+                                .getDisplayName()).withStyle(false, ChatFormatting.BOLD);
+                        TextUtil.renderText(stack, itemNameTxt.getText(), true, 1, mainZone.setY(mainZone.down())
+                                .inflate(-4,-4), TextUtil.txtAlignment.MIDDLE);
+                    }
                 }
                 break;
             }
@@ -445,7 +454,6 @@ public class FallScreenEvent {
 
                 InvoZone itemZone = mainZone.copy().splitHeight(4, 3);
                 itemZone.inflate(Math.min((itemZone.height()-itemZone.width())/2, 0), Math.min((itemZone.width()-itemZone.height())/2,0));
-
                 ClientUtil.blitItem(stack, itemZone.inflate(-5,-5),
                         new ItemStack(Items.EXPERIENCE_BOTTLE));
 
@@ -463,7 +471,7 @@ public class FallScreenEvent {
                             .getText(), true, 1, mainZone.copy().inflate(-2, -2), TextUtil.txtAlignment.MIDDLE);
                 }
                 else {
-                    RenderSystem.defaultBlendFunc();
+                    shouldPass = false;
                     ClientUtil.blitColor(stack, mainZone, new Color(0,0,0,230).getRGB());
                     TextUtil.renderText(stack, experienceFalseTxt.setArgs(InvoText.literal(""+ReviveMeConfig.minReviveXPLevel)
                                             .withStyle(true,ChatFormatting.GREEN, ChatFormatting.BOLD).getText())
@@ -474,16 +482,27 @@ public class FallScreenEvent {
             }
         }
 
+        if (!shouldPass) ClientUtil.blitColor(stack, progressZone, blackFadeColor);
+
         if (beingHeld) {
-            float fillPercent = MathUtil.lerp((FallenPlayerActionsEvent.timeHeld / 40F), 0, greenZone.height());
-            ClientUtil.blitColor(stack, greenZone.copy().setHeight(fillPercent).mirrorY(greenZone.middleY()),
-                    new Color(117, 243, 54, 216).getRGB());
+            int progressColor = shouldPass ? new Color(117, 243, 54, 216).getRGB() : new Color(243, 60, 54, 216).getRGB();
+            float fillPercent = MathUtil.lerp((FallenPlayerActionsEvent.timeHeld / 40F), 0, progressZone.height());
+            ClientUtil.blitColor(stack, progressZone.copy().setHeight(fillPercent).mirrorY(progressZone.middleY()), progressColor);
         }
 
         if (chosenTxt != null) {
             InputConstants.Key key = VanillaKeybindHandler.getKey(mouseButton == 0 ?
                     inst.options.keyAttack : inst.options.keyUse);
-            chosenTxt = chosenTxt.setArgs(InvoText.literal(key.getDisplayName().getString()).withStyle(true,ChatFormatting.BOLD, ChatFormatting.YELLOW).getText());
+            if (shouldPass){
+                chosenTxt = chosenTxt.setArgs(InvoText.literal(key.
+                        getDisplayName().getString()).withStyle(true,ChatFormatting.BOLD, ChatFormatting.YELLOW).getText());
+            }
+            else {
+                chosenTxt = selfDestructTxt1;
+                chosenTxt = chosenTxt.setArgs(InvoText.literal(key.
+                                getDisplayName().getString()).withStyle(true,ChatFormatting.BOLD, ChatFormatting.YELLOW).getText(),
+                        selfDestructTxt2.getText());
+            }
             TextUtil.renderText(stack, chosenTxt.withStyle(true,ChatFormatting.BOLD).getText(), true,3,
                     headerZone.inflate(-2,-3), TextUtil.txtAlignment.MIDDLE);
         }

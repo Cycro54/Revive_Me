@@ -53,6 +53,7 @@ public final class ReviveMeConfig {
     public static Double sacrificialItemPercent;
     public static boolean sacrificialItemTakesHotbar;
     public static String specificItem;
+    public static boolean showSpecificItemName;
     public static Integer specificItemCount;
     public static CompoundTag specificItemData;
     public static Integer reviveKillAmount;
@@ -144,6 +145,7 @@ public final class ReviveMeConfig {
         sacrificialItemPercent = COMMON.sacrificialItemPercent.get();
         sacrificialItemTakesHotbar = COMMON.sacrificialItemTakesHotbar.get();
         specificItem = COMMON.specificItem.get();
+        showSpecificItemName = COMMON.showSpecificItemName.get();
         specificItemCount = COMMON.specificItemCount.get();
         try {
             specificItemData = TagParser.parseTag(COMMON.specificItemData.get());
@@ -227,6 +229,8 @@ public final class ReviveMeConfig {
         mainTag.putDouble("sacrificialItemPercent", sacrificialItemPercent);
         //Specific Item
         mainTag.putString("specificItem", specificItem);
+        //Show Specific Item Name
+        mainTag.putBoolean("showSpecificItemName", showSpecificItemName);
         //Specific Item Count
         mainTag.putInt("specificItemCount", specificItemCount);
         //Specific Item Data
@@ -307,6 +311,8 @@ public final class ReviveMeConfig {
         sacrificialItemPercent = mainTag.getDouble("sacrificialItemPercent");
         //Specific Item
         specificItem = mainTag.getString("specificItem");
+        //Show specific Item Name
+        showSpecificItemName = mainTag.getBoolean("showSpecificItemName");
         //Specific Item Count
         specificItemCount = mainTag.getInt("specificItemCount");
         //Specific Item Data
@@ -392,6 +398,7 @@ public final class ReviveMeConfig {
         public final ForgeConfigSpec.ConfigValue<Double> sacrificialItemPercent;
         public final ForgeConfigSpec.ConfigValue<Boolean> sacrificialItemTakesHotbar;
         public final ForgeConfigSpec.ConfigValue<String> specificItem;
+        public final ForgeConfigSpec.ConfigValue<Boolean> showSpecificItemName;
         public final ForgeConfigSpec.ConfigValue<Integer> specificItemCount;
         public final ForgeConfigSpec.ConfigValue<String> specificItemData;
         public final ForgeConfigSpec.ConfigValue<Integer> reviveKillAmount;
@@ -453,6 +460,7 @@ public final class ReviveMeConfig {
 
             builder.push("Specific Item");
             specificItem = builder.comment("Item that you wish to sacrifice. Usage: MODID:ITEM").define("Item_ID", "minecraft:golden_apple");
+            showSpecificItemName = builder.comment("If the item name should show").define("Show_Item_Name", true);
             specificItemCount = builder.comment("How much of the specific item is needed.").defineInRange("Item_Count", 3, 0, Integer.MAX_VALUE);
             specificItemData = builder.comment("NBT Data for the specific item (Don't forget the curly brackets! {})").define("Item_Data", "{}", s -> {
                         if (s == null) return false;
