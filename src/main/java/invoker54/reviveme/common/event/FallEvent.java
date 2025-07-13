@@ -41,15 +41,14 @@ public class FallEvent {
 
         instance.refreshSelfReviveTypes(player);
 
-        if (!instance.canSelfRevive() &&
-                (player.getServer() == null || (player.getServer() != null && player.getServer().getPlayerCount() < 1)))
-            return false;
+        if (!instance.canSelfRevive() && ((!player.getServer().isDedicatedServer() &&
+                player.getServer().getPlayerCount() == 1))) return false;
 
 //        LOGGER.info("Are they fallen? " + instance.isFallen());
         if (!instance.isFallen()) {
 //            LOGGER.info("MAKING THEM FALLEN");
             NetworkHandler.sendMessage(Component.literal(player.getName().getString())
-                    .append(Component.translatable("revive-me.chat.player_fallen")), false, player);
+                    .append(Component.translatable("revive_me.chat.player_fallen")), false, player);
 
             //Set to fallen state
             instance.setFallen(true);

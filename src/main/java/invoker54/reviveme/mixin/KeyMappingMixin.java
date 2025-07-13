@@ -135,6 +135,54 @@ public abstract class KeyMappingMixin implements Comparable<KeyMapping>, net.min
     }
 
     @Inject(
+            method = "matchesMouse",
+            at = {
+                    @At(value = "HEAD")
+            },
+            cancellable = true)
+    private void matchesMouse(int keyValue, CallbackInfoReturnable<Boolean> cir){
+        if (ClientUtil.getWorld() == null) return;
+        if (ClientUtil.getPlayer() == null) return;
+        FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
+        if (!cap.isFallen()) return;
+
+        KeyMapping keybinding = ALL.get(this.name);
+        if (keybinding == null) return;
+
+        for (String s : ReviveMeConfig.allowedKeybinds){
+            if (s.isEmpty()) continue;
+            if (!this.getName().contains(s)) continue;
+            return;
+        }
+
+        if (!revive_Me_1_16_5$shouldPass(keybinding)) cir.setReturnValue(false);
+    }
+
+    @Inject(
+            method = "matches",
+            at = {
+                    @At(value = "HEAD")
+            },
+            cancellable = true)
+    private void matches(int scanCode, int keyValue, CallbackInfoReturnable<Boolean> cir){
+        if (ClientUtil.getWorld() == null) return;
+        if (ClientUtil.getPlayer() == null) return;
+        FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
+        if (!cap.isFallen()) return;
+
+        KeyMapping keybinding = ALL.get(this.name);
+        if (keybinding == null) return;
+
+        for (String s : ReviveMeConfig.allowedKeybinds){
+            if (s.isEmpty()) continue;
+            if (!this.getName().contains(s)) continue;
+            return;
+        }
+
+        if (!revive_Me_1_16_5$shouldPass(keybinding)) cir.setReturnValue(false);
+    }
+
+    @Inject(
             method = "isDown()Z",
             at = {
                     @At(value = "HEAD")

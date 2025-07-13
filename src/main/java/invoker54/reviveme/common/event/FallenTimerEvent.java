@@ -89,7 +89,7 @@ public class FallenTimerEvent {
         if (cap.getOtherPlayer() == null) return;
 
         //If tick progress finishes, revive the fallen player and take whatever you need to take from the reviver
-        if (cap.getProgress() < 1) return;
+        if (cap.getProgress(true) < 1) return;
 
         //Make sure this person is fallen.
         if (!cap.isFallen()) return;
@@ -131,7 +131,7 @@ public class FallenTimerEvent {
                     break;
                 case ITEM:{
                     ItemStack penaltyStack = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(ReviveMeConfig.penaltyItem)));
-                    penaltyStack.deserializeNBT(ReviveMeConfig.penaltyItemData);
+                    if (!ReviveMeConfig.penaltyItemData.isEmpty()) penaltyStack.getOrCreateTag().merge(ReviveMeConfig.penaltyItemData);
                     Inventory playerInv = reviver.getInventory();
                     for (int a = 0; a < playerInv.getContainerSize(); a++) {
                         ItemStack currStack = playerInv.getItem(a);
@@ -221,7 +221,7 @@ public class FallenTimerEvent {
                 SoundInit.REVIVED, SoundSource.PLAYERS, 1.0F, MathUtil.randomFloat(0.7F, 1.0F));
 
         if (!fallen.level().isClientSide) {
-            InvoText reviveTxt = InvoText.translate("revive-me.commands.revive_pass",
+            InvoText reviveTxt = InvoText.translate("revive_me.commands.revive_pass",
                     fallen.getDisplayName());
             NetworkHandler.sendMessage(reviveTxt.getText(), isCommand, fallen);
 
