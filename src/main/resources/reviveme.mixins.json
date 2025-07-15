@@ -16,7 +16,8 @@
     "LocalPlayerMixin",
     "MinecraftMixin",
     "PlayerRendererMixin",
-    "WidgetMixin"
+    "WidgetMixin",
+    "KeyBindingMapMixin"
   ],
   "injectors": {
     "defaultRequire": 1
