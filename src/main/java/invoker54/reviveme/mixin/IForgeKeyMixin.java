@@ -61,6 +61,36 @@ public abstract class IForgeKeyMixin implements IForgeKeybinding {
 //        if (keybinding == null) ci.cancel();
 //    }
 
+    @Inject(
+            method = "matches",
+            at = {
+                    @At("HEAD")
+            },
+            cancellable = true
+    )
+    private void matches(int keysym, int scancode, CallbackInfoReturnable<Boolean> cir){
+        if (ClientUtil.getWorld() == null) return;
+        if (ClientUtil.getPlayer() == null) return;
+        if (!FallenCapability.GetFallCap(ClientUtil.getPlayer()).isFallen()) return;
+        if (VanillaKeybindHandler.isAllowedKeybind(((KeyBinding)(Object)this))) return;
+        cir.setReturnValue(false);
+    }
+
+    @Inject(
+            method = "matchesMouse",
+            at = {
+                    @At("HEAD")
+            },
+            cancellable = true
+    )
+    private void matchesMouse(int key, CallbackInfoReturnable<Boolean> cir){
+        if (ClientUtil.getWorld() == null) return;
+        if (ClientUtil.getPlayer() == null) return;
+        if (!FallenCapability.GetFallCap(ClientUtil.getPlayer()).isFallen()) return;
+        if (VanillaKeybindHandler.isAllowedKeybind(((KeyBinding)(Object)this))) return;
+        cir.setReturnValue(false);
+    }
+
     @Nonnull
     @Override
     public InputMappings.Input getKey() {

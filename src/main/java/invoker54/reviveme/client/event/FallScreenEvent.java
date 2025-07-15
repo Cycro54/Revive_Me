@@ -268,7 +268,7 @@ public class FallScreenEvent {
         switch (selfReviveType) {
             case CHANCE: {
                 chosenTxt = chanceTxt;
-                int reviveChance = (int) (100*Float.parseFloat(df.format(Math.max(0, ReviveMeConfig.reviveChance*(1 - cap.getSelfPenaltyPercentage())))));
+                int reviveChance = (int) Math.round(100 * (Math.max(0, ReviveMeConfig.reviveChance*(1 - cap.getSelfPenaltyPercentage()))));
                 shouldPass = reviveChance > 0;
                 InvoText chanceNumberTxt =
                         InvoText.literal(reviveChance+"%")

@@ -16,6 +16,8 @@ Shtuff to do now
 * Get the YSM (Yes! Steve Model) mod to work with my mod (1.18.2 and up)
 * ~Fix black background for when witnessing someone revive someone else~
 * ~Fix item data config not working~
+* 1.16.5 and up Fix Keybind mixin issues (I have to check more of the regular methods in the Keybinding class)
+* 1.19.2 and up (Invocore) and Revive Me! need to fix keybind initialization (Make sure the revive me keybind shows up in the controls screen)
     
 Shtuff to do next large update
 * Make it so you can change what effects you revive with

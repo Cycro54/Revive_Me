@@ -80,7 +80,6 @@ public class KeyBindingMapMixin {
 
             matchingBindings.remove(binding);
         }
-        matchingBindings.forEach((bind) -> LOGGERT.debug(bind.getName()));
         cir.setReturnValue(matchingBindings);
     }
 }
