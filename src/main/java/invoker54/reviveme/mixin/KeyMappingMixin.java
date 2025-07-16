@@ -24,162 +24,100 @@ import java.util.Map;
 @Pseudo
 @Mixin(KeyMapping.class)
 public abstract class KeyMappingMixin implements Comparable<KeyMapping>, net.minecraftforge.client.extensions.IForgeKeyMapping {
+    //TODO: Remove all the useless Shadow stuff
     @Shadow
     private int clickCount;
-    @Shadow
-    @Final
-    private static KeyMappingLookup MAP;
-    @Shadow
-    private boolean isDown;
+    @Shadow @Final private static KeyMappingLookup MAP;
+    @Shadow private boolean isDown;
 
-    @Shadow
-    public abstract String getName();
+    @Shadow public abstract String getName();
 
-    @Shadow
-    private InputConstants.Key key;
-    @Shadow
-    @Final
-    private static Map<String, KeyMapping> ALL;
-    @Shadow
-    @Final
-    private String name;
+    @Shadow private InputConstants.Key key;
+    @Shadow @Final private static Map<String, KeyMapping> ALL;
+    @Shadow @Final private String name;
+
+    @Shadow public abstract boolean matchesMouse(int p_90831_);
+
     @Unique
     private static final ModLogger LOGGERT = ModLogger.getLogger(KeyMappingMixin.class, ReviveMeConfig.debugMode);
 
     @Inject(
-            method = "set(Lcom/mojang/blaze3d/platform/InputConstants$Key;Z)V",
+            method = "set",
             at = {
                     @At(value = "HEAD")
             },
             cancellable = true
     )
     private static void set(InputConstants.Key input, boolean isDown, CallbackInfo ci) {
-        Minecraft mC = ClientUtil.getMinecraft();
         if (ClientUtil.getWorld() == null) return;
         if (ClientUtil.getPlayer() == null) return;
-        if (VanillaKeybindHandler.getKey(mC.options.keyUse).equals(input))
-            VanillaKeybindHandler.useHeld = isDown;
-        if (VanillaKeybindHandler.getKey(mC.options.keyAttack).equals(input))
-            VanillaKeybindHandler.attackHeld = isDown;
-        FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
-        if (!cap.isFallen()) return;
-        if (!isDown) return;
-
-        for (KeyMapping keybinding : MAP.getAll(input)) {
-            if (keybinding == null) continue;
-
-            keybinding.setDown(revive_Me_1_16_5$shouldPass(keybinding));
-        }
-        ci.cancel();
-
+        if (VanillaKeybindHandler.getKey(ClientUtil.getMinecraft().options.keyUse).equals(input)) VanillaKeybindHandler.useHeld = isDown;
+        if (VanillaKeybindHandler.getKey(ClientUtil.getMinecraft().options.keyAttack).equals(input)) VanillaKeybindHandler.attackHeld = isDown;
     }
-
-    @Unique
-    private static boolean revive_Me_1_16_5$shouldPass(KeyMapping keybinding) {
-        Player player = ClientUtil.getPlayer();
-        Minecraft mC = ClientUtil.getMinecraft();
-
-        boolean isVanilla = VanillaKeybindHandler.isVanillaKeybind(keybinding);
-        boolean isKeyInventory = keybinding == mC.options.keyInventory;
-        boolean isKeyDrop = keybinding == mC.options.keyDrop;
-        boolean isKeySwapOffhand = keybinding == mC.options.keySwapOffhand;
-        boolean isSwapOrDrop = isKeyDrop || isKeySwapOffhand;
-        ItemStack mainStack = player.getMainHandItem();
-        boolean isSacrificialItem = FallenCapability.GetFallCap(player).isSacrificialItem(mainStack);
-        ReviveMeConfig.INTERACT_WITH_INVENTORY inventoryRule = ReviveMeConfig.interactWithInventory;
-
-        if (!isVanilla) return false;
-        else if (inventoryRule == ReviveMeConfig.INTERACT_WITH_INVENTORY.NO && (isKeyInventory || isSwapOrDrop))
-            return false;
-        else if (inventoryRule == ReviveMeConfig.INTERACT_WITH_INVENTORY.LOOK_ONLY && isSwapOrDrop) return false;
-        else return !isSwapOrDrop || !isSacrificialItem;
-    }
+    //TODO: Remove this later...
+//
+//    @Inject(
+//            method = "click",
+//            at = {
+//                    @At(value = "HEAD")
+//            },
+//            cancellable = true
+//    )
+//    private static void click(InputConstants.Key input, CallbackInfo ci){
+//        if (ClientUtil.getWorld() == null) return;
+//        if (ClientUtil.getPlayer() == null) return;
+//        FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
+//        if (!cap.isFallen()) return;
+//
+//        KeyMapping keybinding = MAP.lookupActive(input);
+//        if (keybinding == null) return;
+//
+//        if (!revive_Me_1_16_5$shouldPass(keybinding)) ci.cancel();
+//    }
 
     @Inject(
-            method = "click",
+            method = "matches",
             at = {
-                    @At(value = "HEAD")
+                    @At("HEAD")
             },
             cancellable = true
     )
-    private static void click(InputConstants.Key input, CallbackInfo ci) {
+    private void matches(int keysym, int scancode, CallbackInfoReturnable<Boolean> cir){
         if (ClientUtil.getWorld() == null) return;
         if (ClientUtil.getPlayer() == null) return;
-        FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
-        if (!cap.isFallen()) return;
+        if (!FallenCapability.GetFallCap(ClientUtil.getPlayer()).isFallen()) return;
+        if (VanillaKeybindHandler.isAllowedKeybind(((KeyMapping)(Object)this))) return;
+        cir.setReturnValue(false);
+    }
 
-        KeyMapping keybinding = MAP.get(input);
-        if (keybinding == null) return;
-
-        if (!revive_Me_1_16_5$shouldPass(keybinding)) ci.cancel();
+    @Inject(
+            method = "matchesMouse",
+            at = {
+                    @At("HEAD")
+            },
+            cancellable = true
+    )
+    private void matchesMouse(int key, CallbackInfoReturnable<Boolean> cir){
+        if (ClientUtil.getWorld() == null) return;
+        if (ClientUtil.getPlayer() == null) return;
+        if (!FallenCapability.GetFallCap(ClientUtil.getPlayer()).isFallen()) return;
+        if (VanillaKeybindHandler.isAllowedKeybind(((KeyMapping)(Object)this))) return;
+        cir.setReturnValue(false);
     }
 
     @Nonnull
     @Override
     public InputConstants.Key getKey() {
         if (ClientUtil.getWorld() == null) return this.key;
+        if (ClientUtil.getPlayer() == null) return this.key;
         if (VanillaKeybindHandler.overrideKeyblock) return this.key;
         Player player = ClientUtil.getPlayer();
         FallenCapability cap = FallenCapability.GetFallCap(player);
 
         if (!cap.isFallen()) return this.key;
-        if (revive_Me_1_16_5$shouldPass(ALL.get(this.name))) return this.key;
-        if (ALL.get(this.name) == KeyInit.callForHelpKey.keyBind) return this.key;
+        if (VanillaKeybindHandler.isAllowedKeybind((KeyMapping) (Object)this)) return this.key;
 
-        for (String s : ReviveMeConfig.allowedKeybinds) {
-            if (s.isEmpty()) continue;
-            if (!this.getName().contains(s)) continue;
-            return this.key;
-        }
         return InputConstants.Type.KEYSYM.getOrCreate(-1);
-    }
-
-    @Inject(
-            method = "matchesMouse",
-            at = {
-                    @At(value = "HEAD")
-            },
-            cancellable = true)
-    private void matchesMouse(int keyValue, CallbackInfoReturnable<Boolean> cir){
-        if (ClientUtil.getWorld() == null) return;
-        if (ClientUtil.getPlayer() == null) return;
-        FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
-        if (!cap.isFallen()) return;
-
-        KeyMapping keybinding = ALL.get(this.name);
-        if (keybinding == null) return;
-
-        for (String s : ReviveMeConfig.allowedKeybinds){
-            if (s.isEmpty()) continue;
-            if (!this.getName().contains(s)) continue;
-            return;
-        }
-
-        if (!revive_Me_1_16_5$shouldPass(keybinding)) cir.setReturnValue(false);
-    }
-
-    @Inject(
-            method = "matches",
-            at = {
-                    @At(value = "HEAD")
-            },
-            cancellable = true)
-    private void matches(int scanCode, int keyValue, CallbackInfoReturnable<Boolean> cir){
-        if (ClientUtil.getWorld() == null) return;
-        if (ClientUtil.getPlayer() == null) return;
-        FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
-        if (!cap.isFallen()) return;
-
-        KeyMapping keybinding = ALL.get(this.name);
-        if (keybinding == null) return;
-
-        for (String s : ReviveMeConfig.allowedKeybinds){
-            if (s.isEmpty()) continue;
-            if (!this.getName().contains(s)) continue;
-            return;
-        }
-
-        if (!revive_Me_1_16_5$shouldPass(keybinding)) cir.setReturnValue(false);
     }
 
     @Inject(
@@ -195,11 +133,10 @@ public abstract class KeyMappingMixin implements Comparable<KeyMapping>, net.min
         if (player == null) return;
         FallenCapability cap = FallenCapability.GetFallCap(player);
 
-        KeyMapping keyBinding = ALL.get(this.name);
+        KeyMapping keyBinding = ((KeyMapping)(Object)this);
         if (cap.isFallen()) {
-            if (!revive_Me_1_16_5$shouldPass(keyBinding)) cir.setReturnValue(false);
-            if ((!ReviveMeConfig.canMove && VanillaKeybindHandler.isMovementKeybind(keyBinding)))
-                cir.setReturnValue(false);
+            if (!VanillaKeybindHandler.isAllowedKeybind(keyBinding)) cir.setReturnValue(false);
+            if ((!ReviveMeConfig.canMove && VanillaKeybindHandler.isMovementKeybind(keyBinding))) cir.setReturnValue(false);
 
             //This is for jumping
             if (keyBinding.equals(ClientUtil.getMinecraft().options.keyJump)) {
@@ -211,6 +148,7 @@ public abstract class KeyMappingMixin implements Comparable<KeyMapping>, net.min
                         return;
                     case NO:
                         cir.setReturnValue(false);
+                        return;
                 }
             }
         }

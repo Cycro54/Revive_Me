@@ -470,7 +470,8 @@ public class FallenCapability {
         ArrayList<ItemStack> playerItems = new ArrayList<>();
         for (int a = 0; a < inventory.items.size(); a++) {
             if (!ReviveMeConfig.sacrificialItemTakesHotbar && (a < 9 || a == 40)) continue;
-            ItemStack newStack = inventory.getItem(a);            if (!newStack.isStackable()) continue;
+            ItemStack newStack = inventory.getItem(a);
+            if (!newStack.isStackable()) continue;
             if (specificPair.getValue().contains(newStack)) continue;
             if (playerItems.stream().anyMatch(listStack ->
                     ItemStack.isSameItem(newStack, listStack) && ItemStack.isSameItemSameTags(newStack, listStack))) continue;

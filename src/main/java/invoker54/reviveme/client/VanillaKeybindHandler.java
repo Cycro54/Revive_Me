@@ -2,8 +2,13 @@ package invoker54.reviveme.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import invoker54.invocore.client.util.ClientUtil;
+import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.config.ReviveMeConfig;
+import invoker54.reviveme.init.KeyInit;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Options;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -48,5 +53,34 @@ public class VanillaKeybindHandler {
         InputConstants.Key key = keyBinding.getKey();
         overrideKeyblock = false;
         return key;
+    }
+
+    public static boolean isAllowedKeybind(KeyMapping keybinding){
+        Player player = ClientUtil.getPlayer();
+        if (keybinding == KeyInit.callForHelpKey.keyBind) return true;
+
+        boolean isVanilla = VanillaKeybindHandler.isVanillaKeybind(keybinding);
+        boolean isKeyInventory = keybinding == ClientUtil.getMinecraft().options.keyInventory;
+        boolean isKeyDrop = keybinding == ClientUtil.getMinecraft().options.keyDrop;
+        boolean isKeySwapOffhand = keybinding == ClientUtil.getMinecraft().options.keySwapOffhand;
+        boolean isSwapOrDrop = isKeyDrop || isKeySwapOffhand;
+        ItemStack mainStack = player.getMainHandItem();
+        boolean isSacrificialItem = FallenCapability.GetFallCap(player).isSacrificialItem(mainStack);
+        ReviveMeConfig.INTERACT_WITH_INVENTORY inventoryRule = ReviveMeConfig.interactWithInventory;
+        boolean isAllowedKeybind = false;
+
+        for (String s : ReviveMeConfig.allowedKeybinds){
+            if (s.isEmpty()) continue;
+            if (!keybinding.getName().contains(s)) continue;
+            isAllowedKeybind = true;
+            break;
+        }
+
+        if (!isVanilla && !isAllowedKeybind) return false;
+        else if (inventoryRule == ReviveMeConfig.INTERACT_WITH_INVENTORY.NO && (isKeyInventory || isSwapOrDrop)) return false;
+        else if (inventoryRule == ReviveMeConfig.INTERACT_WITH_INVENTORY.LOOK_ONLY && isSwapOrDrop) return false;
+        else if (isSwapOrDrop && isSacrificialItem) return false;
+
+        return true;
     }
 }
