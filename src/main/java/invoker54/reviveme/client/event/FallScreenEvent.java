@@ -1,7 +1,6 @@
 package invoker54.reviveme.client.event;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import invoker54.invocore.client.util.ClientUtil;
 import invoker54.invocore.client.util.InvoText;
@@ -261,7 +260,7 @@ public class FallScreenEvent {
         switch (selfReviveType) {
             case CHANCE: {
                 chosenTxt = chanceTxt;
-                int reviveChance = (int) (100*Float.parseFloat(df.format(Math.max(0, ReviveMeConfig.reviveChance*(1 - cap.getSelfPenaltyPercentage())))));
+                int reviveChance = (int) Math.round(100 * (Math.max(0, ReviveMeConfig.reviveChance*(1 - cap.getSelfPenaltyPercentage()))));
                 shouldPass = reviveChance > 0;
                 InvoText chanceNumberTxt =
                         InvoText.literal(reviveChance+"%")
