@@ -1,8 +1,10 @@
 
 package invoker54.reviveme.common.potion;
 
+import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenData;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.init.MobEffectInit;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
@@ -20,6 +22,7 @@ import java.awt.*;
 import java.util.Set;
 
 public class KillRevivePotionEffect extends MobEffect {
+    public static ModLogger LOGGERT = ModLogger.getLogger(KillRevivePotionEffect.class, ReviveMeConfig.debugMode);
     public static final int effectColor = new Color(35, 5, 5, 255).getRGB();
 
     public KillRevivePotionEffect(MobEffectCategory category) {
@@ -62,7 +65,8 @@ public class KillRevivePotionEffect extends MobEffect {
 
         public static void removeEffect(LivingEntity entity, MobEffectInstance effect, boolean completed) {
             if (effect == null) return;
-            if (!(effect.getEffect() instanceof KillRevivePotionEffect)) return;
+
+            if (!(effect.getEffect().value() instanceof KillRevivePotionEffect)) return;
             if (!(entity instanceof Player)) return;
 
             FallenData cap = FallenData.get(entity);

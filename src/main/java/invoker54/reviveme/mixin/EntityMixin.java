@@ -2,18 +2,21 @@ package invoker54.reviveme.mixin;
 
 import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
-import net.minecraft.tags.DamageTypeTags;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.Team;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import javax.annotation.Nullable;
+import java.awt.*;
 
 @Mixin(Entity.class)
 public abstract class EntityMixin {
@@ -24,6 +27,8 @@ public abstract class EntityMixin {
 
     @Shadow public abstract int getId();
 
+    @Shadow @Nullable public abstract PlayerTeam getTeam();
+
     @Unique
     private FallenData revive_Me$getCap(){
         if (this.revive_Me$cap != null) return this.revive_Me$cap;
@@ -33,6 +38,62 @@ public abstract class EntityMixin {
         revive_Me$cap = FallenData.get((Player)entity);
 
         return this.revive_Me$cap;
+    }
+
+    @Inject(
+            method = "getTeamColor",
+            at = {
+                    @At(value = "HEAD")
+            }, cancellable = true)
+    private void getTeamColor(CallbackInfoReturnable<Integer> cir){
+        if (!this.level.isClientSide) return;
+        FallenData cap = revive_Me$getCap();
+        if (cap == null) return;
+        if (!cap.isFallen()) return;
+        double timePassed = (cap.callForHelpTicks()/20d);
+
+        Team team = this.getTeam();
+        int preColor;
+
+        if (timePassed < 3 && timePassed % 1 < 0.5F){
+            preColor = 16777215;
+        }
+        else if (team != null && team.getColor().getColor() != null){
+            preColor = team.getColor().getColor();
+        }
+        else {
+            preColor = new Color(248, 80, 29,255).getRGB();
+        }
+
+        Color postColor = new Color(preColor);
+        if (ReviveMeConfig.timeLeft != 0 && preColor != 16777215) {
+            float percentLeft = Math.max(0, Math.min(cap.GetTimeLeft(true), 1));
+            postColor = new Color(
+                    Math.round(postColor.getRed() * percentLeft),
+                    Math.round(postColor.getGreen() * percentLeft),
+                    Math.round(postColor.getBlue() * percentLeft));
+        }
+
+        cir.setReturnValue(postColor.getRGB());
+    }
+
+    @Inject(
+            method = "getPose",
+            at = {
+                    @At(value = "HEAD")
+            }, cancellable = true)
+    private void getPose(CallbackInfoReturnable<Pose> cir){
+        if (!this.level.isClientSide) return;
+        Entity entity = this.level.getEntity(this.getId());
+        if (!(entity instanceof Player player)) return;
+
+        if (!FallenData.get(player).isFallen()) return;
+
+        switch (ReviveMeConfig.fallenPose){
+            case CROUCH -> cir.setReturnValue(Pose.CROUCHING);
+            case PRONE -> cir.setReturnValue(Pose.SWIMMING);
+            case SLEEP -> cir.setReturnValue(Pose.SLEEPING);
+        }
     }
 
     @Inject(
@@ -63,26 +124,6 @@ public abstract class EntityMixin {
     private void isInvulnerable(CallbackInfoReturnable<Boolean> cir){
         if (revive_Me$getCap() == null) return;
         if (!revive_Me$getCap().isFallen()) return;
-
-        cir.setReturnValue(true);
-    }
-
-    @Inject(
-            method = "isInvulnerableTo(Lnet/minecraft/world/damagesource/DamageSource;)Z",
-            at = {
-                    @At(value = "HEAD")
-            }, cancellable = true
-    )
-    private void isInvulnerableTo(DamageSource damageSource, CallbackInfoReturnable<Boolean> cir){
-        if (damageSource.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) return;
-        if (revive_Me$getCap() == null) return;
-        if (!revive_Me$getCap().isFallen()) return;
-
-        if ((damageSource.getEntity() instanceof Player)
-                && damageSource.getEntity().isCrouching() && revive_Me$getCap().getKillTime() == 0) {
-            revive_Me$getCap().setDamageSource(damageSource);
-            revive_Me$getCap().kill((Player) this.level.getEntity(this.getId()));
-        }
 
         cir.setReturnValue(true);
     }

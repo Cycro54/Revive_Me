@@ -24,8 +24,7 @@ public class NetworkInit {
 
     @SubscribeEvent
     public static void registerNetwork(final RegisterPayloadHandlersEvent event){
-        PayloadRegistrar registrar = event.registrar("7");
-        InstaKillMsg.register(registrar);
+        PayloadRegistrar registrar = event.registrar("8");
         RestartDeathTimerMsg.register(registrar);
         SelfReviveMsg.register(registrar);
         SyncClientCapMsg.register(registrar);

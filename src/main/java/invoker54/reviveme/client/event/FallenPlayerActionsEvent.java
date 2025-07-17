@@ -52,7 +52,7 @@ public class FallenPlayerActionsEvent {
             if (timeHeld == 40) PacketDistributor.sendToServer(new SelfReviveMsg(1));
         }
 
-
+        timeHeld = Math.min(timeHeld, 41);
     }
 
     @SubscribeEvent

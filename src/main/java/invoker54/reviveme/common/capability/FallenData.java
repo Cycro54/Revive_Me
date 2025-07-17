@@ -1,31 +1,34 @@
 package invoker54.reviveme.common.capability;
 
-import com.mojang.serialization.JavaOps;
 import invoker54.invocore.common.ModLogger;
 import invoker54.invocore.common.util.CommonUtil;
+import invoker54.invocore.common.util.MathUtil;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.event.FallenTimerEvent;
+import invoker54.reviveme.common.network.payload.SyncClientCapMsg;
 import invoker54.reviveme.init.AttachmentTypesInit;
 import invoker54.reviveme.init.MobEffectInit;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnknownNullability;
@@ -60,6 +63,7 @@ public class FallenData implements INBTSerializable<CompoundTag> {
     protected double fellEnd = 0;
     protected DamageSource damageSource;
     protected boolean isFallen = false;
+    protected long fallenTick = 0;
     protected UUID otherPlayer = null;
     protected long calledForHelpTime = 0;
 
@@ -119,13 +123,17 @@ public class FallenData implements INBTSerializable<CompoundTag> {
         this.calledForHelpTime = this.level.getGameTime();
     }
 
-    public boolean isCallingForHelp() {
-        return this.level.getGameTime() < (this.calledForHelpTime + (ReviveMeConfig.reviveHelpDuration * 20));
+    public boolean isCallingForHelp(){
+        return callForHelpCooldown() != 1;
     }
 
-    public double callForHelpCooldown() {
-        long timePassed = this.level.getGameTime() - this.calledForHelpTime;
-        return Math.min(timePassed / (ReviveMeConfig.reviveHelpCooldown * 20), 1);
+    public long callForHelpTicks(){
+        return this.level.getGameTime() - this.calledForHelpTime;
+    }
+
+    public double callForHelpCooldown(){
+        long timePassed = this.callForHelpTicks();
+        return Math.min(timePassed/(ReviveMeConfig.reviveHelpDuration*20),1);
     }
 
     public float getPenaltyAmount(Player player) {
@@ -157,22 +165,27 @@ public class FallenData implements INBTSerializable<CompoundTag> {
                 return (reviver.getFoodData().getFoodLevel() + Math.max(reviver.getFoodData().getSaturationLevel(), 0));
             case ITEM: {
                 ItemStack penaltyStack = new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(ReviveMeConfig.penaltyItem)));
-                String n = (String) DataComponentPatch.CODEC.encode(penaltyStack.getComponentsPatch(), JavaOps.INSTANCE, "").getOrThrow();
-                LOGGER.warn("What's the item component as a string? " + n);
-//                CompoundTag tag = new CompoundTag();
-//                DataComponentPatch.CODEC.encodeStart(this.provider.createSerializationContext(NbtOps.INSTANCE), penaltyStack.getComponentsPatch());
-//                LOGGER.warn("What's the tag? " + tag);
+                if (!ReviveMeConfig.penaltyItemData.isEmpty()) {
+                    penaltyStack.set(DataComponents.CUSTOM_DATA, CustomData.of(ReviveMeConfig.penaltyItemData));
+                }
                 int count = 0;
                 for (int a = 0; a < reviver.getInventory().getContainerSize(); a++) {
                     ItemStack containerStack = reviver.getInventory().getItem(a);
                     if (!ItemStack.isSameItem(containerStack, penaltyStack)) continue;
-                    if (!ItemStack.isSameItemSameComponents(containerStack, penaltyStack)) continue;
+                    if (!hasMatchingTags(containerStack, penaltyStack)) continue;
                     count += containerStack.getCount();
                 }
                 return count;
             }
         }
         return 0;
+    }
+    
+    public static boolean hasMatchingTags(ItemStack defaultStack, ItemStack otherStack){
+        boolean hasDefaultTag = defaultStack.has(DataComponents.CUSTOM_DATA);
+        boolean hasOtherTag = otherStack.has(DataComponents.CUSTOM_DATA);
+        if (hasDefaultTag != hasOtherTag) return false;
+        return !hasDefaultTag || (defaultStack.get(DataComponents.CUSTOM_DATA).matchedBy(otherStack.get(DataComponents.CUSTOM_DATA).copyTag()));
     }
 
     public boolean hasEnough(Player reviver) {
@@ -193,7 +206,6 @@ public class FallenData implements INBTSerializable<CompoundTag> {
     public float GetTimeLeft(boolean divideByMax) {
         double maxSeconds = getPenaltyTicks(fellEnd);
         if (ReviveMeConfig.timeLeft == 0) maxSeconds = 0;
-        getKillTime();
 
         if (divideByMax)
             return (float) (1 - ((level.getGameTime() - fellStart) / maxSeconds));
@@ -201,15 +213,22 @@ public class FallenData implements INBTSerializable<CompoundTag> {
         return (float) (((fellStart + maxSeconds) - level.getGameTime()) / 20);
     }
 
-    public float getKillTime() {
+    public float getKillTime(boolean divideByMax){
         if (ReviveMeConfig.pvpTimer == -1) return -1;
-        float maxSeconds = getPenaltyTicks(ReviveMeConfig.pvpTimer * 20);
+        double maxSeconds = getPenaltyTicks(ReviveMeConfig.pvpTimer * 20);
 
-        return Math.max(0, ((fellStart + maxSeconds) - level.getGameTime()) / 20f);
+        if (divideByMax)
+            return (float) Math.max (0, (1 - ((level.getGameTime() - fellStart)/maxSeconds)));
+
+        return (float) Math.max (0, ((fellStart + maxSeconds) - level.getGameTime())/20);
     }
 
     public boolean shouldDie() {
         return ReviveMeConfig.timeLeft != 0 && GetTimeLeft(false) <= 0;
+    }
+
+    public boolean canDie(){
+        return this.fallenTick != this.level.getGameTime();
     }
 
     public void SetTimeLeft(long timeStart, double maxSeconds) {
@@ -229,10 +248,14 @@ public class FallenData implements INBTSerializable<CompoundTag> {
     public void setFallen(boolean fallen) {
         this.isFallen = fallen;
 
-        if (!fallen) {
+        if (!fallen){
             setProgress(0, 1);
             SetTimeLeft(0, 1);
             setOtherPlayer(null);
+            this.calledForHelpTime = 0;
+        }
+        else {
+            if (this.level != null) this.fallenTick = this.level.getGameTime();
         }
     }
 
@@ -261,8 +284,9 @@ public class FallenData implements INBTSerializable<CompoundTag> {
         this.revEnd = seconds * 20;
     }
 
-    public float getProgress() {
-        return Math.min(1, (level.getGameTime() - revStart) / (float) revEnd);
+    public float getProgress(boolean divideByMax) {
+        long passedTicks = Math.min (revEnd, (level.getGameTime() - revStart));
+        return divideByMax ? (float) passedTicks/revEnd : passedTicks;
     }
 
     public SELFREVIVETYPE getSelfReviveOption(int mouseButton) {
@@ -276,12 +300,24 @@ public class FallenData implements INBTSerializable<CompoundTag> {
         this.selfReviveCount++;
         this.selfReviveTypeList.remove(selectedOption);
         this.selfReviveTypeList.add(selectedOption);
-        LOGGER.warn("Penalty percentage: " + (penaltyPercentage));
 
         switch (selectedOption) {
             case CHANCE: {
                 if (player.level().random.nextFloat() < (ReviveMeConfig.reviveChance * (1 - penaltyPercentage))) {
                     FallenTimerEvent.revivePlayer(player, false);
+                    return;
+                }
+                else if (!ReviveMeConfig.reviveChanceKillOnFail){
+                    player.level().playSound(null, player.blockPosition(), SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, MathUtil.randomFloat(0.7F,1.0F), MathUtil.randomFloat(0.8F,1.0F));
+
+                    if (!this.canSelfRevive() && ((!player.getServer().isDedicatedServer() &&
+                            player.getServer().getPlayerCount() == 1))) break;
+
+                    refreshSelfReviveTypes(player);
+
+                    CompoundTag nbt = new CompoundTag();
+                    nbt.put(player.getStringUUID(), this.writeNBT());
+                    PacketDistributor.sendToPlayersTrackingEntityAndSelf(player, new SyncClientCapMsg(player.getUUID(), this.writeNBT()));
                     return;
                 }
                 break;
@@ -290,14 +326,15 @@ public class FallenData implements INBTSerializable<CompoundTag> {
                 if (this.getItemList().isEmpty()) break;
                 FallenTimerEvent.revivePlayer(player, false);
                 for (ItemStack sacrificeStack : this.getItemList()) {
-                    int count = FallenData.countItem(playerInv, sacrificeStack);
+                    int count = countItem(playerInv, sacrificeStack);
                     int amountToLose = (int) Math.round(Math.max(1, count *
                             (ReviveMeConfig.sacrificialItemPercent * (1 + penaltyPercentage))));
 
                     for (int a = 0; a < playerInv.getContainerSize(); a++) {
+                        if (!ReviveMeConfig.sacrificialItemTakesHotbar && (a < 9 || a == 40)) continue;
                         ItemStack containerStack = playerInv.getItem(a);
                         if (!ItemStack.isSameItem(sacrificeStack, containerStack)) continue;
-                        if (!ItemStack.isSameItemSameComponents(sacrificeStack, containerStack)) continue;
+                        if (!hasMatchingTags(sacrificeStack, containerStack)) continue;
                         int takeAway = (Math.min(amountToLose, containerStack.getCount()));
                         amountToLose -= takeAway;
                         containerStack.setCount(containerStack.getCount() - takeAway);
@@ -314,14 +351,17 @@ public class FallenData implements INBTSerializable<CompoundTag> {
                     int amountLeft = specificPair.getKey();
                     ItemStack defaultStack = new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(ReviveMeConfig.specificItem)));
                     try {
-                        defaultStack.applyComponents(DataComponentPatch.CODEC.decode(JavaOps.INSTANCE, ReviveMeConfig.specificItemData).getOrThrow().getFirst());
+                        if (!ReviveMeConfig.specificItemData.isEmpty()){
+                            defaultStack.set(DataComponents.CUSTOM_DATA, CustomData.of(ReviveMeConfig.specificItemData));
+                        }
+//                        LOGGER.error(defaultStack.getComponents().toString());
                     } catch (Exception e) {
                         LOGGER.warn(e.getMessage());
                     }
                     for (int a = 0; a < playerInv.getContainerSize(); a++) {
                         ItemStack containerStack = playerInv.getItem(a);
                         if (!ItemStack.isSameItem(defaultStack, containerStack)) continue;
-                        if (!ItemStack.isSameItemSameComponents(defaultStack, containerStack)) continue;
+                        if (!hasMatchingTags(defaultStack, containerStack)) continue;
                         int takeAway = (Math.min(amountLeft, containerStack.getCount()));
                         amountLeft -= takeAway;
                         containerStack.setCount(containerStack.getCount() - takeAway);
@@ -382,14 +422,10 @@ public class FallenData implements INBTSerializable<CompoundTag> {
             setSacrificialItems(player.getInventory());
         }
         if (this.selfReviveTypeList.contains(SELFREVIVETYPE.STATUS_EFFECTS)) {
-            List<MobEffect> negativeEffects = BuiltInRegistries.MOB_EFFECT.entrySet().stream().filter((effect) ->
-                            (effect.getValue().getCategory() == MobEffectCategory.HARMFUL) &&
-                                    (!ReviveMeConfig.harmfulEffectsBlackList.contains(effect.getKey().location().toString())))
-                    .map(Map.Entry::getValue).toList();
-
 //            negativeEffects.forEach(e -> LOGGER.warn(e.getRegistryName().toString()));
             this.negativeStatusEffects.clear();
-            this.negativeStatusEffects.addAll(CommonUtil.pickRandomObjectsFromList(Math.random() > 0.5F ? 1 : 2, negativeEffects));
+            this.negativeStatusEffects.addAll(
+                    CommonUtil.pickRandomObjectsFromList(Math.random() > 0.5F ? 1 : 2, ReviveMeConfig.harmfulEffects));
         }
 
         int count = 0;
@@ -419,9 +455,13 @@ public class FallenData implements INBTSerializable<CompoundTag> {
     public Pair<Integer, List<ItemStack>> getSpecificItem(Player player) {
         ItemStack defaultStack = new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(ReviveMeConfig.specificItem)));
         try {
-            defaultStack.applyComponents(DataComponentPatch.CODEC.decode(JavaOps.INSTANCE, ReviveMeConfig.specificItemData).getOrThrow().getFirst());
+            if (!ReviveMeConfig.specificItemData.isEmpty()){
+                defaultStack.set(DataComponents.CUSTOM_DATA, CustomData.of(ReviveMeConfig.specificItemData));
+            }
+//            LOGGER.error(defaultStack.getComponents().toString());
         } catch (Exception e) {
             LOGGER.warn(e.getMessage());
+
         }
         Inventory playerInv = player.getInventory();
 
@@ -432,7 +472,7 @@ public class FallenData implements INBTSerializable<CompoundTag> {
         for (int a = 0; a < playerInv.getContainerSize(); a++) {
             ItemStack containerStack = playerInv.getItem(a);
             if (!ItemStack.isSameItem(containerStack, defaultStack)) continue;
-            if (!ItemStack.isSameItemSameComponents(containerStack, defaultStack)) continue;
+            if (!hasMatchingTags(containerStack, defaultStack)) continue;
             stackList.add(containerStack);
             count += containerStack.getCount();
             if (count >= countNeeded) break;
@@ -465,11 +505,13 @@ public class FallenData implements INBTSerializable<CompoundTag> {
 
         //Generate a sacrificial item list
         ArrayList<ItemStack> playerItems = new ArrayList<>();
-        for (ItemStack newStack : inventory.items) {
+        for (int a = 0; a < inventory.items.size(); a++) {
+            if (!ReviveMeConfig.sacrificialItemTakesHotbar && (a < 9 || a == 40)) continue;
+            ItemStack newStack = inventory.getItem(a);
             if (!newStack.isStackable()) continue;
             if (specificPair.getValue().contains(newStack)) continue;
             if (playerItems.stream().anyMatch(listStack ->
-                    ItemStack.isSameItem(newStack, listStack) && ItemStack.isSameItemSameComponents(newStack, listStack)))
+                    ItemStack.isSameItem(newStack, listStack) && hasMatchingTags(newStack, listStack)))
                 continue;
             if (newStack.isEmpty()) continue;
             playerItems.add(this.level.random.nextInt(Math.max(1, playerItems.size())), newStack);
@@ -490,16 +532,17 @@ public class FallenData implements INBTSerializable<CompoundTag> {
         if (!canSelfRevive()) return false;
         return this.sacrificialItems.stream().anyMatch(
                 sacrificialStack -> ItemStack.isSameItem(mainStack, sacrificialStack) &&
-                        ItemStack.isSameItemSameComponents(mainStack, sacrificialStack));
+                        hasMatchingTags(mainStack, sacrificialStack));
     }
 
     public static int countItem(Inventory inventory, ItemStack sacrificialStack) {
         int count = 0;
 
         for (int a = 0; a < inventory.getContainerSize(); a++) {
+            if (!ReviveMeConfig.sacrificialItemTakesHotbar && (a < 9 || a == 40)) continue;
             ItemStack containerStack = inventory.getItem(a);
             if (!ItemStack.isSameItem(sacrificialStack, containerStack)) continue;
-            if (!ItemStack.isSameItemSameComponents(sacrificialStack, containerStack)) continue;
+            if (!hasMatchingTags(sacrificialStack, containerStack)) continue;
             count += containerStack.getCount();
         }
         return count;

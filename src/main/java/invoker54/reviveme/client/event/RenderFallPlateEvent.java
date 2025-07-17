@@ -13,10 +13,10 @@ import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -36,7 +36,7 @@ import static invoker54.reviveme.client.event.ReviveScreenEvent.progressColor;
 public class RenderFallPlateEvent {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final Minecraft inst = Minecraft.getInstance();
-    private static final DecimalFormat df = new DecimalFormat("0.0");
+    public static final DecimalFormat df = new DecimalFormat("0.0");
     public static final int greenProgCircle = new Color(39, 235, 86, 255).getRGB();
     public static final int redProgCircle = new Color(173, 17, 17, 255).getRGB();
     public static final int blackBg = new Color(0, 0, 0, 176).getRGB();
@@ -47,18 +47,34 @@ public class RenderFallPlateEvent {
         Minecraft mC = ClientUtil.getMinecraft();
 
         for (Entity entity : inst.level.entitiesForRendering()) {
+
             if (!(entity instanceof Player player)) continue;
             if (entity.equals(mC.player)) continue;
             float distance = entity.distanceTo(mC.player);
-            if (distance > 30) continue;
+            double maxDistance = Math.max(ReviveMeConfig.reviveGlowMaxDistance, ReviveMeConfig.deathTimerMaxDistance);
+            if (distance > maxDistance) continue;
 
             FallenData cap = FallenData.get(player);
             PoseStack stack = event.getPoseStack();
 
             if (!cap.isFallen()) continue;
-            if (!cap.isCallingForHelp() && distance > 10) continue;
 
-            float f = entity.getBbHeight() * 0.40f;
+            HitResult rayResult = mC.player.level().clip(
+                    new ClipContext(mC.player.getEyePosition(1.0F), entity.getEyePosition(1.0F)
+                            , ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, entity));
+            boolean targetSeen = rayResult.getType() == HitResult.Type.MISS;
+
+            if (distance > 10 && !cap.isCallingForHelp() && !targetSeen) continue;
+
+            float yOffset = entity.getBbHeight() * 0.40f;
+            float sizeOffset = 0.5F;
+
+            if (distance > 10) {
+                float distanceOffset = (distance - 10);
+                yOffset = (entity.getBbHeight() * 1.4f) + (distanceOffset * 0.03f);
+                sizeOffset += (distanceOffset * (0.5f / 10f));
+            }
+
             stack.pushPose();
 
             RenderSystem.disableCull();
@@ -66,13 +82,12 @@ public class RenderFallPlateEvent {
             RenderSystem.defaultBlendFunc();
             RenderSystem.disableDepthTest();
 
-
             //Getting into position
             Vec3 difference = entity.position().subtract(mC.gameRenderer.getMainCamera().getPosition());
-            stack.translate(difference.x, difference.y + f, difference.z);
+            stack.translate(difference.x, difference.y + yOffset, difference.z);
             stack.mulPose(mC.getEntityRenderDispatcher().cameraOrientation());
             stack.scale(0.025F, -0.025F, 0.025F);
-            stack.scale(0.5F, 0.5F, 0.5F);
+            stack.scale(sizeOffset, sizeOffset, sizeOffset);
 
             if (cap.getOtherPlayer() == null) {
                 int radius = 22;
@@ -80,7 +95,7 @@ public class RenderFallPlateEvent {
                 int chosenColor = 0;
                 boolean canRender = false;
 
-                if (!mC.player.isCrouching() && !player.isDeadOrDying()){
+                if (!mC.player.isCrouching() && !player.isDeadOrDying()) {
                     canRender = true;
                     chosenColor = greenProgCircle;
 
@@ -88,22 +103,20 @@ public class RenderFallPlateEvent {
                     seconds += (seconds <= 0 ? 0 : 1);
                     chosenText = InvoText.literal((seconds <= 0) ? "INF" : Integer.toString((int) seconds))
                             .withStyle(true, ChatFormatting.BOLD)
-                            .withStyle(false,cap.hasEnough(inst.player) ? ChatFormatting.GREEN : ChatFormatting.RED);
-                }
-                else if (mC.player.isCrouching() || player.isDeadOrDying()){
+                            .withStyle(false, cap.hasEnough(inst.player) ? ChatFormatting.GREEN : ChatFormatting.RED);
+                } else if (mC.player.isCrouching() || player.isDeadOrDying()) {
                     canRender = true;
                     chosenColor = redProgCircle;
 
-                    chosenText = InvoText.literal(Integer.toString((int) Math.ceil(cap.getKillTime())))
-                            .withStyle(true,ChatFormatting.BOLD, ChatFormatting.RED);
+                    chosenText = InvoText.literal(Integer.toString((int) Math.ceil(cap.getKillTime(false))))
+                            .withStyle(true, ChatFormatting.BOLD, ChatFormatting.RED);
                 }
 
-                if (canRender) {
+                if (canRender && distance < ReviveMeConfig.deathTimerMaxDistance) {
                     float endAngle = 360;
-                    if (inst.player.isCrouching()){
-                        endAngle = endAngle * (cap.getKillTime() / ReviveMeConfig.reviveKillTime);
-                    }
-                    else if (ReviveMeConfig.timeLeft != 0) endAngle *= cap.GetTimeLeft(true);
+                    if (inst.player.isCrouching()) {
+                        endAngle = endAngle * (cap.getKillTime(true));
+                    } else if (ReviveMeConfig.timeLeft != 0) endAngle *= cap.GetTimeLeft(true);
 
                     if (cap.GetTimeLeft(false) <= 0)
                         CircleRender.drawArc(stack, 0, 0, radius, 0, endAngle, chosenColor);
@@ -114,14 +127,14 @@ public class RenderFallPlateEvent {
                     timerZone.centerX(0).centerY(0);
                     timerIMG.render(stack);
 
-                    TextUtil.renderText(stack, chosenText.getText(),  false, 1,
+                    TextUtil.renderText(stack, chosenText.getText(), false, 1,
                             timerZone.inflate(-timerZone.width() / 4, -timerZone.height() / 4), TextUtil.txtAlignment.MIDDLE);
                 }
 
                 InvoText message = null;
                 if (mC.crosshairPickEntity == player && !player.isDeadOrDying()) {
                     if (mC.player.isCrouching()) {
-                        if (cap.getKillTime() > 0) {
+                        if (cap.getKillTime(false) > 0) {
                             message = InvoText.translate("revive_me.fall_plate.cant_kill");
                         } else {
                             message = InvoText.translate("revive_me.fall_plate.kill").setArgs(
@@ -139,11 +152,11 @@ public class RenderFallPlateEvent {
                 }
                 if (message == null && cap.isCallingForHelp()) {
                     message = InvoText.literal("")
-                            .append(InvoText.literal("ABBA ").withStyle(true,ChatFormatting.BOLD, ChatFormatting.RED, ChatFormatting.OBFUSCATED))
+                            .append(InvoText.literal("ABBA ").withStyle(true, ChatFormatting.BOLD, ChatFormatting.RED, ChatFormatting.OBFUSCATED))
                             .append(InvoText.literal("[").withStyle(true, ChatFormatting.BOLD).getText())
-                            .append(InvoText.translate("revive_me.call_for_help").withStyle(true,ChatFormatting.BOLD, ChatFormatting.GOLD))
-                            .append(InvoText.literal("]").withStyle(true,ChatFormatting.BOLD))
-                            .append(InvoText.literal(" ABBA").withStyle(true,ChatFormatting.BOLD, ChatFormatting.RED, ChatFormatting.OBFUSCATED));
+                            .append(InvoText.translate("revive_me.call_for_help").withStyle(true, ChatFormatting.BOLD, ChatFormatting.GOLD))
+                            .append(InvoText.literal("]").withStyle(true, ChatFormatting.BOLD))
+                            .append(InvoText.literal(" ABBA").withStyle(true, ChatFormatting.BOLD, ChatFormatting.RED, ChatFormatting.OBFUSCATED));
                 }
 
                 if (message != null) {
@@ -154,13 +167,13 @@ public class RenderFallPlateEvent {
                     int x0 = (-(width) / 2);
                     int y0 = -(height + radius);
                     InvoZone txtZone = new InvoZone(x0, width, y0, height);
+                    if (distance > ReviveMeConfig.deathTimerMaxDistance) txtZone.setY(0);
 
                     ClientUtil.blitColor(stack, txtZone, blackBg);
-                    TextUtil.renderText(stack, message.getText(),  false, 1,
-                            txtZone.inflate(-2,-2), TextUtil.txtAlignment.MIDDLE);
+                    TextUtil.renderText(stack, message.getText(), false, 1,
+                            txtZone.inflate(-2, -2), TextUtil.txtAlignment.MIDDLE);
                 }
-            }
-            else if (!mC.player.getUUID().equals(cap.getOtherPlayer())){
+            } else if (!mC.player.getUUID().equals(cap.getOtherPlayer()) && distance < ReviveMeConfig.deathTimerMaxDistance) {
                 int radius = 20;
 
                 //region Render the revive text
@@ -177,20 +190,19 @@ public class RenderFallPlateEvent {
                 TextUtil.renderText(message.getText(), stack, -txtWidth / 2F, -(height + radius + padding), false);
                 //endregion
 
-                int xOrigin = -20;
-                int yOrigin = -10;
-
                 //progress bar background
-                ClientUtil.blitColor(stack,  xOrigin,
-                        xOrigin * 2F,0, yOrigin, bgColor); //prev color: 2302755
+                InvoZone progressZone = new InvoZone(0, 40, -5, 10);
+                progressZone.centerX(0);
+                ClientUtil.blitColor(stack, progressZone, bgColor); //prev color: 2302755
 
-                float progress = cap.getProgress();
+                float progress = cap.getProgress(true);
+                progressZone.inflate(-1, -1).setWidth(progressZone.width() * progress);
+                progressZone.centerX(0);
 
                 //System.out.println(progress);
 
                 //Actual progress bar
-                ClientUtil.blitColor(stack,  xOrigin * progress,
-                        xOrigin * -progress * 2F,0, yOrigin, progressColor);
+                ClientUtil.blitColor(stack, progressZone, progressColor);
             }
 
             RenderSystem.enableDepthTest();

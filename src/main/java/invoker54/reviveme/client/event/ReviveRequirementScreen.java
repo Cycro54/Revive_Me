@@ -12,11 +12,13 @@ import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -96,7 +98,9 @@ public class ReviveRequirementScreen {
             if (ReviveMeConfig.penaltyType == FallenData.PENALTYPE.ITEM) {
                 ItemStack penaltyStack = new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(ReviveMeConfig.penaltyItem)));
                 try {
-                    penaltyStack.applyComponents(DataComponentPatch.CODEC.decode(JavaOps.INSTANCE, ReviveMeConfig.penaltyItemData).getOrThrow().getFirst());
+                    if (!ReviveMeConfig.penaltyItemData.isEmpty()){
+                        penaltyStack.set(DataComponents.CUSTOM_DATA, CustomData.of(ReviveMeConfig.penaltyItemData));
+                        }
                 } catch (Exception e) {
                     LOGGER.warn(e.getMessage());
                 }

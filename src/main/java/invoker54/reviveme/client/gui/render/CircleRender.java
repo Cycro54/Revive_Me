@@ -55,6 +55,7 @@ public class CircleRender {
         BufferBuilder bufferbuilder = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
         RenderSystem.disableCull();
         RenderSystem.enableBlend();
+        RenderSystem.disableDepthTest();
 //        RenderSystem.texture();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -83,6 +84,7 @@ public class CircleRender {
 //        RenderSystem.enableTexture();
         RenderSystem.disableBlend();
         RenderSystem.enableCull();
+        RenderSystem.enableDepthTest();
         stack.popPose();
 
 //        Matrix4f lastPos = stack.last().pose();

@@ -11,8 +11,6 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.CommandEvent;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 
@@ -31,7 +29,12 @@ public class CommandEvents {
 //        LOGGER.debug("What's the root name? " + rootName);
 //        LOGGER.debug("Who did the command" + player.getName().getString());
         if (!FallenData.get(player).isFallen()) return;
-        if (ReviveMeConfig.blockedCommands.contains("/") || ReviveMeConfig.blockedCommands.contains(rootName)){
+        boolean whitelist = ReviveMeConfig.blockedCommands.contains("//");
+//        LOGGER.warn("Is it whitelist? " + whitelist);
+        boolean blockEverything = ReviveMeConfig.blockedCommands.contains("/");
+//        LOGGER.warn("Is it blocking everything? " + blockEverything);
+        boolean isCommandInList = ReviveMeConfig.blockedCommands.stream().anyMatch(s -> !s.isEmpty() && rootName.contains(s));
+        if (blockEverything || isCommandInList && !whitelist || !isCommandInList && whitelist){
             if (!ReviveMeConfig.silenceCommandMessages) {
                 player.sendSystemMessage(Component.translatable("revive_me.chat.blocked_command"));
             }

@@ -1,6 +1,5 @@
 package invoker54.reviveme.common.event;
 
-import com.mojang.serialization.JavaOps;
 import invoker54.invocore.client.util.InvoText;
 import invoker54.invocore.common.ModLogger;
 import invoker54.invocore.common.util.MathUtil;
@@ -12,7 +11,7 @@ import invoker54.reviveme.init.MobEffectInit;
 import invoker54.reviveme.init.NetworkInit;
 import invoker54.reviveme.init.SoundInit;
 import invoker54.reviveme.mixin.FoodMixin;
-import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.protocol.game.ClientboundSetHealthPacket;
 import net.minecraft.resources.ResourceLocation;
@@ -25,6 +24,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.GameType;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -87,7 +87,7 @@ public class FallenTimerEvent {
         if (cap.getOtherPlayer() == null) return;
 
         //If tick progress finishes, revive the fallen player and take whatever you need to take from the reviver
-        if (cap.getProgress() < 1) return;
+        if (cap.getProgress(true) < 1) return;
 
         //Make sure this person is fallen.
         if (!cap.isFallen()) return;
@@ -130,7 +130,9 @@ public class FallenTimerEvent {
                 case ITEM: {
                     ItemStack penaltyStack = new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(ReviveMeConfig.penaltyItem)));
                     try {
-                        penaltyStack.applyComponents(DataComponentPatch.CODEC.decode(JavaOps.INSTANCE, ReviveMeConfig.penaltyItemData).getOrThrow().getFirst());
+                        if (!ReviveMeConfig.penaltyItemData.isEmpty()){
+                            penaltyStack.set(DataComponents.CUSTOM_DATA, CustomData.of(ReviveMeConfig.penaltyItemData));
+                        }
                     } catch (Exception e) {
 //                        throw new RuntimeException(e);
                         LOGGER.warn(e.getMessage());
@@ -139,7 +141,7 @@ public class FallenTimerEvent {
                     for (int a = 0; a < playerInv.getContainerSize(); a++) {
                         ItemStack currStack = playerInv.getItem(a);
                         if (!ItemStack.isSameItem(penaltyStack, currStack)) continue;
-                        if (!ItemStack.isSameItemSameComponents(penaltyStack, currStack)) continue;
+                        if (!FallenData.hasMatchingTags(penaltyStack, currStack)) continue;
 
                         int takeAway = (Math.min(amount, currStack.getCount()));
                         amount -= takeAway;

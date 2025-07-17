@@ -53,7 +53,7 @@ public class SoundEvents {
                 Player player = ClientUtil.getPlayer();
                 if (player == null) return;
                 FallenData cap = FallenData.get(player);
-                float pitch = MathUtil.lerp(cap.getProgress(), 0.8F, 1.2F);
+                float pitch = MathUtil.lerp(cap.getProgress(true), 0.8F, 1.2F);
                 invoSound.setVolume((float) (1.0f * ReviveMeConfig.soundLevel));
                 invoSound.setPitch(pitch);
             }));
@@ -70,8 +70,8 @@ public class SoundEvents {
         FallenData cap = FallenData.get(ClientUtil.getPlayer());
         if (!cap.isFallen() || cap.getOtherPlayer() != null) return;
 
-        fallen_state_random_sound.playWhenStopped();
-        if (cap.GetTimeLeft(false) % 1 == 0) fallen_state_ticking_sound.play();
+        if (cap.GetTimeLeft(false) > 5) fallen_state_random_sound.playWhenStopped();
+        if (cap.GetTimeLeft(false) % 1 == 0 && cap.GetTimeLeft(false) > 0  || ReviveMeConfig.timeLeft == 0) fallen_state_ticking_sound.play();
     }
 
     @SubscribeEvent
@@ -84,7 +84,7 @@ public class SoundEvents {
 //            if (!revive_sound.isDonePlaying()) revive_sound.stopIt();
             return;
         }
-        if (cap.GetTimeLeft(false) % 0.5F == 0 && cap.GetTimeLeft(true) != 1) revive_sound.play();
+        if ((cap.getProgress(false)/20f) % 0.5F == 0 && cap.GetTimeLeft(true) != 1) revive_sound.play();
         revive_background_sound.playWhenStopped();
     }
 

@@ -1,11 +1,14 @@
 package invoker54.reviveme.common.network.payload;
 
+import invoker54.invocore.client.util.ClientUtil;
+import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.init.NetworkInit;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -41,6 +44,16 @@ public record SyncClientCapMsg(String uuid, CompoundTag capDataTag) implements C
                         Player player = level.getPlayerByUUID(UUID.fromString(msg.uuid));
                         if (player == null) return;
                         FallenData.get(player).readNBT(msg.capDataTag);
+
+
+
+                        if (player == ClientUtil.getPlayer() && FallenData.get(player).isFallen()){
+                            VanillaKeybindHandler.useHeld = false;
+                            VanillaKeybindHandler.attackHeld = false;
+                        }
+                        else if (!FallenData.get(player).isFallen()){
+                            player.setPose(Pose.STANDING);
+                        }
                     });
                 }
         );
