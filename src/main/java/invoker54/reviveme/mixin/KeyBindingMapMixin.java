@@ -2,14 +2,17 @@ package invoker54.reviveme.mixin;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import invoker54.invocore.client.util.ClientUtil;
+import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.client.KeyMapping;
 import net.minecraftforge.client.settings.KeyMappingLookup;
 import net.minecraftforge.client.settings.KeyModifier;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -18,6 +21,9 @@ import java.util.*;
 
 @Mixin(KeyMappingLookup.class)
 public class KeyBindingMapMixin {
+
+    @Unique
+    private static final ModLogger LOGGERT = ModLogger.getLogger(KeyBindingMapMixin.class, ReviveMeConfig.debugMode);
 
     @Shadow @Final private static EnumMap<KeyModifier, Map<InputConstants.Key, Collection<KeyMapping>>> map;
 

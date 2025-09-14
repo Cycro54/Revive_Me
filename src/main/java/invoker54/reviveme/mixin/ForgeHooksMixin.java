@@ -101,6 +101,5 @@ public class ForgeHooksMixin {
         }
 
         cir.setReturnValue(cancelled);
-        cir.cancel();
     }
 }

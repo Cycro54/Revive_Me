@@ -12,12 +12,13 @@
     "SlotMixin"
   ],
   "client": [
+    "KeyBindingMapMixin",
     "KeyMappingMixin",
     "LocalPlayerMixin",
     "MinecraftMixin",
     "PlayerRendererMixin",
     "WidgetMixin",
-    "KeyBindingMapMixin"
+    "PlayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

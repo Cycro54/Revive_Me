@@ -16,7 +16,7 @@ plugins {
     id 'maven-publish'
     id 'net.minecraftforge.gradle' version '[6.0,6.2)'
     id 'org.spongepowered.mixin' version '0.7.+'
-    id "com.hypherionmc.modutils.modpublisher" version "${publisher_gradle_version}"
+    id "com.hypherionmc.modutils.modpublisher" version "${PUBLICATION_GRADLE_VERSION}"
 }
 
 version = mod_version
@@ -257,11 +257,11 @@ publisher {
     setChangelog("changelog.md")
 
     // Required for Modrinth/GitHub
-    setVersion("1.20.1-${project.version}")
+    setVersion("${project.version}")
 
 //    // Fancy display name for the upload.
 //    // Will default to the project version if not set
-//    setDisplayName("[1.20.x] Simple Discord Link - ${project.version}")
+    setDisplayName("revive_me-${minecraft_version}-${project.version}.jar")
 
     // The supported game versions
     setGameVersions("${minecraft_version}")
@@ -290,7 +290,7 @@ publisher {
 //    setPlatformArtifact("modrinth", modrinthJar)
 
     // Disable the built in Fractureizer scanner
-    setDisableMalwareScanner(true)
+//    setDisableMalwareScanner(true)
 
     // Add supported java versions. Currently only used by CurseForge
 //    setJavaVersions("Java 8", "Java 11")

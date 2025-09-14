@@ -1,3 +1,7 @@
+# 1.20.1-4.4.7
+
+<div><pre><strong>Fixes</strong><br>-Removing player effects should no longer crash the game<br>-Blocked keybinds should no longer be active when in the fallen state<br>-Players in the fallen state should no longer be allowed to eat</pre></div>
+
 # 1.20.1-4.4.3
 
 <div><pre><strong>Additions</strong><br>-Added easier way to publish mod to Modrinth and Curseforge<br><br><strong>Fixes</strong><br>-Gives proper credit to players that kill downed players</pre></div>
