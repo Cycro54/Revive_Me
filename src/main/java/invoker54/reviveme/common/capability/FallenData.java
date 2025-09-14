@@ -21,6 +21,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -48,6 +49,7 @@ public class FallenData implements INBTSerializable<CompoundTag> {
     public static final String CALLED_FOR_HELP_LONG = "calledForHelpLong";
     public static final String SAVED_EFFECTS_TAG = "savedEffectsTag";
     public static final String DOWNED_BY_PLAYER_BOOL = "DOWNED_BY_PLAYER_BOOL";
+    public static final String IS_EFFECTS_REMOVED = "IS_EFFECTS_REMOVED";
 
     public static final String SELF_REVIVE_OPTIONS_STRING = "SELF_REVIVE_OPTIONS_STRING";
     public static final String SACRIFICEITEMS_COMPOUND = "SACRIFICEITEMS_COMPOUND";
@@ -105,6 +107,7 @@ public class FallenData implements INBTSerializable<CompoundTag> {
     protected List<MobEffect> negativeStatusEffects = new ArrayList<>();
     protected int selfReviveCount = 0;
     protected boolean isDownedByPlayer = false;
+    protected boolean isEffectsRemoved = false;
 
     public static FallenData get(LivingEntity player) {
         FallenData cap = player.getData(AttachmentTypesInit.FALLEN_DATA);
@@ -112,6 +115,18 @@ public class FallenData implements INBTSerializable<CompoundTag> {
         if (cap.provider == null) cap.provider = cap.level.registryAccess();
         if (cap.damageSource == null) cap.damageSource = cap.level.damageSources().fellOutOfWorld();
         return cap;
+    }
+
+    public void removeOriginalEffects(Player player){
+        if (this.isEffectsRemoved) return;
+        try {
+            player.removeAllEffects();
+            this.isEffectsRemoved = true;
+        }
+        catch (Exception e){
+            LOGGER.warn("Effect removal failed, remove effects later...");
+            e.printStackTrace();
+        }
     }
 
     public boolean canSelfRevive() {
@@ -148,9 +163,11 @@ public class FallenData implements INBTSerializable<CompoundTag> {
 
     public void kill(Player player) {
         player.playSound(SoundEvents.PLAYER_DEATH, 1, (player.getRandom().nextFloat() - player.getRandom().nextFloat()) * 0.2F + 1.0F);
-        player.setHealth(0);
         player.getCombatTracker().recordDamage(this.getDamageSource(), 1);
+        if (this.damageSource.getEntity() instanceof Player) player.setLastHurtByPlayer((Player) this.damageSource.getEntity());
+        if (this.damageSource.getEntity() instanceof Mob) player.setLastHurtByMob((Mob) this.damageSource.getEntity());
         player.die(this.damageSource);
+        player.setHealth(0);
     }
 
     public double countReviverPenaltyAmount(Player reviver) {
@@ -253,6 +270,7 @@ public class FallenData implements INBTSerializable<CompoundTag> {
             SetTimeLeft(0, 1);
             setOtherPlayer(null);
             this.calledForHelpTime = 0;
+            this.isEffectsRemoved = false;
         }
         else {
             if (this.level != null) this.fallenTick = this.level.getGameTime();
@@ -514,7 +532,7 @@ public class FallenData implements INBTSerializable<CompoundTag> {
                     ItemStack.isSameItem(newStack, listStack) && hasMatchingTags(newStack, listStack)))
                 continue;
             if (newStack.isEmpty()) continue;
-            playerItems.add(this.level.random.nextInt(Math.max(1, playerItems.size())), newStack);
+            playerItems.add(this.level.random.nextInt(Math.max(1, playerItems.size())), newStack.copy());
         }
         //Remove all except 4
         while (playerItems.size() > 4) {
@@ -567,7 +585,7 @@ public class FallenData implements INBTSerializable<CompoundTag> {
 
     public void saveEffects(Player player) {
         CompoundTag effectsTag = new CompoundTag();
-        for (MobEffectInstance effectInstance : player.getActiveEffects()) {
+        for (MobEffectInstance effectInstance : new ArrayList<>(player.getActiveEffects())) {
             if (effectInstance.getDuration() <= 20) continue;
             Tag savedEffectTag = effectInstance.save();
             effectsTag.put(effectsTag.size() + "", savedEffectTag);
@@ -630,6 +648,8 @@ public class FallenData implements INBTSerializable<CompoundTag> {
 
         cNBT.putBoolean(DOWNED_BY_PLAYER_BOOL, this.isDownedByPlayer());
 
+        cNBT.putBoolean(IS_EFFECTS_REMOVED, this.isEffectsRemoved);
+
         return cNBT;
     }
 
@@ -684,5 +704,7 @@ public class FallenData implements INBTSerializable<CompoundTag> {
         this.selfReviveCount = cNBT.getInt(SELF_REVIVE_COUNT_INT);
 
         this.isDownedByPlayer = cNBT.getBoolean(DOWNED_BY_PLAYER_BOOL);
+
+        this.isEffectsRemoved = cNBT.getBoolean(IS_EFFECTS_REMOVED);
     }
 }

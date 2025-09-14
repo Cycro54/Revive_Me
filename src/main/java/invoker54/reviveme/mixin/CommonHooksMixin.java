@@ -89,6 +89,5 @@ public class CommonHooksMixin {
         }
 
         cir.setReturnValue(cancelled);
-        cir.cancel();
     }
 }

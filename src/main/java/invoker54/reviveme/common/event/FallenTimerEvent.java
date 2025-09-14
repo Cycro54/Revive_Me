@@ -67,6 +67,9 @@ public class FallenTimerEvent {
         //Make sure they have no food either
         event.getEntity().getFoodData().setFoodLevel(0);
 
+        //Check if the original effects were removed
+        cap.removeOriginalEffects(event.getEntity());
+
         //Finally make sure they have all the required effects.
         FallEvent.modifyPotionEffects(event.getEntity());
 
