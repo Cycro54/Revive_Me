@@ -26,6 +26,9 @@ public abstract class IForgeKeyMixin implements IForgeKeybinding {
     @Shadow private boolean isDown;
 
     @Shadow private InputMappings.Input key;
+
+    @Shadow public abstract void setDown(boolean p_225593_1_);
+
     @Unique
     private static final ModLogger LOGGERT = ModLogger.getLogger(IForgeKeyMixin.class, ReviveMeConfig.debugMode);
 
@@ -121,7 +124,10 @@ public abstract class IForgeKeyMixin implements IForgeKeybinding {
 
         KeyBinding keyBinding = ((KeyBinding)(Object)this);
         if (cap.isFallen()) {
-            if (!VanillaKeybindHandler.isAllowedKeybind(keyBinding)) cir.setReturnValue(false);
+            if (!VanillaKeybindHandler.isAllowedKeybind(keyBinding) && this.isDown){
+                cir.setReturnValue(false);
+                this.setDown(false);
+            }
             if ((!ReviveMeConfig.canMove && VanillaKeybindHandler.isMovementKeybind(keyBinding))) cir.setReturnValue(false);
 
             //This is for jumping

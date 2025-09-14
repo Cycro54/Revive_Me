@@ -18,7 +18,12 @@ Shtuff to do now
 * ~Fix item data config not working~
 * ~1.16.5 and up Fix Keybind mixin issues (I have to check more of the regular methods in the Keybinding class)~
 * ~1.19.2 and up (Invocore) and Revive Me! need to fix keybind initialization (Make sure the revive me keybind shows up in the controls screen)~
-    
+* Bug in 1.21.1: When you are a revived and you haven't let go of a button before you are downed, it will keep holding that button when you get revived.
+* Add the ModPublisher gradle plugin to all versions for easier upload to Curseforge and Modrinth (Don't directly add the API token!): https://modpublisher.fdd-docs.com/
+* Fix kill method in FallenCapability for all versions except 1.20.1 (fixed in there), player's don't gain credit for killing players in the fallen state
+* Make it so players in the fallen state can't eat (mixin)
+* When adding items to the sacrificial items list inside FallenCapability, copy the items instead of adding them directly.
+
 Shtuff to do next large update
 * Make it so you can change what effects you revive with
 * (Config) Option to stop the premature removal of the fallen penalty timer effect.
@@ -31,6 +36,9 @@ Shtuff to do next large update
 * Make it so RANDOM ITEMS takes Hotbar items by default, or make it obvious that it won't take Hotbar
 * When using self revive options from killing you if canGiveUp is set to false
 * The config comment "#How long the Help call effects will last in SECONDS" has a mistake, must fix!
+* Change Destroy mobs default timer to 30 from 20 seconds
+* Add in auto help call config
+* Change hotbar item sacrifice config to where it checks your inventory first before checking your hotbar.
 
 Shtuff to maybe do
 * If more people ask for revive items with customizable options, I might add it: https://github.com/Cycro54/Revive_Me/issues/33

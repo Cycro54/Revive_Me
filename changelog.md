@@ -1,0 +1,174 @@
+## 1.16.5-1.14.26:
+
+<div><pre><strong>Fixes</strong><br>-Removing player effects should no longer crash the game<br>-Blocked keybinds should no longer be active when in the fallen state<br>-Players in the fallen state should no longer be allowed to eat</pre></div>
+
+## 1.16.5-1.14.25:
+
+<div><pre><strong>Changes</strong><br>-Replaced Float.parseFloat with Math.round. Was causing issues of sorts...<br><br><strong>Fixes</strong><br>-Now checks and prevents even more Keybind methods while in the fallen state</pre></div>
+
+## 1.16.5-1.14.24:
+
+<div><pre><strong>Fixes</strong><br>-Hopefully stopped all blocked modded keybinds from being used whilst in the fallen state</pre></div>
+
+## 1.16.5-1.14.22:
+
+<div><pre><strong>Additions</strong><br>-(Config) Show_Item_Name: enable/disable the display name for specific item<br><br><strong>Changes</strong><br>-Gave more visual hints to know when a self-revive choice will cause you to self-destruct<br>-Edited Self Revive Mob text</pre></div>
+
+## 1.16.5-1.14.21:
+
+<div><pre><strong>Additions</strong><br>-Added README.md<br><strong>Fixes</strong><br>-Now checks if NBT item data configs are empty when checking for item data<br>-Chance now kills you if you run out of revives whilst in a singleplayer world</pre></div>
+
+## 1.16.5-1.14.19:
+
+<div><pre><strong>Fixes</strong><br>-Added null check for Item_Data and Penalty_Item_Data</pre></div>
+
+## 1.16.5-1.14.18:
+
+<div><pre><strong>Additions</strong><br>-(Config) Revive Chance Kill on Fail Config: Kill player if they fail the Revive Chance<br>-Fallen players now glow<br>-(Config) Include_Hotbar_Items: If Random Item sacrifice checks hotbar too<br><br><strong>Changes</strong><br>-(Config) Blocked Commands &amp; Harmful Effects Blacklist now can be turned into whitelists (by adding "//")<br>-(Config) Item Data and Specific Item Data now check if string is a valid Json NBT<br>-Removed InstaKillMsg.java<br>-Damage checks for my mod now starts on the hurtMethod, not isInvulnerableTo Method.<br>-Edited fallen noise conditions.<br><br><strong>fixes</strong><br>-Config now reloads properly<br>-You can no longer die on the same tick that you enter the fallen state<br>-Config text for "Time_Left" has been corrected<br>-Green overlay for self revive no longer stretches forever<br>-Player now dies if they have no revives left, and it's singleplayer.<br>-null check when rendering negative status effects<br>-Reviving someone now shows for everyone nearby<br>-Revive sound event now plays correctly.</pre></div>
+
+## 1.16.5-1.12.28:
+
+<div><pre><strong>Additions</strong><br>-Self Revive Specific Item: Sacrifice a specific item to revive<br>-Self Revive Kill: Kill enough mobs in time to fully revive<br>-Status Effects Self Revive: Gain Harmful effects on revive<br>-Experience Self Revive: Lose a portion of XP on revive<br>-Added configs for new Self revive options<br>-Config Allowed_Keybinds: Allowed Keybinds while in the fallen state<br>-Config Max_Self_revives<br>-Config Run_Death_Event_First: Run LivingDeathEvent first before this mod<br>-Config Cancel_Revive_On_Damage<br>-Config Disable_Self_Revive_On_PVP<br>-Config Randomize_Self_Revive_Options<br>-Config Only_Use_Available_Options: Only show self-revive options you can use (when available)<br>-Config Self_Penalty_Percentage: Self Revive Penalty that increases each time you self revive<br>-Config Die_On_Disconnect<br>-Config Sound_Level: Master control for Revive Me sounds<br><br><strong>Changes</strong><br>-Multiplayer Revive options are no longer tied to the player.<br>-Revive Me code will now run before or after Death event<br>-Reworked Self Revive UI<br>-Sounds are a bit louder<br>-Multiplayer Penalty item can now have NBT data<br>-Sorted Config options<br><br><strong>Fixes</strong><br>-Totem of Undying now works properly<br>-RestartDeathTimerMsg now checks if target player is null<br>-Now you stop using your item when reviving someone<br>-Double damage shouldn't kill the player anymore</pre></div>
+
+ 
+
+## 1.16.5-1.11.2
+
+<div><div><pre>Additions<br>-Added Revert_Effects_On_Revive Config: Gain back potion effects you had before entering the fallen state<br><br>Changes<br>- Effects are no longer constantly being removed while in the dying state<br><br>Fixes<br>- Interact_With_Inventory config now properly limits inventory access<br>- Revive Penalty no longer shows when trying to kill a fallen player<br>- Dying in lava/fire no longer causes your armor to fully repair itself</pre></div></div>
+
+## 1.16.5-1.10.17
+
+<div><pre><strong>Fixes</strong><br>-Turns off self-revive buttons when opening a screen<br><br><strong>Changes</strong><br>-Changed the license to LGPLv3<br>-Sacrificial items now look for matching itemstacks instead of general items</pre></div>
+
+## 1.16.5-1.10.15
+
+<div><pre><strong>Fixes</strong><br>-Keybinds now deactivate properly while in the dying state<br>-Drop keybind now works while in the dying state</pre></div>
+
+## 1.16.5-1.10.14
+
+<div><pre><strong>Fixes</strong><br>-Modded items or events that use the vanilla ATTACK and USE keybind no longer work while in the dying state<br>-Unconventional modded keybinds no longer work while in the dying state</pre></div>
+
+## 1.16.5-1.10.11
+
+<div><pre><strong>Fixes</strong><br>-Corrected Invocore version in Mods.toml</pre></div>
+
+## 1.16.5-1.10.10
+
+<div><pre><strong>Additions</strong><br>-Added sounds to reviving, fallen state, when fully revived, and when calling for help<br>-Added Call for Help button<br>-Now you can make chat messages only get sent to players nearby with the Universal_Chat_Messages config<br><br><strong>Changes</strong><br>-Decreased distance you can see a fallen player when they are not calling for help<br><br><strong>Fixes</strong><br>-Mobs should now fully ignore you while in the fallen state<br>-reviveme command no longer sends 2 chat messages</pre></div>
+
+## 1.16.5-1.7.0
+
+**Additions**  
+\-You can now stop Command/Regular chat messages from displaying through the config
+
+**Changes**  
+\-Now a revive chat message is sent when you revive someone normally
+
+**Fixes**  
+\-No longer displays the wrong number while dying if your world is old  
+\-Food level now updates on CLIENT when used to revive someone
+
+## 1.16.5-1.6.26:
+
+<div><pre><strong>Fixes</strong><br>-You no longer die twice</pre></div>
+
+## 1.16.5-1.6.24:
+
+<div><pre><strong>Additions</strong><br>-You can now see how much you have and what you'll have after when trying to revive someone<br><br><strong>Changes</strong><br>-You can now block all commands while fallen if you just add "/" in the Blocked Commands config list.<br>-You can now set the revived players food to 0<br>-You can now set the penalty time reduction to the max<br><br><strong>Fixes</strong><br>-You will now instantly kill a fallen player if you attack them.<br>-You can now revive a fallen player if you have the exact amount needed<br>-No longer assumes the entity is a player when executing commands<br>-Accurately displays penalty amount when reviving a player<br>-No longer uses a client-only method for food<br>-No longer crashes when a player being revived dies</pre></div>
+
+## 1.16.5-1.6.16:
+
+<div><pre><strong>Fixes</strong><br>-Player can jump in all liquids when restricted to it while in the fallen state</pre></div>
+
+## 1.16.5-1.6.15:
+
+<div><pre><strong>Additions</strong><br>-Ported the self-revive system from newer versions<br>-Can now change player pose when in the fallen state (Crouch, Prone, and Sleep)<br>-Now have the option to turn on inventory interaction while in the fallen state.<br>-Can now stop fallen players from typing in commands<br>-Can take XP levels when a player enters the fallen state<br>-Added can't kill yet message when PVP timer is enabled<br><br><strong>Changes</strong><br>-Made the fall plate stuff smaller so you can see the player easier.<br>-Fix command removes invulnerability set by previous versions.<br><br><strong>Fixes</strong><br>-Players now revive correctly all the time.<br>-Player will no longer get stuck dying constantly when the timer runs out<br>-Fixed Embeddium Extras incompatibility<br>-Right-Clicking on fallen players no longer causes the death timer to increase<br>-Last Damage Source no longer bypasses fallen state<br>-Revive chance and Sacrificial item percentage config is now sent to the client<br>-Properly stops the player jumping while in the fallen state if disabled<br>-Food penalty type is now properly scaled<br>-Server and Client configs are now synced</pre></div>
+
+## 1.16.5-1.5.3:
+
+<div><pre><strong>Fixes</strong><br>- Removed client-side code in common SlotMixin class<br>- Attack fallen event now checks if the attacked entity is a player<br><br></pre></div>
+
+## 1.16.5-1.5.2:
+
+<div><pre><strong>Fixes</strong><br>- Mod now properly stops players from dropping items, using modded keybinds, and interacting with containers while in the dying state.<br>- When a player is placed in the dying state they are booted out of whatever screen they are currently on.<br>- You can now instantly kill a player if they are in the dying state again.<br><br></pre></div>
+
+## 1.16.5-1.5.1:
+
+<div><pre><strong>Fixes</strong><br>- Death event has been moved to high priority to avoid compatibility issues<br><br></pre></div>
+
+## 1.16.5-1.5.0:
+
+<div><pre><strong>Additions</strong><br>- Added the Fix and Revive command. Fix reruns the code that puts you into the dying state, and revive instantly revives someone.<br><br><strong>Changes</strong><br>- You can no longer use modded keybinds while downed. Vanilla keybinds still work.<br>- Removed old network test code and other stuff not a part of the mod<br><br><strong>Fixes</strong><br>-Ported new dying system to avoid scrubbing mob memories and breaking other mods.<br><br></pre></div>
+
+## 1.16.5-1.4.0:
+
+**Additions**  
+\- Being revived shows up for other players to see when a player is being revived  
+\- Added more lang stuff
+
+ 
+
+**Changes**  
+\-Can't revive someone while crouching  
+\-Changed the timer image to black  
+\-Silenced most of the LOGGER debug comments  
+\-Penalty amount is now saved as a Double rather than an Integer  
+\-You now use the attack button to end yourself when fallen  
+\-Screen zooms in the longer you hold the kill button (when fallen)
+
+\- Now uses code from Invocore (my code library)
+
+ 
+
+**Fixes**  
+\-Text rendering looks a tad better  
+\-Food can no longer increase while fallen  
+\-Stops fallen player from using an item once they become fallen  
+\-Reviver can no longer use items while they are reviving someone
+
+ 
+
+## 1.16.5-1.2.2:
+
+**Additions**
+
+\- Displays a message in chat when a player is downed
+
+ 
+
+**Fixes**  
+\- Changing dimensions now sync cap data to clients properly
+
+##   
+1.16.5-1.2.1:
+
+**Additions**
+
+\- You now have 3 seconds of invulnerability on revive
+
+ 
+
+**Fixes**  
+\- Mobs no longer target fallen players  
+\- Client Capability syncing
+
+\- Fallen graphics render correctly now when the timer is disabled
+
+ 
+
+## 1.16.5-1.1.4:
+
+**Changes**  
+\- When you switch to creative mode the revive timer will be canceled  
+\- You can kill downed players by sneak-clicking them  
+\- Timer can be set to 0 to disable it  
+\- Default penalty is now 10 food instead of 10 health
+
+ 
+
+**Fixes**  
+\- Fixed green circle not rendering correctly for revive timer  
+\- First Aid is now compatible with this mod  
+\- Now works in a hardcore world  
+\- When a player is revived the sync message is now sent to all players nearby instead of just the reviver and the revived  
+\- Totem of Undying works now!

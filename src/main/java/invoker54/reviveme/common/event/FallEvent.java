@@ -67,7 +67,7 @@ public class FallEvent {
             if (ReviveMeConfig.revertEffectsOnRevive){
                 instance.saveEffects(player);
             }
-            player.removeAllEffects();
+            instance.removeOriginalEffects(player);
 
             //Give them all the downed effects.
             modifyPotionEffects(player);

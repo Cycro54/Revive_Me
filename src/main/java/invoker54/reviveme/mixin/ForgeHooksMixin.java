@@ -107,6 +107,5 @@ public abstract class ForgeHooksMixin {
         }
 
         cir.setReturnValue(cancelled);
-        cir.cancel();
     }
 }
