@@ -35,6 +35,8 @@ public abstract class KeyMappingMixin implements Comparable<KeyMapping>, net.min
 
     @Shadow public abstract boolean matchesMouse(int p_90831_);
 
+    @Shadow public abstract void setDown(boolean p_90846_);
+
     @Unique
     private static final ModLogger LOGGERT = ModLogger.getLogger(KeyMappingMixin.class, ReviveMeConfig.debugMode);
 
@@ -132,7 +134,10 @@ public abstract class KeyMappingMixin implements Comparable<KeyMapping>, net.min
 
         KeyMapping keyBinding = ((KeyMapping)(Object)this);
         if (cap.isFallen()) {
-            if (!VanillaKeybindHandler.isAllowedKeybind(keyBinding)) cir.setReturnValue(false);
+            if (!VanillaKeybindHandler.isAllowedKeybind(keyBinding) && this.isDown){
+                cir.setReturnValue(false);
+                this.setDown(false);
+            }
             if ((!ReviveMeConfig.canMove && VanillaKeybindHandler.isMovementKeybind(keyBinding))) cir.setReturnValue(false);
 
             //This is for jumping
