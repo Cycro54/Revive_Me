@@ -39,6 +39,7 @@ Shtuff to do next large update
 * Change Destroy mobs default timer to 30 from 20 seconds
 * Add in auto help call config
 * Change hotbar item sacrifice config to where it checks your inventory first before checking your hotbar.
+* Allow players to have more than one way to REVIVE others (instead of only FOOD, it can be FOOD, HEALTH, XP, etc.) 
 
 Shtuff to maybe do
 * If more people ask for revive items with customizable options, I might add it: https://github.com/Cycro54/Revive_Me/issues/33
