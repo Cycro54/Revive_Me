@@ -23,6 +23,8 @@ Shtuff to do now
 * Fix kill method in FallenCapability for all versions except 1.20.1 (fixed in there), player's don't gain credit for killing players in the fallen state
 * Make it so players in the fallen state can't eat (mixin)
 * When adding items to the sacrificial items list inside FallenCapability, copy the items instead of adding them directly.
+* Fix: Player can't eat while another player is down nearby (probably because the mod thinks the living player is trying to revive the downed player)
+* Fix: players can fly while in the fallen state (some other mod is causing this, but I can probs fix it)
 
 Shtuff to do next large update
 * Make it so you can change what effects you revive with
