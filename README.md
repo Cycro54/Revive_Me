@@ -49,3 +49,4 @@ Shtuff to maybe do
 * Also check this too for revive items: https://github.com/Cycro54/Revive_Me/issues/35
 * Add stats to statistic page for Revive me
 * (Config) If your timer runs out, instead of outright dying, you will be targetable by mobs.
+* Add a custom Pose for the fallen state (something like crawling)
