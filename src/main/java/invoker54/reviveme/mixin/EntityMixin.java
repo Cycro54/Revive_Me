@@ -2,8 +2,6 @@ package invoker54.reviveme.mixin;
 
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
-import net.minecraft.tags.DamageTypeTags;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
@@ -29,6 +27,9 @@ public abstract class EntityMixin {
     @Shadow public abstract int getId();
 
     @Shadow @Nullable public abstract Team getTeam();
+
+    @Shadow
+    public abstract Level level();
 
     @Unique
     private FallenCapability revive_Me$getCap(){
@@ -78,24 +79,24 @@ public abstract class EntityMixin {
         cir.setReturnValue(postColor.getRGB());
     }
 
-    @Inject(
-            method = "getPose",
-            at = {
-                    @At(value = "HEAD")
-            }, cancellable = true)
-    private void getPose(CallbackInfoReturnable<Pose> cir){
-        if (!this.level.isClientSide) return;
-        Entity entity = this.level.getEntity(this.getId());
-        if (!(entity instanceof Player player)) return;
-
-        if (!FallenCapability.GetFallCap(player).isFallen()) return;
-
-        switch (ReviveMeConfig.fallenPose){
-            case CROUCH -> cir.setReturnValue(Pose.CROUCHING);
-            case PRONE -> cir.setReturnValue(Pose.SWIMMING);
-            case SLEEP -> cir.setReturnValue(Pose.SLEEPING);
-        }
-    }
+//    @Inject(
+//            method = "getPose",
+//            at = {
+//                    @At(value = "HEAD")
+//            }, cancellable = true)
+//    private void getPose(CallbackInfoReturnable<Pose> cir){
+//        if (!this.level.isClientSide) return;
+//        Entity entity = this.level.getEntity(this.getId());
+//        if (!(entity instanceof Player player)) return;
+//
+//        if (!FallenCapability.GetFallCap(player).isFallen()) return;
+//
+//        switch (ReviveMeConfig.fallenPose){
+//            case CROUCH -> cir.setReturnValue(Pose.CROUCHING);
+//            case PRONE -> cir.setReturnValue(Pose.SWIMMING);
+//            case SLEEP -> cir.setReturnValue(Pose.SLEEPING);
+//        }
+//    }
 
     @Inject(
             method = "hasPose",
@@ -103,7 +104,6 @@ public abstract class EntityMixin {
                     @At(value = "HEAD")
             }, cancellable = true)
     private void hasPose(Pose pose, CallbackInfoReturnable<Boolean> cir){
-        if (!this.level.isClientSide) return;
         Entity entity = this.level.getEntity(this.getId());
         if (!(entity instanceof Player player)) return;
 
@@ -125,6 +125,7 @@ public abstract class EntityMixin {
     private void isInvulnerable(CallbackInfoReturnable<Boolean> cir){
         if (revive_Me$getCap() == null) return;
         if (!revive_Me$getCap().isFallen()) return;
+        if (this.level.isClientSide) return;
 
         cir.setReturnValue(true);
     }

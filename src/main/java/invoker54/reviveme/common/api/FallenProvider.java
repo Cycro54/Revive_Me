@@ -4,7 +4,7 @@ import invoker54.reviveme.common.capability.FallenCapability;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
@@ -17,8 +17,8 @@ import javax.annotation.Nullable;
 public class FallenProvider implements ICapabilitySerializable<Tag> {
     public static final byte COMPOUND_NBT_ID = new CompoundTag().getId();
 
-    public FallenProvider(Level level){
-        fallenCapability = new FallenCapability(level);
+    public FallenProvider(Player player){
+        fallenCapability = new FallenCapability(player);
     }
 
     //region Capability setup

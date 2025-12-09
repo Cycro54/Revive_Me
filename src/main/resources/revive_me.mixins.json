@@ -8,6 +8,7 @@
     "EntityMixin",
     "FoodMixin",
     "ForgeHooksMixin",
+    "ServerLevelMixin",
     "ServerPlayerMixin",
     "SlotMixin"
   ],

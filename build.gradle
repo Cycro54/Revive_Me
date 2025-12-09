@@ -23,7 +23,7 @@ version = mod_version
 group = mod_group_id
 
 base {
-    archivesName = mod_id+"-1.20.1"
+    archivesName = mod_id+"-"+minecraft_version
 }
 
 // Mojang ships Java 17 to end users in 1.18+, so your mod should target Java 17.
@@ -254,7 +254,7 @@ publisher {
     // For example: markdown.md, or "This is my changelog"
     // Or: https://raw.githubusercontent.com/hypherionmc/changelogs/changelog.md
     // Or https://gist.githubusercontent.com/hypherionmc/92f825d3c9337964cc77c9c8c9bf65e6/raw/ceeaaee5b98c688a23398864fe480b84796a1651/test_gist.md
-    setChangelog("changelog.md")
+    setChangelog(file("changelog.md"))
 
     // Required for Modrinth/GitHub
     setVersion("${project.version}")

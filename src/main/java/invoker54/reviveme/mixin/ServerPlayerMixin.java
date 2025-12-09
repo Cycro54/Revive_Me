@@ -1,7 +1,9 @@
 package invoker54.reviveme.mixin;
 
 import com.mojang.authlib.GameProfile;
+import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerPlayerGameMode;
@@ -21,6 +23,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ServerPlayer.class)
 public abstract class ServerPlayerMixin extends Player {
+    @Unique
+    private static final ModLogger MOD_LOGGER = ModLogger.getLogger(ServerPlayerMixin.class, ReviveMeConfig.debugMode);
 
     @Shadow @Final public ServerPlayerGameMode gameMode;
 
@@ -48,12 +52,12 @@ public abstract class ServerPlayerMixin extends Player {
                     @At(value = "HEAD")
             },
             cancellable = true)
-    private void isCreative(CallbackInfoReturnable<Boolean> cir){
+    private void isCreative(CallbackInfoReturnable<Boolean> cir) {
         if (this.gameMode.getGameModeForPlayer() == GameType.CREATIVE) return;
         FallenCapability cap = FallenCapability.GetFallCap(this);
         if (!cap.isFallen()) return;
 
-        cir.setReturnValue(true);
+        cir.setReturnValue(FallenCapability.FALLEN_HAS_CREATIVE);
     }
 
     @Inject(

@@ -9,7 +9,6 @@ import invoker54.reviveme.common.network.NetworkHandler;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 public class ReviveCommand {
@@ -37,12 +36,6 @@ public class ReviveCommand {
         }
         FallenCapability cap = FallenCapability.GetFallCap(caller);
 
-        if (caller.isDeadOrDying() || !cap.isFallen()){
-
-            caller.server.getPlayerList().broadcastSystemMessage(
-                    caller.getDisplayName().copy().append(Component.translatable("revive_me.commands.revive_fail")), false);
-            return 1;
-        }
         if (caller.isDeadOrDying() || !cap.isFallen()){
             InvoText failTxt = InvoText.translate("revive_me.commands.revive_fail", caller.getDisplayName());
             NetworkHandler.sendMessage(failTxt.getText(), true, caller);

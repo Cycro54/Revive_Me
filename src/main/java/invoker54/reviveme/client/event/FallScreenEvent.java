@@ -1,12 +1,12 @@
 package invoker54.reviveme.client.event;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import invoker54.invocore.client.util.ClientUtil;
 import invoker54.invocore.client.util.InvoText;
 import invoker54.invocore.client.util.InvoZone;
 import invoker54.invocore.client.util.TextUtil;
+import invoker54.invocore.common.ModLogger;
 import invoker54.invocore.common.util.MathUtil;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.VanillaKeybindHandler;
@@ -35,8 +35,6 @@ import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
@@ -48,7 +46,7 @@ import static invoker54.invocore.client.util.ClientUtil.getPlayer;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class FallScreenEvent {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final ModLogger LOGGER = ModLogger.getLogger(FallScreenEvent.class, ReviveMeConfig.debugMode);
 
     private static final Minecraft inst = Minecraft.getInstance();
 

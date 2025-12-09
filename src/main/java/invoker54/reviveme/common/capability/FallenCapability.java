@@ -14,7 +14,6 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.stats.Stats;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -28,7 +27,10 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 public class FallenCapability {
     private static final ModLogger LOGGER = ModLogger.getLogger(FallenCapability.class, ReviveMeConfig.debugMode);
@@ -51,8 +53,11 @@ public class FallenCapability {
     public static final String SELF_REVIVE_COUNT_INT = "SELF_REVIVE_COUNT_INT";
     //endregion
 
-    public FallenCapability(Level level) {
-        this.level = level;
+    public static boolean FALLEN_HAS_CREATIVE = false;
+
+    public FallenCapability(Player player) {
+        this.player = player;
+        this.level = player.level();
         this.damageSource = this.level.damageSources().fellOutOfWorld();
     }
 
@@ -61,6 +66,7 @@ public class FallenCapability {
     }
 
     protected Level level;
+    protected Player player;
     protected long revStart = 0;
     protected int revEnd = 0;
     protected long fellStart = 0;
@@ -584,7 +590,7 @@ public class FallenCapability {
         CompoundTag statusEffectNBT = new CompoundTag();
         int count = 0;
         for (MobEffect effect : this.negativeStatusEffects) {
-            statusEffectNBT.putByte(Integer.toString(count), (byte) MobEffect.getId(effect));
+            statusEffectNBT.putInt(Integer.toString(count), MobEffect.getId(effect));
             count++;
         }
         cNBT.put(STATUS_EFFECTS_COMPOUND, statusEffectNBT);
@@ -632,7 +638,7 @@ public class FallenCapability {
         this.negativeStatusEffects.clear();
         CompoundTag statusEffectNBT = cNBT.getCompound(STATUS_EFFECTS_COMPOUND);
         for (String s : statusEffectNBT.getAllKeys()) {
-            this.negativeStatusEffects.add(MobEffect.byId(statusEffectNBT.getByte(s)));
+            this.negativeStatusEffects.add(MobEffect.byId(statusEffectNBT.getInt(s)));
         }
         sacrificialItems.clear();
         CompoundTag itemCompound = cNBT.getCompound(SACRIFICEITEMS_COMPOUND);
