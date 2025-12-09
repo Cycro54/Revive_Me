@@ -1,30 +1,11 @@
 Shtuff to do now
-* ~Remove the /r in the Self Revive Options list config, causes the config to reload endlessly~
-* ~Remove Instakill Msg~
-* ~Fix double damage death issue with the MythicMobs mod~
-* ~(Config) Chance will not instantly kill you anymore, instead it will refresh your self revive options.~
-* ~(Config) Option to stop random item sacrifice from taking hotbar items.~
-* ~Fix circle render not rendering correctly for fall screen death timer for versions 1.18.2 and up~
-* ~Stop Revive Me! sounds if player is dead~
-* ~Penalty Item Data config needs to check for {}~
-* ~Fix Language localization issue~
-* ~Add ability to invert certain Config blacklists to whitelists and vice-versa~
-* ~Fix keybinds not being stopped correctly on newer versions of Minecraft 1.18.2 and up~
-* ~Fix Kill timer not updating correctly~
-* ~Fix player revive not working~
-* ~Make player glow when in the fallen state~
-* ~Get the YSM (Yes! Steve Model) mod to work with my mod (1.18.2 and up)~
-* ~Fix black background for when witnessing someone revive someone else~
-* ~Fix item data config not working~
-* ~1.16.5 and up Fix Keybind mixin issues (I have to check more of the regular methods in the Keybinding class)~
-* ~1.19.2 and up (Invocore) and Revive Me! need to fix keybind initialization (Make sure the revive me keybind shows up in the controls screen)~
 * Bug in 1.21.1: When you are a revived and you haven't let go of a button before you are downed, it will keep holding that button when you get revived.
 * Add the ModPublisher gradle plugin to all versions for easier upload to Curseforge and Modrinth (Don't directly add the API token!): https://modpublisher.fdd-docs.com/
-* Fix kill method in FallenCapability for all versions except 1.20.1 (fixed in there), player's don't gain credit for killing players in the fallen state
-* Make it so players in the fallen state can't eat (mixin)
-* When adding items to the sacrificial items list inside FallenCapability, copy the items instead of adding them directly.
-* Fix: Player can't eat while another player is down nearby (probably because the mod thinks the living player is trying to revive the downed player)
-* Fix: players can fly while in the fallen state (Mekanism is causing this, I can probs fix it)
+* ~Fix kill method in FallenCapability for all versions except 1.20.1 (fixed in there), player's don't gain credit for killing players in the fallen state~
+* ~Make it so players in the fallen state can't eat (mixin)~
+* ~When adding items to the sacrificial items list inside FallenCapability, copy the items instead of adding them directly.~
+* ~Fix: Player can't eat while another player is down nearby (probably because the mod thinks the living player is trying to revive the downed player)~
+* ~Fix: players can fly while in the fallen state (Mekanism is causing this, I can probs fix it)~
 
 Shtuff to do next large update
 * Make it so you can change what effects you revive with
