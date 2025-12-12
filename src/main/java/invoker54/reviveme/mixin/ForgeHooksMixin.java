@@ -41,6 +41,9 @@ public abstract class ForgeHooksMixin {
         //Make sure the player isn't fallen
         if (myCap.isFallen()) return;
 
+        //Also check if they are reviving someone else
+        if (myCap.getOtherPlayer() != null) return;
+
         //Make sure they aren't crouching
         if (player.isDiscrete()) return;
 

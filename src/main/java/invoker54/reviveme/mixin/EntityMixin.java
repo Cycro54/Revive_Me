@@ -87,7 +87,6 @@ public abstract class EntityMixin {
             }, cancellable = true)
     private void getPose(CallbackInfoReturnable<Pose> cir){
         if (this.revive_Me$grabOriginal)return;
-        if (!this.level.isClientSide) return;
 
         if (revive_Me$getCap() == null) return;
         if (!revive_Me$getCap().isFallen()) return;
@@ -108,6 +107,7 @@ public abstract class EntityMixin {
     private void isInvulnerable(CallbackInfoReturnable<Boolean> cir){
         if (revive_Me$getCap() == null) return;
         if (!revive_Me$getCap().isFallen()) return;
+        if (this.level.isClientSide) return;
 
         cir.setReturnValue(true);
     }

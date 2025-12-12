@@ -37,7 +37,6 @@ public class ReviveCommand {
             caller = (ServerPlayer) commandContext.getSource().getEntity();
         }
         FallenCapability cap = FallenCapability.GetFallCap(caller);
-
         if (caller.isDeadOrDying() || !cap.isFallen()){
             InvoText failTxt = InvoText.translate("revive-me.commands.revive_fail", caller.getDisplayName());
             NetworkHandler.sendMessage(failTxt.getText(), true, caller);
