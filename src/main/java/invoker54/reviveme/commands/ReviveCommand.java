@@ -38,12 +38,6 @@ public class ReviveCommand {
         FallenData cap = FallenData.get(caller);
 
         if (caller.isDeadOrDying() || !cap.isFallen()){
-
-            caller.server.getPlayerList().broadcastSystemMessage(
-                    caller.getDisplayName().copy().append(Component.translatable("revive_me.commands.revive_fail")), false);
-            return 1;
-        }
-        if (caller.isDeadOrDying() || !cap.isFallen()){
             InvoText failTxt = InvoText.translate("revive_me.commands.revive_fail", caller.getDisplayName());
             NetworkInit.sendMessage(failTxt.getText(), true, caller);
             return 1;

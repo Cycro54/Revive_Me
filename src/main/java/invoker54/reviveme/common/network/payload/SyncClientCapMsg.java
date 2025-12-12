@@ -45,15 +45,13 @@ public record SyncClientCapMsg(String uuid, CompoundTag capDataTag) implements C
                         if (player == null) return;
                         FallenData.get(player).readNBT(msg.capDataTag);
 
-
-
                         if (player == ClientUtil.getPlayer() && FallenData.get(player).isFallen()){
                             VanillaKeybindHandler.useHeld = false;
                             VanillaKeybindHandler.attackHeld = false;
                         }
-                        else if (!FallenData.get(player).isFallen()){
-                            player.setPose(Pose.STANDING);
-                        }
+//                        else if (!FallenData.get(player).isFallen()){
+//                            player.setPose(Pose.STANDING);
+//                        }
                     });
                 }
         );

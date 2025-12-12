@@ -29,6 +29,9 @@ public abstract class EntityMixin {
 
     @Shadow @Nullable public abstract PlayerTeam getTeam();
 
+    @Shadow
+    public abstract Level level();
+
     @Unique
     private FallenData revive_Me$getCap(){
         if (this.revive_Me$cap != null) return this.revive_Me$cap;
@@ -77,24 +80,24 @@ public abstract class EntityMixin {
         cir.setReturnValue(postColor.getRGB());
     }
 
-    @Inject(
-            method = "getPose",
-            at = {
-                    @At(value = "HEAD")
-            }, cancellable = true)
-    private void getPose(CallbackInfoReturnable<Pose> cir){
-        if (!this.level.isClientSide) return;
-        Entity entity = this.level.getEntity(this.getId());
-        if (!(entity instanceof Player player)) return;
-
-        if (!FallenData.get(player).isFallen()) return;
-
-        switch (ReviveMeConfig.fallenPose){
-            case CROUCH -> cir.setReturnValue(Pose.CROUCHING);
-            case PRONE -> cir.setReturnValue(Pose.SWIMMING);
-            case SLEEP -> cir.setReturnValue(Pose.SLEEPING);
-        }
-    }
+//    @Inject(
+//            method = "getPose",
+//            at = {
+//                    @At(value = "HEAD")
+//            }, cancellable = true)
+//    private void getPose(CallbackInfoReturnable<Pose> cir){
+//        if (!this.level.isClientSide) return;
+//        Entity entity = this.level.getEntity(this.getId());
+//        if (!(entity instanceof Player player)) return;
+//
+//        if (!FallenData.get(player).isFallen()) return;
+//
+//        switch (ReviveMeConfig.fallenPose){
+//            case CROUCH -> cir.setReturnValue(Pose.CROUCHING);
+//            case PRONE -> cir.setReturnValue(Pose.SWIMMING);
+//            case SLEEP -> cir.setReturnValue(Pose.SLEEPING);
+//        }
+//    }
 
     @Inject(
             method = "hasPose",
@@ -102,7 +105,7 @@ public abstract class EntityMixin {
                     @At(value = "HEAD")
             }, cancellable = true)
     private void hasPose(Pose pose, CallbackInfoReturnable<Boolean> cir){
-        if (!this.level.isClientSide) return;
+//        if (!this.level.isClientSide) return;
         Entity entity = this.level.getEntity(this.getId());
         if (!(entity instanceof Player player)) return;
 
@@ -124,6 +127,7 @@ public abstract class EntityMixin {
     private void isInvulnerable(CallbackInfoReturnable<Boolean> cir){
         if (revive_Me$getCap() == null) return;
         if (!revive_Me$getCap().isFallen()) return;
+        if (this.level.isClientSide) return;
 
         cir.setReturnValue(true);
     }

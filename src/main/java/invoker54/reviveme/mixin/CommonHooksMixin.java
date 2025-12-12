@@ -39,6 +39,9 @@ public class CommonHooksMixin {
         //Make sure the player isn't fallen
         if (reviverCap.isFallen()) return;
 
+        //Also check if they are reviving someone else
+        if (reviverCap.getOtherPlayer() != null) return;
+
         //Make sure they aren't crouching
         if (player.isDiscrete()) return;
 

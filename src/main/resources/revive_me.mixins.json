@@ -8,6 +8,7 @@
     "CommonHooksMixin",
     "EntityMixin",
     "FoodMixin",
+    "ServerLevelMixin",
     "ServerPlayerMixin",
     "SlotMixin"
   ],

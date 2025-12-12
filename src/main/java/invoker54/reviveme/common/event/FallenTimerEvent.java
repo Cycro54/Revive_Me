@@ -216,7 +216,6 @@ public class FallenTimerEvent {
         }
 
         cap.setFallen(false);
-        fallen.setPose(Pose.STANDING);
 
         fallen.level().playSound(null, fallen.getX(), fallen.getY(), fallen.getZ(),
                 SoundInit.REVIVED, SoundSource.PLAYERS, 1.0F, MathUtil.randomFloat(0.7F, 1.0F));

@@ -52,7 +52,7 @@ public abstract class ServerPlayerMixin extends Player {
         FallenData cap = FallenData.get(this);
         if (!cap.isFallen()) return;
 
-        cir.setReturnValue(true);
+        cir.setReturnValue(FallenData.FALLEN_HAS_CREATIVE);
     }
 
     @Inject(

@@ -57,8 +57,11 @@ public class FallenData implements INBTSerializable<CompoundTag> {
     public static final String SELF_REVIVE_COUNT_INT = "SELF_REVIVE_COUNT_INT";
     //endregion
 
+    public static boolean FALLEN_HAS_CREATIVE = false;
+
     protected HolderLookup.Provider provider;
     protected Level level;
+    protected Player player;
     protected long revStart = 0;
     protected int revEnd = 0;
     protected long fellStart = 0;
@@ -110,7 +113,9 @@ public class FallenData implements INBTSerializable<CompoundTag> {
     protected boolean isEffectsRemoved = false;
 
     public static FallenData get(LivingEntity player) {
+        if (!(player instanceof Player)) throw new ClassCastException(player.getClass() + " is not of type Player!");
         FallenData cap = player.getData(AttachmentTypesInit.FALLEN_DATA);
+        if (cap.player == null) cap.player = ((Player)player);
         if (cap.level == null) cap.level = player.getCommandSenderWorld();
         if (cap.provider == null) cap.provider = cap.level.registryAccess();
         if (cap.damageSource == null) cap.damageSource = cap.level.damageSources().fellOutOfWorld();

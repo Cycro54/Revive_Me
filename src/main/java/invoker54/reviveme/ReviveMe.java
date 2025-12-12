@@ -3,6 +3,7 @@ package invoker54.reviveme;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.init.AttachmentTypesInit;
 import invoker54.reviveme.init.MobEffectInit;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;

@@ -470,7 +470,7 @@ public final class ReviveMeConfig {
             builder.push("Specific Item");
             specificItem = builder.comment("Item that you wish to sacrifice. Usage: MODID:ITEM").define("Item_ID", "minecraft:golden_apple");
             showSpecificItemName = builder.comment("If the item name should show").define("Show_Item_Name", true);
-            specificItemCount = builder.comment("How much of the specific item is needed.").defineInRange("Item_Count", 3, 0, Integer.MAX_VALUE);
+            specificItemCount = builder.comment("How much of the specific item is needed.").defineInRange("Item_Count", 1, 0, Integer.MAX_VALUE);
             specificItemData = builder.comment("NBT Data for the specific item (stored in the CUSTOM_DATA Data component) (Don't forget the curly brackets! {})").define("Item_Data", "{}", s -> {
                         if (s == null) return false;
                         if (s.equals("{}")) return true;
@@ -486,7 +486,7 @@ public final class ReviveMeConfig {
 
             builder.push("Kill");
             reviveKillAmount = builder.comment("Amount of Living Entities you must kill before the death timer runs out.").defineInRange("Kill_Count", 2, 0, Integer.MAX_VALUE);
-            reviveKillTime = builder.comment("Time in SECONDS you have to kill the needed amount of Living Entities. (Affected by penalty)").defineInRange("Kill_Time", 20, 0, Integer.MAX_VALUE);
+            reviveKillTime = builder.comment("Time in SECONDS you have to kill the needed amount of Living Entities. (Affected by penalty)").defineInRange("Kill_Time", 30, 0, Integer.MAX_VALUE);
             builder.pop();
 
             builder.push("Status Effects");
@@ -495,7 +495,7 @@ public final class ReviveMeConfig {
                             a -> !a.toString().isEmpty() && ((a.equals("//")) || BuiltInRegistries.MOB_EFFECT.entrySet().stream().filter((effect) -> effect.getValue().getCategory() == MobEffectCategory.HARMFUL)
                                     .map(e -> e.getKey().location().toString()).toList().contains(a)));
 
-            negativeEffectsTime = builder.comment("How long the harmful effects will last for. (Affected by penalty)").defineInRange("Effect_Duration", 12, 0, Integer.MAX_VALUE);
+            negativeEffectsTime = builder.comment("How long the harmful effects will last for. (Affected by penalty)").defineInRange("Effect_Duration", 15, 0, Integer.MAX_VALUE);
             disableReviveEffects = builder.comment("If Revive effects should be disabled when reviving with this self-revive type.").define("Disable_Revive_Effects", true);
             builder.pop();
 
