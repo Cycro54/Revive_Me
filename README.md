@@ -31,3 +31,4 @@ Shtuff to maybe do
 * Add stats to statistic page for Revive me
 * (Config) If your timer runs out, instead of outright dying, you will be targetable by mobs.
 * Add a custom Pose for the fallen state without using a custom renderer, customize STANDING pose
+* Have a way to extend your timer, (using items or something)
