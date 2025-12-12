@@ -83,14 +83,13 @@ public abstract class EntityMixin {
             at = {
                     @At(value = "HEAD")
             }, cancellable = true)
-    private void hasPose(Pose pose, CallbackInfoReturnable<Boolean> cir) {
-        if (!this.level.isClientSide) return;
+    private void hasPose(Pose pose, CallbackInfoReturnable<Boolean> cir){
         Entity entity = this.level.getEntity(this.getId());
         if (!(entity instanceof Player player)) return;
 
         if (!FallenCapability.GetFallCap(player).isFallen()) return;
 
-        switch (ReviveMeConfig.fallenPose) {
+        switch (ReviveMeConfig.fallenPose){
             case CROUCH -> cir.setReturnValue(pose == Pose.CROUCHING);
             case PRONE -> cir.setReturnValue(pose == Pose.SWIMMING);
             case SLEEP -> cir.setReturnValue(pose == Pose.SLEEPING);
@@ -106,6 +105,7 @@ public abstract class EntityMixin {
     private void isInvulnerable(CallbackInfoReturnable<Boolean> cir) {
         if (revive_Me$getCap() == null) return;
         if (!revive_Me$getCap().isFallen()) return;
+        if (this.level.isClientSide) return;
 
         cir.setReturnValue(true);
     }

@@ -10,15 +10,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LocalPlayer.class)
 public class LocalPlayerMixin {
-
-    @Inject(
-            method = "isMovingSlowly",
-            at = {
-                    @At(value = "HEAD")
-            }, cancellable = true)
-    private void isMovingSlowly(CallbackInfoReturnable<Boolean> cir) {
-        if (ClientUtil.getPlayer() == null) return;
-        if (!FallenCapability.GetFallCap(ClientUtil.getPlayer()).isFallen()) return;
-        cir.setReturnValue(ClientUtil.getPlayer().isCrouching());
-    }
+//TODO: REMOVE THIS IF IT WORKS OUT!!!
+//    @Inject(
+//            method = "isMovingSlowly",
+//            at = {
+//                    @At(value = "HEAD")
+//            }, cancellable = true)
+//    private void isMovingSlowly(CallbackInfoReturnable<Boolean> cir){
+//        if (ClientUtil.getPlayer() == null) return;
+//        if (!FallenCapability.GetFallCap(ClientUtil.getPlayer()).isFallen()) return;
+//        cir.setReturnValue(ClientUtil.getPlayer().isCrouching());
+//    }
 }

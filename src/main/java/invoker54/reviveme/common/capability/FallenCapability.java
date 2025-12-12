@@ -53,8 +53,11 @@ public class FallenCapability {
     public static final String SELF_REVIVE_COUNT_INT = "SELF_REVIVE_COUNT_INT";
     //endregion
 
-    public FallenCapability(Level level) {
-        this.level = level;
+    public static boolean FALLEN_HAS_CREATIVE = false;
+
+    public FallenCapability(Player player) {
+        this.player = player;
+        this.level = player.getLevel();
     }
 
     public FallenCapability() {
@@ -62,6 +65,7 @@ public class FallenCapability {
     }
 
     protected Level level;
+    protected Player player;
     protected long revStart = 0;
     protected int revEnd = 0;
     protected long fellStart = 0;
@@ -586,7 +590,7 @@ public class FallenCapability {
         CompoundTag statusEffectNBT = new CompoundTag();
         int count = 0;
         for (MobEffect effect : this.negativeStatusEffects) {
-            statusEffectNBT.putByte(Integer.toString(count), (byte) MobEffect.getId(effect));
+            statusEffectNBT.putInt(Integer.toString(count), MobEffect.getId(effect));
             count++;
         }
         cNBT.put(STATUS_EFFECTS_COMPOUND, statusEffectNBT);
@@ -634,7 +638,7 @@ public class FallenCapability {
         this.negativeStatusEffects.clear();
         CompoundTag statusEffectNBT = cNBT.getCompound(STATUS_EFFECTS_COMPOUND);
         for (String s : statusEffectNBT.getAllKeys()) {
-            this.negativeStatusEffects.add(MobEffect.byId(statusEffectNBT.getByte(s)));
+            this.negativeStatusEffects.add(MobEffect.byId(statusEffectNBT.getInt(s)));
         }
         sacrificialItems.clear();
         CompoundTag itemCompound = cNBT.getCompound(SACRIFICEITEMS_COMPOUND);

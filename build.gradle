@@ -1,3 +1,5 @@
+import com.hypherionmc.modpublisher.properties.ModLoader
+
 buildscript {
     repositories {
         maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
@@ -271,7 +273,7 @@ publisher {
     // The modloaders your upload supports.
     // This can also be an Enum from ModLoader,
     // like setLoaders(ModLoader.FABRIC, ModLoader.FORGE)
-    setLoaders("forge")
+    setLoaders(ModLoader.FORGE)
 
     // The new Curseforge Environment tag. Optional
     // Valid values are "server", "client" or "both"
