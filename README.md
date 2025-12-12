@@ -24,6 +24,7 @@ Shtuff to do next large update
 * Allow players to have more than one way to REVIVE others (instead of only FOOD, it can be FOOD, HEALTH, XP, etc.)
 * Add abiltiy do dispel the Mob Kill Effect Timer
 * Be able to see what revives and downs a player (when revived, when entering fallen state)
+* Add a entity blacklist for the Kill Revive Effect  (so players can't kill chickens and call it a day)
 
 Shtuff to maybe do
 * If more people ask for revive items with customizable options, I might add it: https://github.com/Cycro54/Revive_Me/issues/33
@@ -32,3 +33,4 @@ Shtuff to maybe do
 * (Config) If your timer runs out, instead of outright dying, you will be targetable by mobs.
 * Add a custom Pose for the fallen state without using a custom renderer, customize STANDING pose
 * Have a way to extend your timer, (using items or something)
+* Attribute creation/modification (https://github.com/Cycro54/Revive_Me/issues/45)
