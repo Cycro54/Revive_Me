@@ -57,7 +57,7 @@ public abstract class ServerPlayerMixin extends PlayerEntity {
         FallenCapability cap = FallenCapability.GetFallCap(this);
         if (!cap.isFallen()) return;
 
-        cir.setReturnValue(true);
+        cir.setReturnValue(FallenCapability.FALLEN_HAS_CREATIVE);
     }
 
     @Inject(

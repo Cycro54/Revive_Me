@@ -215,7 +215,6 @@ public class FallenTimerEvent {
         }
 
         cap.setFallen(false);
-        fallen.setPose(Pose.STANDING);
 
         CompoundNBT nbt = new CompoundNBT();
         nbt.put(fallen.getStringUUID(), cap.writeNBT());

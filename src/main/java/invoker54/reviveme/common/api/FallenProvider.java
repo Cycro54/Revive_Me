@@ -1,6 +1,7 @@
 package invoker54.reviveme.common.api;
 
 import invoker54.reviveme.common.capability.FallenCapability;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.util.Direction;
@@ -16,8 +17,8 @@ import javax.annotation.Nullable;
 public class FallenProvider implements ICapabilitySerializable<INBT> {
     public static final byte COMPOUND_NBT_ID = new CompoundNBT().getId();
 
-    public FallenProvider(World level){
-        fallenCapability = new FallenCapability(level);
+    public FallenProvider(PlayerEntity player){
+        fallenCapability = new FallenCapability(player);
     }
 
     //region Capability setup

@@ -1,3 +1,7 @@
+# 1.16.5-1.14.27
+
+<div><div><pre><strong>Changes</strong><br>-A reviver can no longer revive 2 people at once<br>-Fallen players are now only seen to be in creative while ticking through entities<br>-Adjustments to default self revive settings<br><br><br><strong>Fixes</strong><br>-Probably fixed pose issues<br>-Status effects self revive now shows the correct debuffs<br>-Players that aren't the host should be able to eat food now if the host enters the fallen state<br>-"Already revived" message now displays properly</pre></div></div>
+
 ## 1.16.5-1.14.26:
 
 <div><pre><strong>Fixes</strong><br>-Removing player effects should no longer crash the game<br>-Blocked keybinds should no longer be active when in the fallen state<br>-Players in the fallen state should no longer be allowed to eat</pre></div>

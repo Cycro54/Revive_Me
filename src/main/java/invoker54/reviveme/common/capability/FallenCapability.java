@@ -48,13 +48,17 @@ public class FallenCapability {
     public static final String STATUS_EFFECTS_COMPOUND = "STATUS_EFFECTS_COMPOUND";
     public static final String SELF_REVIVE_COUNT_INT = "SELF_REVIVE_COUNT_INT";
 
-    public FallenCapability(World level){
-        this.level = level;
+    public static boolean FALLEN_HAS_CREATIVE = false;
+
+    public FallenCapability(PlayerEntity player) {
+        this.player = player;
+        this.level = player.getCommandSenderWorld();
     }
     public FallenCapability() {
     }
 
     protected World level;
+    protected PlayerEntity player;
     protected long revStart = 0;
     protected int revEnd = 0;
     protected long fellStart = 0;
@@ -568,7 +572,7 @@ public class FallenCapability {
         CompoundNBT statusEffectNBT = new CompoundNBT();
         int count = 0;
         for (Effect effect : this.negativeStatusEffects){
-            statusEffectNBT.putByte(Integer.toString(count), (byte) Effect.getId(effect));
+            statusEffectNBT.putInt(Integer.toString(count), Effect.getId(effect));
             count++;
         }
         cNBT.put(STATUS_EFFECTS_COMPOUND, statusEffectNBT);
@@ -616,7 +620,7 @@ public class FallenCapability {
         this.negativeStatusEffects.clear();
         CompoundNBT statusEffectNBT = cNBT.getCompound(STATUS_EFFECTS_COMPOUND);
         for (String s : statusEffectNBT.getAllKeys()){
-            this.negativeStatusEffects.add(Effect.byId(statusEffectNBT.getByte(s)));
+            this.negativeStatusEffects.add(Effect.byId(statusEffectNBT.getInt(s)));
         }
 
         sacrificialItems.clear();
