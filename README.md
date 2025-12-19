@@ -9,7 +9,7 @@ Shtuff to do now
 
 Shtuff to do next large update
 * Revive items with customizable options: (https://github.com/Cycro54/Revive_Me/issues/33), (https://github.com/Cycro54/Revive_Me/issues/35)
-* Make it so you can change what effects you revive with
+* Make it so you can change what effects you revive with 15
 * (Config) Option to stop the premature removal of the fallen penalty timer effect.
 * (Config) Add option to kill player even when they are revived, but to respawn them exactly where they die
 * (Config) Add a way for certain types of damage sources to bypass my mod besides invulnerability
@@ -25,6 +25,7 @@ Shtuff to do next large update
 * Config for if the Death Timer is dispellable or not
 * Be able to see what revives and downs a player (when revived, and when entering fallen state)
 * Add a entity blacklist(which can also be made into a whitelist) for the Kill Revive Effect (so players can't kill chickens and call it a day), (be able to block/allow classes,and MODIDs) (https://github.com/Cycro54/Revive_Me/issues/46)
+* Make a blacklist for revertable effects and add kill timer effect to it.
 
 Shtuff to maybe do
 * (Config) If your timer runs out, instead of outright dying, you will be able to take damage instead
