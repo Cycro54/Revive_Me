@@ -6,10 +6,11 @@ Shtuff to do now
 * ~When adding items to the sacrificial items list inside FallenCapability, copy the items instead of adding them directly.~
 * ~Fix: Player can't eat while another player is down nearby (probably because the mod thinks the living player is trying to revive the downed player)~
 * ~Fix: players can fly while in the fallen state (Mekanism is causing this, I can probs fix it)~
+  
 Shtuff to do next large update
 * Revive items with customizable options: (https://github.com/Cycro54/Revive_Me/issues/33), (https://github.com/Cycro54/Revive_Me/issues/35) (4-10 hours)
-* Make it so you can change what effects you revive with (15 min)
-* (Config) Option to stop the premature removal of the fallen penalty timer effect. (30 min.)
+* ~Make it so you can change what effects you revive with (2 hours 40 min)~
+* ~(Config) Option to stop the premature removal of the fallen penalty timer effect. (30 min.)~
 * (Config) Pause fallen Timer on DC (15 MIN)
 * ~Fix the Revive Me fail command text (The text that shows isn't correct.)~
 
