@@ -11,28 +11,27 @@ Shtuff to do next large update
 * Revive items with customizable options: (https://github.com/Cycro54/Revive_Me/issues/33), (https://github.com/Cycro54/Revive_Me/issues/35) (4-10 hours)
 * ~Make it so you can change what effects you revive with (2 hours 40 min)~
 * ~(Config) Option to stop the premature removal of the fallen penalty timer effect. (30 min.)~
-* (Config) Pause fallen Timer on DC (15 MIN)
+* ~(Config) Pause fallen Timer on DC (30 MIN)~
 * ~Fix the Revive Me fail command text (The text that shows isn't correct.)~
-
 * ~Player appears to be crouching after being revived, they shouldn't be~
-* Make it so inventory items are taken first, and if there are not enough items, check hotbar too (Make sure the player knows the config) (30 min.)
-* Stop self revive options from killing you if canGiveUp is set to false (15-30 min.)
+* ~Make it so player knows if check hotbar is turned off when sacrificing items (30 min.)~
+* ~Stop self revive options from killing you if canGiveUp is set to false (15-30 min.)~
 * The config comment "#How long the Help call effects will last in SECONDS" has a mistake, must fix! (5 min)
 * ~Change Destroy mobs default timer to 30 from 20 seconds~
-* sneak R to toggle auto call (30 min.)
 * Allow players to have more than one way to REVIVE others (instead of only FOOD, it can be FOOD, HEALTH, XP, etc.) (2-3 hours)
-* Config for if the Death Timer is dispellable or not (15 min.)
+* ~Config for if the Death Timer is dispellable or not (15 min.)~
 * Be able to see what revives and downs a player (when revived, and when entering fallen state) (15 min.)
 * Add a entity blacklist(which can also be made into a whitelist) for the Kill Revive Effect (so players can't kill chickens and call it a day), (be able to block/allow classes,and MODIDs) (https://github.com/Cycro54/Revive_Me/issues/46) (30 min)
 * Make a blacklist for revertable effects and add kill timer effect to it. (30 min.)
+*  (Config) If your timer runs out, instead of outright dying, you will be able to take damage instead
 
 Shtuff to maybe do
-* (Config) If your timer runs out, instead of outright dying, you will be able to take damage instead
+* sneak R to toggle auto call (30 min.)
 * Add stats to statistic page for Revive me
 * Think about making a custom data pack or something, (change the way the player looks when they are down, change a couple textures n stuff maybe??) (Look at Posture mod: https://www.curseforge.com/minecraft/mc-mods/posture)
 * Have a way to extend your timer, (using items or something)
 * Attribute creation/modification (https://github.com/Cycro54/Revive_Me/issues/45)
-* Add compatibility with MrCrayfishs controller mod
+* ~Add compatibility with MrCrayfishs controller mod~
 * (Config) Add a way for certain types of damage sources to bypass my mod besides invulnerability
 * (Config) Add option to kill player even when they are revived, but to respawn them exactly where they die
 * Maybe add a config that makes it so if the regular death event runs first, all of the listeners will at least know if the Death event is canceled with my mod
