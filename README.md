@@ -16,11 +16,10 @@ Shtuff to do next large update
 * ~Player appears to be crouching after being revived, they shouldn't be~
 * ~Make it so player knows if check hotbar is turned off when sacrificing items (30 min.)~
 * ~Stop self revive options from killing you if canGiveUp is set to false (15-30 min.)~
-* The config comment "#How long the Help call effects will last in SECONDS" has a mistake, must fix! (5 min)
+* ~The config comment "#How long the Help call effects will last in SECONDS" has a mistake, must fix! (5 min)~
 * ~Change Destroy mobs default timer to 30 from 20 seconds~
-* Allow players to have more than one way to REVIVE others (instead of only FOOD, it can be FOOD, HEALTH, XP, etc.) (2-3 hours)
 * ~Config for if the Death Timer is dispellable or not (15 min.)~
-* Be able to see what revives and downs a player (when revived, and when entering fallen state) (15 min.)
+* ~Be able to see what revives and downs a player (when revived, and when entering fallen state) (15 min.)~
 * Add a entity blacklist(which can also be made into a whitelist) for the Kill Revive Effect (so players can't kill chickens and call it a day), (be able to block/allow classes,and MODIDs) (https://github.com/Cycro54/Revive_Me/issues/46) (30 min)
 * Make a blacklist for revertable effects and add kill timer effect to it. (30 min.)
 *  (Config) If your timer runs out, instead of outright dying, you will be able to take damage instead
