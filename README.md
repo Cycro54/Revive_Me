@@ -25,7 +25,7 @@ Shtuff to do next large update
 * ~(Config) If your timer runs out, instead of outright dying, you will be able to take damage instead~
 * Attribute creation/modification (https://github.com/Cycro54/Revive_Me/issues/45)
 * Add stats to statistic page for Revive me
-* sneak R to toggle auto call (30 min.)
+* ~sneak R to toggle auto call (30 min.)~
 * (config) add option to turn off bold text
 
 Shtuff to maybe do
