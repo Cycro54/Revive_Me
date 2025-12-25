@@ -26,7 +26,7 @@ Shtuff to do next large update
 * Attribute creation/modification (https://github.com/Cycro54/Revive_Me/issues/45)
 * Add stats to statistic page for Revive me
 * ~sneak R to toggle auto call (30 min.)~
-* (config) add option to turn off bold text
+* ~(config) add option to turn off bold text~
 
 Shtuff to maybe do
 * (Not adding, someone else can if they want) Think about making a custom data pack or something, (change the way the player looks when they are down, change a couple textures n stuff maybe??) (Look at Posture mod: https://www.curseforge.com/minecraft/mc-mods/posture)
