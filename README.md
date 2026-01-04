@@ -29,6 +29,7 @@ Shtuff to do next large update
 * ~(config) add option to turn off bold text~
 
 Shtuff to maybe do
+* config to change how much health a fallen player can have, if they can regenerate, and if the attacking player has to crouch to attack them
 * (Not adding, someone else can if they want) Think about making a custom data pack or something, (change the way the player looks when they are down, change a couple textures n stuff maybe??) (Look at Posture mod: https://www.curseforge.com/minecraft/mc-mods/posture)
 * Have a way to extend your timer, (using items or something)
 * ~Add compatibility with MrCrayfishs controller mod~
