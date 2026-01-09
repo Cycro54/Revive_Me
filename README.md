@@ -23,15 +23,13 @@ Shtuff to do next large update
 * ~Add a entity blacklist(which can also be made into a whitelist) for the Kill Revive Effect (so players can't kill chickens and call it a day), (be able to block/allow classes,and MODIDs) (https://github.com/Cycro54/Revive_Me/issues/46) (30 min)~
 * ~Make a blacklist for revertable effects and add kill timer effect to it. (30 min.)~
 * ~(Config) If your timer runs out, instead of outright dying, you will be able to take damage instead~
-* Attribute creation/modification (https://github.com/Cycro54/Revive_Me/issues/45)
-* Add stats to statistic page for Revive me
 * ~sneak R to toggle auto call (30 min.)~
 * ~(config) add option to turn off bold text~
 
 Shtuff to maybe do
-* config to change how much health a fallen player can have, if they can regenerate, and if the attacking player has to crouch to attack them
+* Attribute creation/modification (https://github.com/Cycro54/Revive_Me/issues/45)
+* Add stats to statistic page for Revive me
 * (Not adding, someone else can if they want) Think about making a custom data pack or something, (change the way the player looks when they are down, change a couple textures n stuff maybe??) (Look at Posture mod: https://www.curseforge.com/minecraft/mc-mods/posture)
-* Have a way to extend your timer, (using items or something)
 * ~Add compatibility with MrCrayfishs controller mod~
 * (Config) Add a way for certain types of damage sources to bypass my mod besides invulnerability
 * (Config) Add option to kill player even when they are revived, but to respawn them exactly where they die
