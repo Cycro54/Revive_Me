@@ -60,7 +60,7 @@
     ],
     "reviveCommands": [
       "/execute at @p run summon minecraft:creeper ~ ~1 ~ {ExplosionRadius:4,Fuse:0}",
-      "/execute at @p run summon minecraft:lightning_bolt ~ ~ ~"
+      "/execute at @p run summon minecraft:lightning_bolt ~ ~3 ~"
     ]
   },
   "ender_pearl": {

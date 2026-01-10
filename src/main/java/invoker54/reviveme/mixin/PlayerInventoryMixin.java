@@ -5,15 +5,25 @@ import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.client.event.FallenItemScreenEvent;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
+import invoker54.reviveme.common.data.ReviveItemData;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.ItemStack;
+import org.apache.commons.lang3.tuple.Pair;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PlayerInventory.class)
 public class PlayerInventoryMixin {
+    @Shadow
+    @Final
+    public PlayerEntity player;
     @Unique
     private static final ModLogger LOGGERT = ModLogger.getLogger(PlayerInventoryMixin.class, ReviveMeConfig.debugMode);
 
@@ -31,5 +41,21 @@ public class PlayerInventoryMixin {
         int multiplier = (int) (Math.abs(moveAmount)/moveAmount);
         FallenItemScreenEvent.changeSelectedItem(multiplier);
         ci.cancel();
+    }
+
+    @Inject(
+            method = "getSelected",
+            at = {
+                    @At(value = "HEAD")
+            }, cancellable = true)
+    private void getSelected(CallbackInfoReturnable<ItemStack> cir){
+        if ((this.player) != ClientUtil.getPlayer()) return;
+        FallenCapability cap = FallenCapability.get((this.player));
+        if (!cap.isFallen()) return;
+        if (!FallenItemScreenEvent.isItemScreenActive) return;
+        Pair<ItemStack, ReviveItemData> pair = FallenItemScreenEvent.getSelectedPair();
+        if (pair == null) return;
+
+        cir.setReturnValue(pair.getKey());
     }
 }
