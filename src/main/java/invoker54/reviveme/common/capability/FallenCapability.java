@@ -197,18 +197,11 @@ public class FallenCapability {
         double penaltyPercentage =  penalty * ReviveMeConfig.overhealPenaltyPercentage;
         this.maxOverheal = ReviveMeConfig.overhealAmount * (1 + penaltyPercentage);
         this.currentOverheal = 0;
-
-        LOGGER.warn("penalty Percentage: " + (1 + penaltyPercentage));
-        LOGGER.warn("Max Overheal: " + maxOverheal);
     }
 
     public boolean addOverheal(float healAmount){
         if (maxOverheal == 0) return false;
         this.currentOverheal += healAmount;
-
-        LOGGER.error("What's max Heal: " + this.maxOverheal);
-        LOGGER.error("What's current Overheal: " + this.currentOverheal);
-
         return this.currentOverheal >= maxOverheal;
     }
 
