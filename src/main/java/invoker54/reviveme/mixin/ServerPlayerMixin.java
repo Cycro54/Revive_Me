@@ -36,7 +36,7 @@ public abstract class ServerPlayerMixin extends PlayerEntity {
 
         Entity entity = this.level.getEntity(this.getId());
         if (!(entity instanceof PlayerEntity)) return null;
-        revive_Me$cap = FallenCapability.GetFallCap((PlayerEntity)entity);
+        revive_Me$cap = FallenCapability.get((PlayerEntity)entity);
 
         return this.revive_Me$cap;
     }
@@ -54,8 +54,9 @@ public abstract class ServerPlayerMixin extends PlayerEntity {
             cancellable = true)
     private void isCreative(CallbackInfoReturnable<Boolean> cir){
         if (this.gameMode.getGameModeForPlayer() == GameType.CREATIVE) return;
-        FallenCapability cap = FallenCapability.GetFallCap(this);
+        FallenCapability cap = FallenCapability.get(this);
         if (!cap.isFallen()) return;
+        if (!ReviveMeConfig.dieWhenTimerEnds && cap.timeRanOut()) return;
 
         cir.setReturnValue(FallenCapability.FALLEN_HAS_CREATIVE);
     }
@@ -72,11 +73,18 @@ public abstract class ServerPlayerMixin extends PlayerEntity {
         if (revive_Me$getCap() == null) return;
         if (!revive_Me$getCap().isFallen()) return;
 
-        if ((damageSource.getEntity() instanceof PlayerEntity)
-                && damageSource.getEntity().isCrouching() && revive_Me$getCap().getKillTime(false) == 0) {
+        boolean sourceIsPlayer = (damageSource.getEntity() instanceof PlayerEntity);
+        boolean playerIsCrouching = (sourceIsPlayer && damageSource.getEntity().isCrouching());
+        boolean killTimerIsExpired = revive_Me$getCap().getKillTime(false) == 0;
+        boolean actualDamage = damage > 0;
+
+        if (playerIsCrouching && killTimerIsExpired && actualDamage) {
             revive_Me$getCap().setDamageSource(damageSource);
-            revive_Me$getCap().kill((PlayerEntity) this.level.getEntity(this.getId()));
+
+            revive_Me$getCap().forceDeath();
         }
+
+        if (!ReviveMeConfig.dieWhenTimerEnds && revive_Me$getCap().timeRanOut()) return;
 
         cir.setReturnValue(false);
     }

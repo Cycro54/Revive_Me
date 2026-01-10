@@ -2,6 +2,7 @@ package invoker54.reviveme.common.potion;
 
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.init.EffectInit;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -15,11 +16,12 @@ import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.PotionEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.lwjgl.system.CallbackI;
+import org.apache.commons.lang3.StringUtils;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class KillRevivePotionEffect extends Effect {
     public static final int effectColor = new Color(35, 5, 5,255).getRGB();
@@ -36,6 +38,24 @@ public class KillRevivePotionEffect extends Effect {
         return new ArrayList<>();
     }
 
+    public static boolean isAllowedEntity(Entity entity){
+        if (entity == null) return false;
+
+        boolean isWhitelist = ReviveMeConfig.reviveKillBlackList.contains("//");
+        List<String> classificationList = ReviveMeConfig.reviveKillBlackList.stream()
+                .filter(s -> StringUtils.countMatches(s, ";") == 2)
+                .map(s -> s.replace(";", "")).collect(Collectors.toList());
+
+        boolean hasMatch = classificationList.contains(entity.getType().getCategory().toString());
+
+        if (!hasMatch){
+            hasMatch = ReviveMeConfig.reviveKillBlackList.stream().anyMatch(listString ->
+                    entity.getType().getRegistryName().toString().contains(listString));
+        }
+
+        return isWhitelist == hasMatch;
+    }
+
     @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
     public static class PotionEvents{
 
@@ -46,7 +66,10 @@ public class KillRevivePotionEffect extends Effect {
             LivingEntity entity = (LivingEntity) sourceEntity;
             EffectInstance instance = entity.getEffect(EffectInit.KILL_REVIVE_EFFECT);
             if (instance == null) return;
+            if (!isAllowedEntity(event.getEntityLiving())) return;
+
             entity.removeEffect(EffectInit.KILL_REVIVE_EFFECT);
+
             if (instance.getAmplifier() > 0) {
                 entity.removeEffect(EffectInit.KILL_REVIVE_EFFECT);
 
@@ -71,7 +94,7 @@ public class KillRevivePotionEffect extends Effect {
             if (!(effect.getEffect() instanceof KillRevivePotionEffect)) return;
             if (!(entity instanceof PlayerEntity)) return;
 
-            FallenCapability cap = FallenCapability.GetFallCap(entity);
+            FallenCapability cap = FallenCapability.get(entity);
             if (cap.isFallen()) return;
 
             if (completed) return;

@@ -23,7 +23,7 @@ public class WidgetMixin {
     private void isValidClickButtonMix(int buttonID, CallbackInfoReturnable<Boolean> cir) {
         if (ClientUtil.mC.screen == null) return;
         if (!(ClientUtil.mC.screen instanceof InventoryScreen)) return;
-        FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
+        FallenCapability cap = FallenCapability.get(ClientUtil.getPlayer());
         if (!cap.isFallen()) return;
         if (ReviveMeConfig.interactWithInventory == ReviveMeConfig.INTERACT_WITH_INVENTORY.YES) return;
         cir.setReturnValue(false);

@@ -44,25 +44,29 @@ public class CapabilityEvents {
 
         playerTracking.putIfAbsent(playerUUID, new ArrayList<>());
 
-        FallenCapability cap = FallenCapability.GetFallCap(event.getPlayer());
+        FallenCapability cap = FallenCapability.get(event.getPlayer());
+        if (cap.isFallen() && ReviveMeConfig.pauseFallenTimerOnDisconnect) cap.resumeFallTimer();
 
         CompoundNBT nbt = new CompoundNBT();
         nbt.put(playerUUID.toString(), cap.writeNBT());
 
-        NetworkHandler.sendToPlayer(event.getPlayer(), new SyncClientCapMsg(nbt));
+        NetworkHandler.sendToPlayer(event.getPlayer(), new SyncClientCapMsg(nbt, true));
+        //This will also sync Revive items too
         NetworkHandler.sendToPlayer(event.getPlayer(), new SyncConfigMsg(ReviveMeConfig.serialize()));
     }
 
     @SubscribeEvent
     public static void onLogout(PlayerEvent.PlayerLoggedOutEvent event){
         playerTracking.remove(event.getPlayer().getUUID());
-        if (!ReviveMeConfig.dieOnDisconnect) return;
 
         PlayerEntity player = event.getPlayer();
         if (!player.isAlive()) return;
-        FallenCapability cap = FallenCapability.GetFallCap(player);
+        FallenCapability cap = FallenCapability.get(player);
         if (!cap.isFallen()) return;
-        cap.kill(player);
+        //Do this just in case.
+        cap.pauseTimerOnLogout();
+        if (!ReviveMeConfig.dieOnDisconnect) return;
+        cap.forceDeath();
     }
 
     @SubscribeEvent
@@ -74,7 +78,7 @@ public class CapabilityEvents {
 
         //Grab their cap data
         PlayerEntity targPlayer = (PlayerEntity) event.getTarget();
-        FallenCapability cap = FallenCapability.GetFallCap(targPlayer);
+        FallenCapability cap = FallenCapability.get(targPlayer);
 
         //Now add themselves to the targets list of players who are tracking them.
         playerTracking.putIfAbsent(targPlayer.getUUID(), new ArrayList<>());
@@ -85,7 +89,7 @@ public class CapabilityEvents {
         nbt.put(targPlayer.getStringUUID(),cap.writeNBT());
 
         //Finally send cap data to the player who is now tracking targPlayer
-        NetworkHandler.sendToPlayer(event.getPlayer(), new SyncClientCapMsg(nbt));
+        NetworkHandler.sendToPlayer(event.getPlayer(), new SyncClientCapMsg(nbt, false));
     }
 
     @SubscribeEvent
@@ -108,11 +112,11 @@ public class CapabilityEvents {
         if (!(event.getEntity() instanceof PlayerEntity)) return;
 
         PlayerEntity player = (PlayerEntity) event.getEntity();
-        FallenCapability cap = FallenCapability.GetFallCap(player);
+        FallenCapability cap = FallenCapability.get(player);
 
         CompoundNBT nbt = new CompoundNBT();
         nbt.put(player.getStringUUID(), cap.writeNBT());
 
-        NetworkHandler.sendToPlayer(player, new SyncClientCapMsg(nbt));
+        NetworkHandler.sendToPlayer(player, new SyncClientCapMsg(nbt, false));
     }
 }

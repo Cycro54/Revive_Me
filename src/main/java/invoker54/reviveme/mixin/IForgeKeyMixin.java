@@ -5,7 +5,6 @@ import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
-import invoker54.reviveme.init.KeyInit;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.client.util.InputMappings;
 import net.minecraft.entity.player.PlayerEntity;
@@ -14,7 +13,6 @@ import net.minecraftforge.client.settings.KeyBindingMap;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import javax.annotation.Nonnull;
@@ -22,29 +20,36 @@ import javax.annotation.Nonnull;
 @Pseudo
 @Mixin(KeyBinding.class)
 public abstract class IForgeKeyMixin implements IForgeKeybinding {
-    @Shadow @Final private static KeyBindingMap MAP;
-    @Shadow private boolean isDown;
+    @Shadow
+    @Final
+    private static KeyBindingMap MAP;
+    @Shadow
+    private boolean isDown;
 
-    @Shadow private InputMappings.Input key;
+    @Shadow
+    private InputMappings.Input key;
 
-    @Shadow public abstract void setDown(boolean p_225593_1_);
+    @Shadow
+    public abstract void setDown(boolean p_225593_1_);
 
     @Unique
     private static final ModLogger LOGGERT = ModLogger.getLogger(IForgeKeyMixin.class, ReviveMeConfig.debugMode);
 
-    @Inject(
-            method = "set(Lnet/minecraft/client/util/InputMappings$Input;Z)V",
-            at = {
-                    @At(value = "HEAD")
-            },
-            cancellable = true
-    )
-    private static void set(InputMappings.Input input, boolean isDown, CallbackInfo ci) {
-        if (ClientUtil.getWorld() == null) return;
-        if (ClientUtil.getPlayer() == null) return;
-        if (VanillaKeybindHandler.getKey(ClientUtil.mC.options.keyUse).equals(input)) VanillaKeybindHandler.useHeld = isDown;
-        if (VanillaKeybindHandler.getKey(ClientUtil.mC.options.keyAttack).equals(input)) VanillaKeybindHandler.attackHeld = isDown;
-    }
+//    @Inject(
+//            method = "set(Lnet/minecraft/client/util/InputMappings$Input;Z)V",
+//            at = {
+//                    @At(value = "HEAD")
+//            },
+//            cancellable = true
+//    )
+//    private static void set(InputMappings.Input input, boolean isDown, CallbackInfo ci) {
+//        if (ClientUtil.getWorld() == null) return;
+//        if (ClientUtil.getPlayer() == null) return;
+//        if (VanillaKeybindHandler.getKey(ClientUtil.mC.options.keyUse).equals(input))
+//            VanillaKeybindHandler.useHeld = isDown;
+//        if (VanillaKeybindHandler.getKey(ClientUtil.mC.options.keyAttack).equals(input))
+//            VanillaKeybindHandler.attackHeld = isDown;
+//    }
 
     //TODO: Remove this later...
 //    @Inject(
@@ -71,11 +76,11 @@ public abstract class IForgeKeyMixin implements IForgeKeybinding {
             },
             cancellable = true
     )
-    private void matches(int keysym, int scancode, CallbackInfoReturnable<Boolean> cir){
+    private void matches(int keysym, int scancode, CallbackInfoReturnable<Boolean> cir) {
         if (ClientUtil.getWorld() == null) return;
         if (ClientUtil.getPlayer() == null) return;
-        if (!FallenCapability.GetFallCap(ClientUtil.getPlayer()).isFallen()) return;
-        if (VanillaKeybindHandler.isAllowedKeybind(((KeyBinding)(Object)this))) return;
+        if (!FallenCapability.get(ClientUtil.getPlayer()).isFallen()) return;
+        if (VanillaKeybindHandler.isAllowedKeybind(((KeyBinding) (Object) this))) return;
         cir.setReturnValue(false);
     }
 
@@ -86,11 +91,11 @@ public abstract class IForgeKeyMixin implements IForgeKeybinding {
             },
             cancellable = true
     )
-    private void matchesMouse(int key, CallbackInfoReturnable<Boolean> cir){
+    private void matchesMouse(int key, CallbackInfoReturnable<Boolean> cir) {
         if (ClientUtil.getWorld() == null) return;
         if (ClientUtil.getPlayer() == null) return;
-        if (!FallenCapability.GetFallCap(ClientUtil.getPlayer()).isFallen()) return;
-        if (VanillaKeybindHandler.isAllowedKeybind(((KeyBinding)(Object)this))) return;
+        if (!FallenCapability.get(ClientUtil.getPlayer()).isFallen()) return;
+        if (VanillaKeybindHandler.isAllowedKeybind(((KeyBinding) (Object) this))) return;
         cir.setReturnValue(false);
     }
 
@@ -101,10 +106,10 @@ public abstract class IForgeKeyMixin implements IForgeKeybinding {
         if (ClientUtil.getPlayer() == null) return this.key;
         if (VanillaKeybindHandler.overrideKeyblock) return this.key;
         PlayerEntity player = ClientUtil.getPlayer();
-        FallenCapability cap = FallenCapability.GetFallCap(player);
+        FallenCapability cap = FallenCapability.get(player);
 
         if (!cap.isFallen()) return this.key;
-        if (VanillaKeybindHandler.isAllowedKeybind((KeyBinding)(Object)this)) return this.key;
+        if (VanillaKeybindHandler.isAllowedKeybind((KeyBinding) (Object) this)) return this.key;
 
         return InputMappings.Type.KEYSYM.getOrCreate(-1);
     }
@@ -117,32 +122,9 @@ public abstract class IForgeKeyMixin implements IForgeKeybinding {
             cancellable = true)
     private void isDown(CallbackInfoReturnable<Boolean> cir) {
         if (!this.isDown) return;
-        if (ClientUtil.getWorld() == null) return;
-        PlayerEntity player = ClientUtil.getPlayer();
-        if (player == null) return;
-        FallenCapability cap = FallenCapability.GetFallCap(player);
+        KeyBinding keyBinding = ((KeyBinding) (Object) this);
+        if (VanillaKeybindHandler.canBeDown(keyBinding)) return;
 
-        KeyBinding keyBinding = ((KeyBinding)(Object)this);
-        if (cap.isFallen()) {
-            if (!VanillaKeybindHandler.isAllowedKeybind(keyBinding) && this.isDown){
-                cir.setReturnValue(false);
-                this.setDown(false);
-            }
-            if ((!ReviveMeConfig.canMove && VanillaKeybindHandler.isMovementKeybind(keyBinding))) cir.setReturnValue(false);
-
-            //This is for jumping
-            if (keyBinding.equals(ClientUtil.mC.options.keyJump)) {
-                switch (ReviveMeConfig.canJump) {
-                    case YES:
-                        return;
-                    case LIQUID_ONLY:
-                        if (player.level.getFluidState(player.blockPosition()).isEmpty()) cir.setReturnValue(false);
-                        return;
-                    case NO:
-                        cir.setReturnValue(false);
-                        return;
-                }
-            }
-        }
+        this.setDown(false);
     }
 }

@@ -11,14 +11,18 @@ import net.minecraft.client.util.InputMappings;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import org.apache.commons.lang3.ArrayUtils;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class VanillaKeybindHandler {
     private static final ModLogger LOGGER = ModLogger.getLogger(VanillaKeybindHandler.class, ReviveMeConfig.debugMode);
     private static List<KeyBinding> vanillaKeyBindings;
     private static List<KeyBinding> movementMappings;
+    private static final Map<String, KeyBinding> foundBindings = new HashMap<>();
     public static boolean attackHeld = false;
     public static boolean useHeld = false;
     public static boolean overrideKeyblock = false;
@@ -54,9 +58,27 @@ public class VanillaKeybindHandler {
         return key;
     }
 
+    public static KeyBinding getOrCreateKey(String name) {
+        KeyBinding keyBinding = foundBindings.get(name);
+        if (keyBinding != null) return keyBinding;
+
+        //Second go through all keybinds
+        for (KeyBinding knownBinding : ClientUtil.mC.options.keyMappings) {
+            if (!knownBinding.getName().equals(name)) continue;
+            foundBindings.put(name, knownBinding);
+            return knownBinding;
+        }
+
+        KeyBinding fakeBinding = new KeyBinding(name, GLFW.GLFW_KEY_A, "fake");
+        foundBindings.put(name, fakeBinding);
+        return fakeBinding;
+    }
+
     public static boolean isAllowedKeybind(KeyBinding keybinding){
         PlayerEntity player = ClientUtil.getPlayer();
         if (keybinding == KeyInit.callForHelpKey.keyBind) return true;
+        if (keybinding == KeyInit.leftOption.keyBind) return true;
+        if (keybinding == KeyInit.rightOption.keyBind) return true;
 
         boolean isVanilla = VanillaKeybindHandler.isVanillaKeybind(keybinding);
         boolean isKeyInventory = keybinding == ClientUtil.mC.options.keyInventory;
@@ -64,7 +86,7 @@ public class VanillaKeybindHandler {
         boolean isKeySwapOffhand = keybinding == ClientUtil.mC.options.keySwapOffhand;
         boolean isSwapOrDrop = isKeyDrop || isKeySwapOffhand;
         ItemStack mainStack = player.getMainHandItem();
-        boolean isSacrificialItem = FallenCapability.GetFallCap(player).isSacrificialItem(mainStack);
+        boolean isSacrificialItem = FallenCapability.get(player).isSacrificialItem(mainStack);
         ReviveMeConfig.INTERACT_WITH_INVENTORY inventoryRule = ReviveMeConfig.interactWithInventory;
         boolean isAllowedKeybind = false;
 
@@ -79,6 +101,34 @@ public class VanillaKeybindHandler {
         else if (inventoryRule == ReviveMeConfig.INTERACT_WITH_INVENTORY.NO && (isKeyInventory || isSwapOrDrop)) return false;
         else if (inventoryRule == ReviveMeConfig.INTERACT_WITH_INVENTORY.LOOK_ONLY && isSwapOrDrop) return false;
         else if (isSwapOrDrop && isSacrificialItem) return false;
+
+        return true;
+    }
+
+    public static boolean canBeDown(KeyBinding keyBinding){
+        if (ClientUtil.getWorld() == null) return true;
+        PlayerEntity player = ClientUtil.getPlayer();
+        if (player == null) return true;
+        FallenCapability cap = FallenCapability.get(player);
+        if (!cap.isFallen()) return true;
+
+        if (!isAllowedKeybind(keyBinding)) return false;
+        if ((!ReviveMeConfig.canMove && isMovementKeybind(keyBinding))) return false;
+
+
+
+        //This is for jumping
+        if (keyBinding.equals(ClientUtil.mC.options.keyJump)) {
+            switch (ReviveMeConfig.canJump) {
+                case YES:
+                    break;
+                case LIQUID_ONLY:
+                    if (player.level.getFluidState(player.blockPosition()).isEmpty()) return false;
+                    break;
+                case NO:
+                    return false;
+            }
+        }
 
         return true;
     }

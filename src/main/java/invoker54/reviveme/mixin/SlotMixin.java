@@ -31,7 +31,7 @@ public abstract class SlotMixin {
             },
             cancellable = true)
     private void mayPickupMix(PlayerEntity player, CallbackInfoReturnable<Boolean> cir) {
-        FallenCapability cap = FallenCapability.GetFallCap(player);
+        FallenCapability cap = FallenCapability.get(player);
         if (!cap.isFallen()) return;
         if (!this.hasItem()) return;
         if (cap.isSacrificialItem(getItem())) cir.setReturnValue(false);
@@ -49,7 +49,7 @@ public abstract class SlotMixin {
             cancellable = true)
     private void mayPlaceMix(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
         if (!(this.container instanceof PlayerInventory)) return;
-        FallenCapability cap = FallenCapability.GetFallCap(((PlayerInventory) this.container).player);
+        FallenCapability cap = FallenCapability.get(((PlayerInventory) this.container).player);
         if (!cap.isFallen()) return;
         if (stack.isEmpty()) return;
         if (cap.isSacrificialItem(stack)) cir.setReturnValue(false);

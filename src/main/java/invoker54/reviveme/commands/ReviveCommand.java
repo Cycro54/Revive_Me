@@ -5,14 +5,14 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import invoker54.invocore.client.util.InvoText;
 import invoker54.reviveme.common.capability.FallenCapability;
-import invoker54.reviveme.common.event.FallenTimerEvent;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.EntityArgument;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.text.TranslationTextComponent;
 
 public class ReviveCommand {
     public static void register(CommandDispatcher<CommandSource> dispatcher) {
@@ -27,24 +27,26 @@ public class ReviveCommand {
     }
 
     private static int revivePlayer(CommandContext<CommandSource> commandContext) throws CommandSyntaxException {
-        ServerPlayerEntity caller;
+        ServerPlayerEntity fallen;
+        Entity caller = commandContext.getSource().getEntity();
         try {
-            caller = EntityArgument.getPlayer(commandContext, "player");
+            fallen = EntityArgument.getPlayer(commandContext, "player");
         }
         catch (Exception e){
             if (!(commandContext.getSource().getEntity() instanceof PlayerEntity)){
                 return 1;
             }
-            caller = commandContext.getSource().getPlayerOrException();
+            fallen = commandContext.getSource().getPlayerOrException();
         }
-        FallenCapability cap = FallenCapability.GetFallCap(caller);
-        if (caller.isDeadOrDying() || !cap.isFallen()){
-            InvoText failTxt = InvoText.translate("revive-me.commands.revive_fail", caller.getDisplayName());
-            NetworkHandler.sendMessage(failTxt.getText(), true, caller);
+
+        FallenCapability cap = FallenCapability.get(fallen);
+        if (fallen.isDeadOrDying() || !cap.isFallen()){
+            InvoText failTxt = InvoText.translate("revive-me.commands.revive_fail", fallen.getDisplayName());
+            NetworkHandler.sendMessage(failTxt.getText(), true, fallen);
             return 1;
         }
 
-        FallenTimerEvent.revivePlayer(caller, true);
+        ReviveMeConfig.configReviveData.revivePlayer(fallen, true, (PlayerEntity) caller, "command");
         return 1;
     }
 }

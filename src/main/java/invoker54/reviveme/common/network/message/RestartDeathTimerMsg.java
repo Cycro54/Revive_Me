@@ -43,24 +43,24 @@ public class RestartDeathTimerMsg {
             PlayerEntity reviverPlayer = list.getPlayer(UUID.fromString(msg.reviverPlayer));
             if (reviverPlayer != null) {
                 CompoundNBT tag = new CompoundNBT();
-                FallenCapability reviverCap = FallenCapability.GetFallCap(reviverPlayer);
-                reviverCap.setOtherPlayer(null);
+                FallenCapability reviverCap = FallenCapability.get(reviverPlayer);
+                reviverCap.setOtherPlayerAndItem(null, null);
 
                 tag.put(reviverPlayer.getStringUUID(), reviverCap.writeNBT());
                 NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> reviverPlayer),
-                        new SyncClientCapMsg(tag));
+                        new SyncClientCapMsg(tag, true));
             }
 
             if (msg.fallenPlayer.isEmpty()) return;
             PlayerEntity fallenPlayer = list.getPlayer(UUID.fromString(msg.fallenPlayer));
             if (fallenPlayer != null){
                 CompoundNBT tag = new CompoundNBT();
-                FallenCapability fallenCap = FallenCapability.GetFallCap(fallenPlayer);
-                fallenCap.setOtherPlayer(null);
+                FallenCapability fallenCap = FallenCapability.get(fallenPlayer);
+                fallenCap.setOtherPlayerAndItem(null, null);
                 fallenCap.resumeFallTimer();
                 tag.put(fallenPlayer.getStringUUID(), fallenCap.writeNBT());
                 NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> fallenPlayer),
-                        new SyncClientCapMsg(tag));
+                        new SyncClientCapMsg(tag, true));
             }
         });
         context.setPacketHandled(true);

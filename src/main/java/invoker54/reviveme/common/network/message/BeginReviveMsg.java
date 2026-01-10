@@ -1,0 +1,85 @@
+package invoker54.reviveme.common.network.message;
+
+import invoker54.invocore.common.ModLogger;
+import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.config.ReviveMeConfig;
+import invoker54.reviveme.common.data.ReviveItemData;
+import invoker54.reviveme.common.network.NetworkHandler;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.network.PacketBuffer;
+import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.fml.network.PacketDistributor;
+
+import java.util.UUID;
+import java.util.function.Supplier;
+
+public class BeginReviveMsg {
+    private static ModLogger LOGGERT = ModLogger.getLogger(BeginReviveMsg.class, ReviveMeConfig.debugMode);
+    public String fallenUUID;
+    
+    public BeginReviveMsg(String fallenUUID){
+        this.fallenUUID = fallenUUID;
+    }
+
+    public void encode (PacketBuffer buffer){
+        buffer.writeUtf(this.fallenUUID);
+    }
+
+    public static BeginReviveMsg decode(PacketBuffer buf){
+        return new BeginReviveMsg(buf.readUtf());
+    }
+
+    public static void handle(BeginReviveMsg msg, Supplier<NetworkEvent.Context> contextSupplier){
+        NetworkEvent.Context context = contextSupplier.get();
+
+        context.enqueueWork(() -> {
+            PlayerEntity player = context.getSender();
+            if (player == null) return;
+            if (!player.isAlive()) return;
+            FallenCapability cap = FallenCapability.get(player);
+            if (cap.isFallen()) return;
+
+            PlayerEntity targPlayer = player.level.getPlayerByUUID(UUID.fromString(msg.fallenUUID));
+            if (targPlayer == null) return;
+
+            //Check if they are reviving someone else
+            if (cap.getOtherPlayer() != null) return;
+
+            //Make sure they aren't crouching
+            if (player.isDiscrete()) return;
+
+            //Grab that target entity (player)
+            //Grab the targets cap too
+            FallenCapability targCap = FallenCapability.get(targPlayer);
+
+            //Make sure the target is fallen and isn't being revived already
+            if (!targCap.isFallen() || targCap.getOtherPlayer() != null) return;
+
+            //Make sure the player reviving has enough of whatever is required
+            if (!targCap.hasEnough(player)) return;
+
+            ItemStack handStack = player.getMainHandItem();
+            ReviveItemData itemData = ReviveItemData.getData(handStack, ReviveItemData.USER.REVIVER);
+            if (itemData == null) handStack = null;
+
+            double reviveSeconds = itemData == null ? ReviveMeConfig.reviveTime : itemData.getReviveSeconds();
+            //Now add the player to the targets fallencapability and vice versa.
+            targCap.setProgress(player.level.getGameTime(), reviveSeconds);
+            targCap.setOtherPlayerAndItem(player.getUUID(), handStack);
+            cap.setProgress(player.level.getGameTime(), reviveSeconds);
+            cap.setOtherPlayerAndItem(targPlayer.getUUID(), handStack);
+
+            //Make sure the fallen client has this data too
+            CompoundNBT nbt = new CompoundNBT();
+
+            nbt.put(player.getStringUUID(), cap.writeNBT());
+            nbt.put(targPlayer.getStringUUID(), targCap.writeNBT());
+
+            NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> targPlayer), new SyncClientCapMsg(nbt, false));
+        });
+
+        context.setPacketHandled(true);
+    }
+}

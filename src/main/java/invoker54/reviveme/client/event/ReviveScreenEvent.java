@@ -18,6 +18,7 @@ import java.awt.*;
 public class ReviveScreenEvent {
     private static Minecraft inst = Minecraft.getInstance();
     public static InvoText beingRevivedText = InvoText.translate("reviveScreen.being_revived");
+    public static InvoText useItemText = InvoText.translate("reviveScreen.use_item");
     public static InvoText revivingText = InvoText.translate("reviveScreen.reviving");
 
     public static final int bgColor = new Color(35,35,35,255).getRGB();
@@ -27,8 +28,7 @@ public class ReviveScreenEvent {
     @SubscribeEvent
     public static void renderReviveScreen(RenderGameOverlayEvent.Pre event){
         if (event.getType() != RenderGameOverlayEvent.ElementType.ALL) return;
-        FallenCapability cap = FallenCapability.GetFallCap(inst.player);
-
+        FallenCapability cap = FallenCapability.get(inst.player);
 
         //MAKE SURE this only happens if you are being revived, or reviving someone
         if (cap.getOtherPlayer() == null) return;
@@ -38,13 +38,18 @@ public class ReviveScreenEvent {
         MatrixStack stack = event.getMatrixStack();
 
         InvoText titleText;
+
+//        PlayerEntity reviver = cap.isFallen() ? mC.player.level.getPlayerByUUID(cap.getOtherPlayer()) : mC.player;
+        boolean hasReviveItem = cap.getReviveStack() != null;
         //Only do the red if you are the fallen
         if (cap.isFallen()) {
             ClientUtil.blitColor(stack, workZone, 1615855616);
             titleText = beingRevivedText;
+            if (hasReviveItem) titleText = useItemText;
         } else {
             ClientUtil.blitColor(stack, workZone, revColor);
             titleText = revivingText;
+            if (hasReviveItem) titleText = useItemText;
         }
 
         InvoZone textZone = workZone.copy().splitHeight(5, 1);

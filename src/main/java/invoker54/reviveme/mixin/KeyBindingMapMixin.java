@@ -38,7 +38,7 @@ public class KeyBindingMapMixin {
     private void getBinding(InputMappings.Input keyCode, KeyModifier keyModifier, CallbackInfoReturnable<KeyBinding> cir) {
         if (ClientUtil.getWorld() == null) return;
         if (ClientUtil.getPlayer() == null) return;
-        if (!FallenCapability.GetFallCap(ClientUtil.getPlayer()).isFallen()) return;
+        if (!FallenCapability.get(ClientUtil.getPlayer()).isFallen()) return;
 
         Collection<KeyBinding> bindings = map.get(keyModifier).get(keyCode);
         if (bindings != null) {
@@ -63,7 +63,7 @@ public class KeyBindingMapMixin {
     private void lookupAll(InputMappings.Input keyCode, CallbackInfoReturnable<List<KeyBinding>> cir){
         if (ClientUtil.getWorld() == null) return;
         if (ClientUtil.getPlayer() == null) return;
-        if (!FallenCapability.GetFallCap(ClientUtil.getPlayer()).isFallen()) return;
+        if (!FallenCapability.get(ClientUtil.getPlayer()).isFallen()) return;
 
         List<KeyBinding> matchingBindings = new ArrayList<KeyBinding>();
         for (Map<InputMappings.Input, Collection<KeyBinding>> bindingsMap : map.values())
