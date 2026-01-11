@@ -3,6 +3,7 @@ package invoker54.reviveme.init;
 import com.mojang.brigadier.CommandDispatcher;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.commands.FixCommand;
+import invoker54.reviveme.commands.ReloadCommand;
 import invoker54.reviveme.commands.ReviveCommand;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -18,5 +19,7 @@ public class CommandInit {
 
         ReviveCommand.register(commandDispatcher);
         FixCommand.register(commandDispatcher);
+        ReloadCommand.register(commandDispatcher);
+//        ToolCommand.register(commandDispatcher);
     }
 }

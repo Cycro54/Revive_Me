@@ -9,8 +9,11 @@ import invoker54.invocore.client.util.TextUtil;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.client.gui.render.CircleRender;
+import invoker54.reviveme.common.InvoTextFormat;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
+import invoker54.reviveme.common.data.ReviveItemData;
+import invoker54.reviveme.init.KeyInit;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
@@ -40,6 +43,7 @@ public class RenderFallPlateEvent {
     public static final DecimalFormat df = new DecimalFormat("0.0");
     public static final int greenProgCircle = new Color(39, 235, 86, 255).getRGB();
     public static final int redProgCircle = new Color(173, 17, 17, 255).getRGB();
+    public static final int goldProgCircle = new Color(227, 175, 7,244).getRGB();
     public static final int blackBg = new Color(0, 0, 0, 176).getRGB();
 
     @SubscribeEvent
@@ -47,7 +51,6 @@ public class RenderFallPlateEvent {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
 
         for (Entity entity : inst.level.entitiesForRendering()) {
-
             if (!(entity instanceof Player)) continue;
             if (entity.equals(mC.player)) continue;
             float distance = entity.distanceTo(mC.player);
@@ -55,7 +58,7 @@ public class RenderFallPlateEvent {
             if (distance > maxDistance) continue;
 
             Player player = (Player) entity;
-            FallenCapability cap = FallenCapability.GetFallCap(player);
+            FallenCapability cap = FallenCapability.get(player);
             PoseStack stack = event.getPoseStack();
 
             if (!cap.isFallen()) continue;
@@ -100,26 +103,32 @@ public class RenderFallPlateEvent {
                     canRender = true;
                     chosenColor = greenProgCircle;
 
-                    float seconds = cap.GetTimeLeft(false);
+                    float seconds = cap.getTimeLeft(false);
                     seconds += (seconds <= 0 ? 0 : 1);
-                    chosenText = InvoText.literal((seconds <= 0) ? "INF" : Integer.toString((int) seconds))
-                            .withStyle(true, ChatFormatting.BOLD)
-                            .withStyle(false, cap.hasEnough(inst.player) ? ChatFormatting.GREEN : ChatFormatting.RED);
+                    if (ReviveMeConfig.timeLeft == 0) chosenText = InvoText.literal("INF");
+                    else if (seconds > 0) chosenText = InvoText.literal(Integer.toString((int) seconds));
+                    else chosenText = InvoText.literal("RIP");
+                    chosenText.withStyle(true, InvoTextFormat.filter( ChatFormatting.BOLD))
+                            .withStyle(false, InvoTextFormat.filter( cap.hasEnough(inst.player) ? ChatFormatting.GREEN : ChatFormatting.RED));
                 } else if (mC.player.isCrouching() || player.isDeadOrDying()) {
                     canRender = true;
                     chosenColor = redProgCircle;
 
                     chosenText = InvoText.literal(Integer.toString((int) Math.ceil(cap.getKillTime(false))))
-                            .withStyle(true, ChatFormatting.BOLD, ChatFormatting.RED);
+                            .withStyle(true, InvoTextFormat.filter( ChatFormatting.BOLD, ChatFormatting.RED));
                 }
 
                 if (canRender && distance < ReviveMeConfig.deathTimerMaxDistance) {
                     float endAngle = 360;
                     if (inst.player.isCrouching()) {
                         endAngle = endAngle * (cap.getKillTime(true));
-                    } else if (ReviveMeConfig.timeLeft != 0) endAngle *= cap.GetTimeLeft(true);
+                    } else if (ReviveMeConfig.timeLeft != 0) endAngle *= Math.max(0, cap.getTimeLeft(true));
 
-                    if (cap.GetTimeLeft(false) <= 0)
+                    //Overheal thing
+                    CircleRender.drawArc(stack, 0, 0, radius + 2, 0,
+                            Math.max(0.001D,cap.getOverhealPercentage() * 360), goldProgCircle);
+
+                    if (cap.getTimeLeft(false) <= 0)
                         CircleRender.drawArc(stack, 0, 0, radius, 0, endAngle, chosenColor);
                     else CircleRender.drawArc(stack, 0, 0, radius, 0, endAngle, chosenColor);
 
@@ -140,24 +149,24 @@ public class RenderFallPlateEvent {
                         } else {
                             message = InvoText.translate("revive-me.fall_plate.kill").setArgs(
                                     InvoText.literal(VanillaKeybindHandler.getKey(inst.options.keyAttack).getDisplayName().getString())
-                                            .withStyle(true, ChatFormatting.YELLOW, ChatFormatting.BOLD).getText()
+                                            .withStyle(true, InvoTextFormat.filter( ChatFormatting.YELLOW, ChatFormatting.BOLD)).getText()
                             );
                         }
                     } else if (cap.hasEnough(mC.player)) {
                         message = InvoText.translate("revive-me.fall_plate.revive").setArgs(
-                                InvoText.literal(VanillaKeybindHandler.getKey(inst.options.keyUse).getDisplayName().getString())
-                                        .withStyle(true, ChatFormatting.YELLOW, ChatFormatting.BOLD).getText()
+                                InvoText.literal(VanillaKeybindHandler.getKey(KeyInit.rightOption.keyBind).getDisplayName().getString())
+                                        .withStyle(true, InvoTextFormat.filter( ChatFormatting.YELLOW, ChatFormatting.BOLD)).getText()
                         );
 
                     }
                 }
                 if (message == null && cap.isCallingForHelp()) {
                     message = InvoText.literal("")
-                            .append(InvoText.literal("ABBA ").withStyle(true, ChatFormatting.BOLD, ChatFormatting.RED, ChatFormatting.OBFUSCATED))
-                            .append(InvoText.literal("[").withStyle(true, ChatFormatting.BOLD).getText())
-                            .append(InvoText.translate("revive-me.call_for_help").withStyle(true, ChatFormatting.BOLD, ChatFormatting.GOLD))
-                            .append(InvoText.literal("]").withStyle(true, ChatFormatting.BOLD))
-                            .append(InvoText.literal(" ABBA").withStyle(true, ChatFormatting.BOLD, ChatFormatting.RED, ChatFormatting.OBFUSCATED));
+                            .append(InvoText.literal("ABBA ").withStyle(true, InvoTextFormat.filter( ChatFormatting.BOLD, ChatFormatting.RED, ChatFormatting.OBFUSCATED)))
+                            .append(InvoText.literal("[").withStyle(true, InvoTextFormat.filter( ChatFormatting.BOLD)).getText())
+                            .append(InvoText.translate("revive-me.call_for_help").withStyle(true, InvoTextFormat.filter( ChatFormatting.BOLD, ChatFormatting.GOLD)))
+                            .append(InvoText.literal("]").withStyle(true, InvoTextFormat.filter( ChatFormatting.BOLD)))
+                            .append(InvoText.literal(" ABBA").withStyle(true, InvoTextFormat.filter( ChatFormatting.BOLD, ChatFormatting.RED, ChatFormatting.OBFUSCATED)));
                 }
 
                 if (message != null) {
@@ -176,9 +185,12 @@ public class RenderFallPlateEvent {
                 }
             } else if (!mC.player.getUUID().equals(cap.getOtherPlayer()) && distance < ReviveMeConfig.deathTimerMaxDistance) {
                 int radius = 20;
+                Player reviver = mC.player.level.getPlayerByUUID(cap.getOtherPlayer());
+                boolean hasReviveItem = ReviveItemData.getData(reviver.getMainHandItem(), ReviveItemData.USER.REVIVER) != null;
 
                 //region Render the revive text
                 InvoText message = ReviveScreenEvent.beingRevivedText;
+                if (hasReviveItem) message = ReviveScreenEvent.useItemText;
                 int txtWidth = mC.font.width(message.getText());
                 int padding = 1;
 

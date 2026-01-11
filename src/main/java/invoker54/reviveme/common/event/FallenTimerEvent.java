@@ -6,6 +6,7 @@ import invoker54.invocore.common.util.MathUtil;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
+import invoker54.reviveme.common.data.ReviveItemData;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
 import invoker54.reviveme.init.MobEffectInit;
@@ -24,7 +25,9 @@ import net.minecraft.world.food.FoodData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.living.LivingHealEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
@@ -38,9 +41,38 @@ public class FallenTimerEvent {
     @SubscribeEvent
     public static void changeGamemode(PlayerEvent.PlayerChangeGameModeEvent event){
         Player player = event.getPlayer();
-        if (!(FallenCapability.GetFallCap(player).isFallen())) return;
+        if (!(FallenCapability.get(player).isFallen())) return;
         if (event.getNewGameMode() != GameType.CREATIVE && event.getNewGameMode() != GameType.SPECTATOR) return;
-        revivePlayer(player,false);
+        ReviveMeConfig.configReviveData.revivePlayer(player,false, player, FallenCapability.SELFREVIVETYPE.CREATIVE);
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void cancelFallenHeal(LivingHealEvent event){
+        if (!(event.getEntityLiving() instanceof Player)) return;
+        Player player = (Player) event.getEntityLiving();
+        FallenCapability cap = FallenCapability.get(player);
+        if (!cap.isFallen()) return;
+
+        boolean canRevive = cap.addOverheal(event.getAmount());
+        if (canRevive){
+            ReviveMeConfig.configReviveData.revivePlayer(player, false, null, "overheal");
+            return;
+        }
+        if (ReviveMeConfig.overhealAmount != 0) {
+            CompoundTag nbt = new CompoundTag();
+            nbt.put(player.getStringUUID(), cap.writeNBT());
+            NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player),
+                    new SyncClientCapMsg(nbt, false));
+        }
+
+        float maxHealth = (float) ReviveMeConfig.fallenHealth;
+        if (maxHealth <= 0) maxHealth = player.getMaxHealth();
+        else if (maxHealth < 1) maxHealth = player.getMaxHealth() * maxHealth;
+        maxHealth = Math.max(maxHealth, 1);
+
+        float maxHeal = maxHealth - player.getHealth();
+
+        event.setAmount(Math.min(event.getAmount(), maxHeal));
     }
 
     @SubscribeEvent
@@ -52,20 +84,24 @@ public class FallenTimerEvent {
 
         if (event.player.isDeadOrDying()) return;
 
-        FallenCapability cap = FallenCapability.GetFallCap(event.player);
+        FallenCapability cap = FallenCapability.get(event.player);
 
         if (!cap.isFallen() || cap.getOtherPlayer() != null) return;
 
         //Make sure they aren't sprinting.
-        if(event.player.isSprinting()) event.player.setSprinting(false);
+        if (event.player.isSprinting()) event.player.setSprinting(false);
 
+        double maxHealth = ReviveMeConfig.fallenHealth;
+        if (maxHealth <= 0) maxHealth = event.player.getMaxHealth();
+        else if (maxHealth < 1) maxHealth = event.player.getMaxHealth() * maxHealth;
+        maxHealth = Math.max(maxHealth, 1);
         //Make sure they aren't healing
-        if(event.player.getHealth() != 1){
-            event.player.setHealth(1);
+        if (event.player.getHealth() > maxHealth) {
+            event.player.setHealth((float) maxHealth);
         }
 
         //Make sure they have no food either
-        event.player.getFoodData().setFoodLevel(0);
+        event.player.getFoodData().setFoodLevel(1);
 
         //Check if the original effects were removed
         cap.removeOriginalEffects(event.player);
@@ -73,9 +109,10 @@ public class FallenTimerEvent {
         //Finally make sure they have all the required effects.
         FallEvent.modifyPotionEffects(event.player);
 
-        if (!cap.shouldDie()) return;
+        if (!ReviveMeConfig.dieWhenTimerEnds) return;
+        if (!cap.timeRanOut()) return;
 
-        cap.kill(event.player);
+        cap.forceDeath();
         //System.out.println("Who's about to die: " + event.player.getDisplayName());
     }
 
@@ -85,10 +122,14 @@ public class FallenTimerEvent {
         if (event.phase == TickEvent.Phase.END) return;
         if (event.side != LogicalSide.SERVER) return;
 
-        FallenCapability cap = FallenCapability.GetFallCap(event.player);
+        FallenCapability cap = FallenCapability.get(event.player);
 
         //make sure other player isn't null
         if (cap.getOtherPlayer() == null) return;
+
+        Player reviver = event.player.getServer().getPlayerList().getPlayer(cap.getOtherPlayer());
+
+        if (cap.getReviveStack() != null) reviver.getCooldowns().addCooldown(cap.getReviveStack().getItem(), 30);
 
         //If tick progress finishes, revive the fallen player and take whatever you need to take from the reviver
         if (cap.getProgress(true) < 1) return;
@@ -98,136 +139,18 @@ public class FallenTimerEvent {
 
         Player fellPlayer = event.player;
 
-        Player reviver = fellPlayer.getServer().getPlayerList().getPlayer(cap.getOtherPlayer());
-        takeFromReviver(reviver, fellPlayer);
-        revivePlayer(fellPlayer, false);
-    }
-
-    public static void takeFromReviver(Player reviver, Player fallen) {
+        reviver = fellPlayer.getServer().getPlayerList().getPlayer(cap.getOtherPlayer());
         if (reviver == null) return;
 
-        FallenCapability cap = FallenCapability.GetFallCap(fallen);
-
-        //Take penalty amount from reviver
-        if (!reviver.isCreative()) {
-            int amount = (int) cap.getPenaltyAmount(reviver);
-            int leftoverAmount = 0;
-            switch (ReviveMeConfig.penaltyType) {
-                case NONE:
-                    break;
-                case HEALTH:
-                    leftoverAmount = Math.max(0, Math.round(amount - reviver.getAbsorptionAmount()));
-                    reviver.setAbsorptionAmount(reviver.getAbsorptionAmount()-amount);
-                    reviver.setHealth(Math.max(1, reviver.getHealth() - leftoverAmount));
-                    break;
-                case EXPERIENCE:
-                    reviver.giveExperienceLevels(-amount);
-                    break;
-                case FOOD:
-                    FoodData food = reviver.getFoodData();
-                    leftoverAmount = (int) Math.max(0,Math.round(amount - food.getSaturationLevel()));
-                    ((FoodMixin)food).setSaturationLevel(Math.max(0, food.getSaturationLevel() - amount));
-                    food.setFoodLevel(Math.max(0,food.getFoodLevel() - leftoverAmount));
-                    ((ServerPlayer)reviver).connection.send(new ClientboundSetHealthPacket(reviver.getHealth(),
-                            reviver.getFoodData().getFoodLevel(), reviver.getFoodData().getSaturationLevel()));
-                    break;
-                case ITEM:{
-                    ItemStack penaltyStack = new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(ReviveMeConfig.penaltyItem)));
-                    if (!ReviveMeConfig.penaltyItemData.isEmpty()) penaltyStack.getOrCreateTag().merge(ReviveMeConfig.penaltyItemData);
-                    Inventory playerInv = reviver.getInventory();
-                    for (int a = 0; a < playerInv.getContainerSize(); a++) {
-                        ItemStack currStack = playerInv.getItem(a);
-                        if (!penaltyStack.sameItem(currStack)) continue;
-                        if (!ItemStack.tagMatches(penaltyStack, currStack)) continue;
-
-                        int takeAway = (Math.min(amount, currStack.getCount()));
-                        amount -= takeAway;
-                        currStack.setCount(currStack.getCount() - takeAway);
-
-                        if (amount == 0) break;
-                    }
-                    break;
-                }
-            }
+        ReviveItemData reviveData = ReviveItemData.getData(cap.getReviveStack(), ReviveItemData.USER.REVIVER);
+        if (reviveData != null){
+            if (!reviver.isCreative()) reviveData.takeItemCount(reviver, cap.getReviveStack());
+            reviveData.revivePlayer(fellPlayer, false, reviver, "item");
         }
-
-
-        cap = FallenCapability.GetFallCap(reviver);
-        cap.setOtherPlayer(null);
-        CompoundTag nbt = new CompoundTag();
-        nbt.put(reviver.getStringUUID(), cap.writeNBT());
-
-        NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> reviver),
-                new SyncClientCapMsg(nbt));
-    }
-
-    public static void revivePlayer(Player fallen, boolean isCommand){
-        FallenCapability cap = FallenCapability.GetFallCap(fallen);
-
-        //region Set the revived players health
-        float healAmount;
-        if (ReviveMeConfig.revivedHealth <= 0) {
-            healAmount = fallen.getMaxHealth();
-        }
-        //Percentage
-        else if (ReviveMeConfig.revivedHealth > 0 && ReviveMeConfig.revivedHealth < 1) {
-            healAmount = (float) (fallen.getMaxHealth() * ReviveMeConfig.revivedHealth);
-        }
-        //Flat value
-        else {
-            healAmount = ReviveMeConfig.revivedHealth.floatValue();
-        }
-        fallen.setHealth(healAmount);
-        //endregion
-
-        //region Set the revived players Food
-        float foodAmount;
-        if (ReviveMeConfig.revivedFood < 0) {
-            foodAmount = 40;
-        }
-        //Percentage
-        else if (ReviveMeConfig.revivedFood >= 0 && ReviveMeConfig.revivedFood < 1) {
-            foodAmount = (float) (40 * ReviveMeConfig.revivedFood);
-        }
-        //Flat value
-        else {
-            foodAmount = ReviveMeConfig.revivedFood.floatValue();
-        }
-        //Now set their food level
-        fallen.getFoodData().setFoodLevel((int) Math.min(foodAmount,20));
-        //Then their saturation
-        ((FoodMixin)fallen.getFoodData()).setSaturationLevel(Math.max(0, foodAmount-20));
-        //endregion
-
-        //Remove all potion effects
-        fallen.removeAllEffects();
-        //Load the saved effects
-        cap.loadEffects(fallen);
-
-        //Add the fallen potion effect
-        fallen.addEffect(new MobEffectInstance(MobEffectInit.FALLEN_EFFECT, (int) (ReviveMeConfig.fallenPenaltyTimer * 20), cap.getPenaltyMultiplier()));
-
-        //Add invulnerability if it isn't 0
-        if (ReviveMeConfig.reviveInvulnTime != 0) {
-            fallen.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, (int) (ReviveMeConfig.reviveInvulnTime * 20), 5));
-            fallen.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, (int) (ReviveMeConfig.reviveInvulnTime * 20), 5));
-        }
-
-        cap.setFallen(false);
-
-        CompoundTag nbt = new CompoundTag();
-        nbt.put(fallen.getStringUUID(), cap.writeNBT());
-
-        fallen.level.playSound(null, fallen.getX(), fallen.getY(), fallen.getZ(),
-                SoundInit.REVIVED, SoundSource.PLAYERS, 1.0F, MathUtil.randomFloat(0.7F, 1.0F));
-
-        if (!fallen.level.isClientSide) {
-            InvoText reviveTxt = InvoText.translate("revive-me.commands.revive_pass",
-                    fallen.getDisplayName());
-            NetworkHandler.sendMessage(reviveTxt.getText(), isCommand, fallen);
-
-            NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> fallen),
-                    new SyncClientCapMsg(nbt));
+        else
+        {
+            ReviveMeConfig.configReviveData.takeFromReviver(reviver, fellPlayer);
+            ReviveMeConfig.configReviveData.revivePlayer(fellPlayer, false, reviver, ReviveMeConfig.penaltyType);
         }
     }
 }

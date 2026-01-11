@@ -24,7 +24,7 @@ public abstract class PlayerMixin extends LivingEntity {
             },
             cancellable = true)
     private void canEat(boolean canEat, CallbackInfoReturnable<Boolean> cir){
-        if (!FallenCapability.GetFallCap(this).isFallen()) return;
+        if (!FallenCapability.get(this).isFallen()) return;
 
         cir.setReturnValue(false);
     }

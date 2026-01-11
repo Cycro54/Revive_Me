@@ -136,7 +136,9 @@ mixin {
 repositories {
     // Put repositories for dependencies here
     // ForgeGradle automatically adds the Forge maven and Maven Central for you
-
+    maven {
+        url = "https://www.cursemaven.com"
+    }
     // If you have mod jar dependencies in ./libs, you can declare them as a repository like so.
     // See https://docs.gradle.org/current/userguide/declaring_repositories.html#sub:flat_dir_resolver
     flatDir {
@@ -171,6 +173,10 @@ dependencies {
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
+    //Mod Compatibility
+    //Controllable (MrCrayFish Mod)
+    compileOnly fg.deobf('curse.maven:controllable-317269:4376751')
 }
 
 //// This block of code expands all declared replace properties in the specified resource targets.

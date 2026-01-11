@@ -1,5 +1,6 @@
 package invoker54.reviveme.common.event;
 
+import invoker54.invocore.client.util.InvoText;
 import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
@@ -8,8 +9,6 @@ import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
 import invoker54.reviveme.init.MobEffectInit;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
@@ -28,33 +27,37 @@ public class FallEvent {
     private static final ModLogger LOGGER = ModLogger.getLogger(FallEvent.class, ReviveMeConfig.debugMode);
 
     public static boolean cancelEvent(Player player, DamageSource source) {
-        FallenCapability instance = FallenCapability.GetFallCap(player);
+        FallenCapability instance = FallenCapability.get(player);
 
         instance.refreshSelfReviveTypes(player);
 
-        if (!instance.canSelfRevive() && ((!player.getServer().isDedicatedServer() &&
-                player.getServer().getPlayerCount() == 1))) return false;
+//        if (!instance.canSelfRevive() && ((!player.getServer().isDedicatedServer() &&
+//                player.getServer().getPlayerCount() == 1))) return false;
 
 //        LOGGER.info("Are they fallen? " + instance.isFallen());
         if (!instance.isFallen()) {
 //            LOGGER.info("MAKING THEM FALLEN");
-            NetworkHandler.sendMessage(new TextComponent(player.getName().getString())
-                    .append(new TranslatableComponent("revive-me.chat.player_fallen")), false, player);
+            NetworkHandler.sendMessage(InvoText.translate("revive-me.chat.player_fallen",
+                    player.getName(), source.getLocalizedDeathMessage(player)).getText(), false, player);
 
             //Set to fallen state
             instance.setFallen(true);
 
-            //Set health to 1
-            player.setHealth(1);
+            double maxHealth = ReviveMeConfig.fallenHealth;
+            if (maxHealth <= 0) maxHealth = player.getMaxHealth();
+            else if (maxHealth < 1) maxHealth = player.getMaxHealth() * maxHealth;
+            maxHealth = Math.max(maxHealth, 1);
+            //Set health to fallen health
+            player.setHealth((float) maxHealth);
 
             //Set food to 0
-            player.getFoodData().setFoodLevel(0);
+            player.getFoodData().setFoodLevel(1);
 
             //Set last damage source for later
             instance.setDamageSource(source);
 
             //Set time left to whatever is in config file
-            instance.SetTimeLeft(player.level.getGameTime(), ReviveMeConfig.timeLeft);
+            instance.SetTimeLeft(player.level.getGameTime(), ReviveMeConfig.timeLeft, true);
 
             //grab the FALLEN EFFECT amplifier for later use
             if (player.hasEffect(MobEffectInit.FALLEN_EFFECT)){
@@ -81,21 +84,23 @@ public class FallEvent {
             //Close any containers they have open as well.
             player.closeContainer();
 
+            //Set the maxOverheal thingy
+            instance.setMaxOverheal();
+
             //Finally send capability code to all players
             CompoundTag nbt = new CompoundTag();
 
             //System.out.println("Am I fallen?: " + FallenCapability.GetFallCap(player).isFallen());
             if (instance.getOtherPlayer() != null) {
-
                 Player otherPlayer = player.level.getPlayerByUUID(instance.getOtherPlayer());
                 if (otherPlayer != null) {
-                    FallenCapability otherCap = FallenCapability.GetFallCap(otherPlayer);
+                    FallenCapability otherCap = FallenCapability.get(otherPlayer);
                     otherCap.resumeFallTimer();
-                    otherCap.setOtherPlayer(null);
+                    otherCap.setOtherPlayerAndItem(null, null);
 
                     nbt.put(otherPlayer.getStringUUID(), otherCap.writeNBT());
                 }
-                instance.setOtherPlayer(null);
+                instance.setOtherPlayerAndItem(null, null);
             }
             nbt.put(player.getStringUUID(), instance.writeNBT());
 
@@ -110,11 +115,10 @@ public class FallEvent {
                 }
                 mob.aiStep();
             }
-            player.setHealth(1);
-
+            player.setHealth((float) maxHealth);
 
             NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player),
-                    new SyncClientCapMsg(nbt));
+                    new SyncClientCapMsg(nbt, true));
         }
         else instance.setFallen(false);
 
@@ -131,7 +135,7 @@ public class FallEvent {
 //                LOGGER.info("The tier: " + tier);
                 MobEffect effect = ForgeRegistries.MOB_EFFECTS.getValue(effectLocation);
                 if (effect == null){
-                    LOGGER.error("Incorrect MOD ID or Potion Effect: " + string);
+                    LOGGER.error("Incorrect MOD ID or Potion MobEffect: " + string);
                     continue;
                 }
 
