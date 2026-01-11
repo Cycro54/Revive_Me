@@ -6,7 +6,7 @@ import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.init.EffectInit;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Effect;
 import net.minecraft.potion.EffectInstance;
@@ -62,7 +62,7 @@ public class KillRevivePotionEffect extends Effect {
         @SubscribeEvent
         public static void killMobEvent(LivingDeathEvent event){
             Entity sourceEntity = event.getSource().getEntity();
-            if (!(sourceEntity instanceof PlayerEntity)) return;
+            if (sourceEntity == null) return;
             LivingEntity entity = (LivingEntity) sourceEntity;
             EffectInstance instance = entity.getEffect(EffectInit.KILL_REVIVE_EFFECT);
             if (instance == null) return;
@@ -92,7 +92,10 @@ public class KillRevivePotionEffect extends Effect {
         public static void removeEffect(LivingEntity entity, EffectInstance effect, boolean completed){
             if (effect == null) return;
             if (!(effect.getEffect() instanceof KillRevivePotionEffect)) return;
-            if (!(entity instanceof PlayerEntity)) return;
+            if (!(entity instanceof ServerPlayerEntity)){
+                if (completed) entity.hurt(killReviveDamageSource, 20 * (effect.getAmplifier() + 1));
+                return;
+            }
 
             FallenCapability cap = FallenCapability.get(entity);
             if (cap.isFallen()) return;

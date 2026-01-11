@@ -42,6 +42,7 @@ FallenPlayerActionsEvent {
         if (event.player != ClientUtil.getPlayer()) return;
 
         FallenCapability cap = FallenCapability.get(inst.player);
+        boolean canSelfRevive = cap.canSelfRevive();
 
         if (!cap.isFallen()) return;
         if ((!VanillaKeybindHandler.useHeld && !VanillaKeybindHandler.attackHeld) || cap.getOtherPlayer() != null){
@@ -49,8 +50,8 @@ FallenPlayerActionsEvent {
             return;
         }
 
-        if (FallenItemScreenEvent.isItemScreenActive) useReviveItem();
-        else doReviveAction(cap.canSelfRevive());
+        if (canSelfRevive && FallenItemScreenEvent.isItemScreenActive) useReviveItem();
+        else doReviveAction(canSelfRevive);
     }
 
     public static void doReviveAction(boolean canSelfRevive){
