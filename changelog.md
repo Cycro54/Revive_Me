@@ -1,3 +1,11 @@
+# 1.16.5-1.15.37
+
+<div><pre><strong>Fixes</strong><br>-Revive item command output is now blocked if Silence_Commands is true<br>-The revive-items-example.json should now be properly updated</pre></div>
+
+# 1.16.5-1.15.36
+
+<div><pre><strong>Changes</strong><br>-If Death Timer somehow ends up on a non-player, it will deal (10 * amp) damage<br><br><strong>Fixes</strong><br>-Give up screen should display the correct amount of seconds now</pre></div>
+
 # 1.16.5-1.15.35
 
 <div><pre><strong>Changes</strong><br>-Nether Star Item: Moved lightning bolt up 3 blocks<br><br><strong>Fixes</strong><br>-Game shouldn't crash when changing to Revive item screen</pre></div>

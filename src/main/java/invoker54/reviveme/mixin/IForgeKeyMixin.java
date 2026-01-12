@@ -35,40 +35,6 @@ public abstract class IForgeKeyMixin implements IForgeKeybinding {
     @Unique
     private static final ModLogger LOGGERT = ModLogger.getLogger(IForgeKeyMixin.class, ReviveMeConfig.debugMode);
 
-//    @Inject(
-//            method = "set(Lnet/minecraft/client/util/InputMappings$Input;Z)V",
-//            at = {
-//                    @At(value = "HEAD")
-//            },
-//            cancellable = true
-//    )
-//    private static void set(InputMappings.Input input, boolean isDown, CallbackInfo ci) {
-//        if (ClientUtil.getWorld() == null) return;
-//        if (ClientUtil.getPlayer() == null) return;
-//        if (VanillaKeybindHandler.getKey(ClientUtil.mC.options.keyUse).equals(input))
-//            VanillaKeybindHandler.useHeld = isDown;
-//        if (VanillaKeybindHandler.getKey(ClientUtil.mC.options.keyAttack).equals(input))
-//            VanillaKeybindHandler.attackHeld = isDown;
-//    }
-
-    //TODO: Remove this later...
-//    @Inject(
-//            method = "click",
-//            at = {
-//                    @At(value = "HEAD")
-//            },
-//            cancellable = true
-//    )
-//    private static void click(InputMappings.Input input, CallbackInfo ci){
-//        if (ClientUtil.getWorld() == null) return;
-//        if (ClientUtil.getPlayer() == null) return;
-//        FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
-//        if (!cap.isFallen()) return;
-//
-//        KeyBinding keybinding = MAP.lookupActive(input);
-//        if (keybinding == null) ci.cancel();
-//    }
-
     @Inject(
             method = "matches",
             at = {

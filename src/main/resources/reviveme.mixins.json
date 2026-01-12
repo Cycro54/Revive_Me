@@ -17,7 +17,6 @@
     "IForgeKeyMixin",
     "KeyBindingMapMixin",
     "LivingEntityMixin",
-    "LocalPlayerMixin",
     "MinecraftMixin",
     "PlayerControllerMixin",
     "PlayerInventoryMixin",

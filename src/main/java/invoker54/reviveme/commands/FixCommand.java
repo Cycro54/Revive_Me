@@ -46,9 +46,6 @@ public class FixCommand {
             return 1;
         }
 
-        //TODO: Remove this in future versions.
-        fallen.setInvulnerable(false);
-
         NetworkHandler.sendMessage(InvoText.translate("revive-me.commands.fix",
                 fallen.getDisplayName()).getText(),true, fallen);
 
