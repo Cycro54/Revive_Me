@@ -37,6 +37,7 @@ public class PlayerInventoryMixin {
         if (cap == null) return;
         if (!cap.isFallen()) return;
         if (!FallenItemScreenEvent.isItemScreenActive) return;
+        if (!cap.canSelfRevive()) return;
         int multiplier = (int) (Math.abs(moveAmount)/moveAmount);
         FallenItemScreenEvent.changeSelectedItem(multiplier);
         ci.cancel();
@@ -52,6 +53,7 @@ public class PlayerInventoryMixin {
         FallenCapability cap = FallenCapability.get((this.player));
         if (!cap.isFallen()) return;
         if (!FallenItemScreenEvent.isItemScreenActive) return;
+        if (!cap.canSelfRevive()) return;
         Pair<ItemStack, ReviveItemData> pair = FallenItemScreenEvent.getSelectedPair();
         if (pair == null) return;
 

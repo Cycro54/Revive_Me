@@ -22,9 +22,6 @@ import java.util.Map;
 @Mixin(KeyMapping.class)
 public abstract class KeyMappingMixin implements Comparable<KeyMapping>, net.minecraftforge.client.extensions.IForgeKeyMapping {
     @Shadow
-    @Final
-    private static KeyBindingMap MAP;
-    @Shadow
     private boolean isDown;
 
     @Shadow

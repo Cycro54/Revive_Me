@@ -13,10 +13,9 @@
     "SlotMixin"
   ],
   "client": [
+    "ClientEntityMixin",
     "KeyMappingMixin",
     "KeyBindingMapMixin",
-    "PlayerMixin",
-    "LocalPlayerMixin",
     "MinecraftMixin",
     "PlayerControllerMixin",
     "PlayerInventoryMixin",

@@ -8,6 +8,10 @@
     "reviveFood": 2,
     "reviveEffects": [
       "minecraft:blindness:0:300"
+    ],
+    "reviveCommands": [
+      "execute as @p if entity @s in minecraft:the_nether run summon minecraft:creeper ~ ~1 ~ {ExplosionRadius:4,Fuse:0}",
+      "execute as @p if entity @s in minecraft:the_end run summon minecraft:creeper ~ ~1 ~ {ExplosionRadius:4,Fuse:0}"
     ]
   },
   "golden_apple": {

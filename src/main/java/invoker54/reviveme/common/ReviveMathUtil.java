@@ -8,8 +8,13 @@ public class ReviveMathUtil {
 
     public static double clampLoop(double value, double min, double max) {
         if (min == max) return max;
+        if (min > max) {
+            double holder = min;
+            min = max;
+            max = holder;
+        }
 
-        double difference = min - (max + (max / Math.abs(max)));
+        double difference = min - (max + 1);
 
         if (value > max) return clampLoop(value + difference, min, max);
 

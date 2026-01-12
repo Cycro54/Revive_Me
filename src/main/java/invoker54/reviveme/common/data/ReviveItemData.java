@@ -19,6 +19,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameRules;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -431,12 +432,16 @@ public class ReviveItemData extends ReviveConfigData {
     }
 
     public void runCommands(Player fallen, Player reviver){
+        GameRules.BooleanValue commandFeedback = fallen.getServer().getGameRules().getRule(GameRules.RULE_SENDCOMMANDFEEDBACK);
+        boolean isAlreadySilenced = commandFeedback.get();
+
+        if (ReviveMeConfig.silenceCommandMessages) commandFeedback.set(false, fallen.getServer());
         for (String s : this.getReviveCommands()){
             String properString = s.replace("@s", reviver.getName().getString())
                     .replace("@p", fallen.getName().getString());
-
             fallen.getServer().getCommands().performCommand(fallen.createCommandSourceStack(), properString);
         }
+        commandFeedback.set(isAlreadySilenced, fallen.getServer());
     }
 
     @Override
@@ -451,67 +456,35 @@ public class ReviveItemData extends ReviveConfigData {
         return FMLPaths.CONFIGDIR.get().resolve("reviveme/reviveme-items-example.json");
     }
 
+    public static void createFile(String resourceName, Path filePath, boolean justReplace){
+        if (!justReplace && filePath.toFile().isFile()) return;
+
+        try(InputStream stream = ReviveItemData.class.getClassLoader()
+                .getResource("assets/"+ ReviveMe.MOD_ID + resourceName).openStream()){
+            long bytes = Files.copy(stream, filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            LOGGER.info("[Revive Me!] HOW MANY BYTES WERE WRITTEN?? " + bytes);
+        }
+        catch (Exception e){
+            LOGGER.error("[Revive Me!] File Error: "+ e.getMessage());
+        }
+    }
+
     public static CompoundTag getNBTFromFile(){
         try{
             if (!Files.isDirectory(getItemPath().getParent())){
                 Files.createDirectories(getItemPath().getParent());
             }
 
-            if (!itemFilepath.isFile()) {
-                try(InputStream stream = ReviveItemData.class.getClassLoader()
-                        .getResource("assets/"+ ReviveMe.MOD_ID +"/reviveme-items.json").openStream()){
-                    long bytes = Files.copy(stream, getItemPath());
-
-                    LOGGER.info("[Revive Me!] HOW MANY BYTES WERE WRITTEN?? " + bytes);
-                }
-                catch (Exception e){
-                    LOGGER.error("[Revive Me!] File Error: "+ e.getMessage());
-                }
-            }
-
-            if (!exampleFilepath.isFile()) {
-                try(InputStream stream = ReviveItemData.class.getClassLoader()
-                        .getResource("assets/"+ ReviveMe.MOD_ID +"/reviveme-items-example.json").openStream()){
-                    long bytes = Files.copy(stream, getExamplePath());
-
-                    LOGGER.info("[Revive Me!] HOW MANY BYTES WERE WRITTEN?? " + bytes);
-                }
-                catch (Exception e){
-                    LOGGER.error("[Revive Me!] File Error: "+ e.getMessage());
-                }
-            }
+            createFile("/reviveme-items.json", getItemPath(), false);
+            createFile("/reviveme-items-example.json", getExamplePath(), true);
 
             InputStreamReader itemStream = new InputStreamReader(Files.newInputStream(getItemPath()), StandardCharsets.UTF_8);
-            InputStreamReader exampleStream = new InputStreamReader(Files.newInputStream(getExamplePath()), StandardCharsets.UTF_8);
 
             CompoundTag reviveItemNBT = ((CompoundTag) JsonOps.INSTANCE.convertTo(NbtOps.INSTANCE,
                     GsonHelper.parse(itemStream)));
-            CompoundTag oldExampleNBT = ((CompoundTag) JsonOps.INSTANCE.convertTo(NbtOps.INSTANCE,
-                    GsonHelper.parse(exampleStream)));
-
-
-            try (InputStream stream = ReviveItemData.class.getClassLoader()
-                    .getResource("assets/"+ ReviveMe.MOD_ID +"/reviveme-items-example.json").openStream()){
-
-                InputStreamReader reader = new InputStreamReader(stream);
-                CompoundTag newExampleNBT = ((CompoundTag) JsonOps.INSTANCE.convertTo(NbtOps.INSTANCE,
-                        GsonHelper.parse(reader)));
-
-                int oldVersion = oldExampleNBT.getCompound(EXAMPLE_NAME_STRING).getInt(EXAMPLE_VERSION_INT);
-                int currentVersion = newExampleNBT.getCompound(EXAMPLE_NAME_STRING).getInt(EXAMPLE_VERSION_INT);
-
-                if (oldVersion != currentVersion){
-                    Files.copy(stream, getExamplePath(), StandardCopyOption.REPLACE_EXISTING);
-                    LOGGER.warn("[Revive Me!] Old Version: " + oldVersion);
-                    LOGGER.warn("[Revive Me!] Current Version: " + currentVersion);
-                }
-            }
-            catch (Exception e){
-                LOGGER.error("[Revive Me!] File Error: "+ e.getMessage());
-            }
 
             itemStream.close();
-            exampleStream.close();
 
             return reviveItemNBT;
         }
