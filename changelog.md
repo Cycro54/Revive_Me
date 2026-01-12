@@ -1,6 +1,6 @@
-# 1.16.5-1.15.38
+# 1.16.5-1.15.39
 
-<div><pre><strong>Fixes</strong><br>-Revive item command output is now blocked if Silence_Commands is true<br>-You can now change your selected item if you have no self-revives left<br>-The revive-items-example.json should now be properly updated</pre></div>
+<div><pre><strong>Changes<br></strong>-bed revive item explodes if used in the nether or end<br><strong>Fixes</strong><br>-Revive item command output is now blocked if Silence_Commands is true<br>-You can now change your selected item if you have no self-revives left<br>-The revive-items-example.json should now be properly updated</pre></div>
 
 # 1.16.5-1.15.36
 
