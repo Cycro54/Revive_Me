@@ -9,13 +9,12 @@ import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.RestartDeathTimerMsg;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.UUID;
 
@@ -32,7 +31,7 @@ public class RevivePlayerActionsEvent {
 
         if(event.player != inst.player) return;
 
-        FallenCapability myCap = FallenCapability.GetFallCap(inst.player);
+        FallenCapability myCap = FallenCapability.get(inst.player);
         UUID myUUID = inst.player.getUUID();
 
         if (myCap.getOtherPlayer() == null) return;
@@ -52,7 +51,7 @@ public class RevivePlayerActionsEvent {
         if (!cancelEvent) {
 //            //System.out.println("Someone I'm reviving? : " + (FallenCapability.GetFallCap((Player)inst.crosshairPickEntity).
 //                    compareUUID(myUUID)));
-            cancelEvent = !(FallenCapability.GetFallCap((Player) inst.crosshairPickEntity).
+            cancelEvent = !(FallenCapability.get((Player) inst.crosshairPickEntity).
                     isReviver(myUUID));
         }
 
@@ -62,13 +61,17 @@ public class RevivePlayerActionsEvent {
             cancelEvent = !VanillaKeybindHandler.useHeld;
         }
 
+        if (!cancelEvent){
+            cancelEvent = myCap.getReviveStack() != null && !ItemStack.isSameItem(event.player.getMainHandItem(), myCap.getReviveStack());
+        }
+
         if (cancelEvent){
             String targPlayerUUID = "";
-            myCap.setOtherPlayer(null);
+            myCap.setOtherPlayerAndItem(null, null);
 
             if (targPlayer != null) {
-                FallenCapability targCap = FallenCapability.GetFallCap(targPlayer);
-                targCap.setOtherPlayer(null);
+                FallenCapability targCap = FallenCapability.get(targPlayer);
+                targCap.setOtherPlayerAndItem(null, null);
 
                 targPlayerUUID = targPlayer.getStringUUID();
             }
@@ -87,8 +90,9 @@ public class RevivePlayerActionsEvent {
 
         if (!(inst.crosshairPickEntity instanceof Player)) return;
 
-        FallenCapability cap = FallenCapability.GetFallCap((Player) inst.crosshairPickEntity);
+        FallenCapability cap = FallenCapability.get((Player) inst.crosshairPickEntity);
         if (!cap.isFallen()) return;
+        if (cap.getOtherPlayer() == null) return;
         if (!inst.player.isUsingItem()) return;
 
         inst.gameMode.releaseUsingItem(event.player);

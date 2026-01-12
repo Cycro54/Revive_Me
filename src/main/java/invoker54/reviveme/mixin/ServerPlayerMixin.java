@@ -1,7 +1,6 @@
 package invoker54.reviveme.mixin;
 
 import com.mojang.authlib.GameProfile;
-import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.core.BlockPos;
@@ -11,8 +10,10 @@ import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.ProfilePublicKey;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -23,10 +24,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ServerPlayer.class)
 public abstract class ServerPlayerMixin extends Player {
-    @Unique
-    private static final ModLogger MOD_LOGGER = ModLogger.getLogger(ServerPlayerMixin.class, ReviveMeConfig.debugMode);
 
-    @Shadow @Final public ServerPlayerGameMode gameMode;
+    @Shadow
+    @Final
+    public ServerPlayerGameMode gameMode;
 
     @Unique
     private FallenCapability revive_Me$cap;
@@ -36,13 +37,13 @@ public abstract class ServerPlayerMixin extends Player {
 
         Entity entity = this.level().getEntity(this.getId());
         if (!(entity instanceof Player)) return null;
-        revive_Me$cap = FallenCapability.GetFallCap((Player)entity);
+        revive_Me$cap = FallenCapability.get((Player)entity);
 
         return this.revive_Me$cap;
     }
 
-    public ServerPlayerMixin(Level p_250508_, BlockPos p_250289_, float p_251702_, GameProfile p_252153_) {
-        super(p_250508_, p_250289_, p_251702_, p_252153_);
+    public ServerPlayerMixin(Level p_219727_, BlockPos p_219728_, float p_219729_, GameProfile p_219730_, @Nullable ProfilePublicKey p_219731_) {
+        super(p_219727_, p_219728_, p_219729_, p_219730_);
     }
 
     @Inject(
@@ -54,8 +55,9 @@ public abstract class ServerPlayerMixin extends Player {
             cancellable = true)
     private void isCreative(CallbackInfoReturnable<Boolean> cir) {
         if (this.gameMode.getGameModeForPlayer() == GameType.CREATIVE) return;
-        FallenCapability cap = FallenCapability.GetFallCap(this);
+        FallenCapability cap = FallenCapability.get(this);
         if (!cap.isFallen()) return;
+        if (!ReviveMeConfig.dieWhenTimerEnds && cap.timeRanOut()) return;
 
         cir.setReturnValue(FallenCapability.FALLEN_HAS_CREATIVE);
     }
@@ -72,11 +74,18 @@ public abstract class ServerPlayerMixin extends Player {
         if (revive_Me$getCap() == null) return;
         if (!revive_Me$getCap().isFallen()) return;
 
-        if ((damageSource.getEntity() instanceof Player)
-                && damageSource.getEntity().isCrouching() && revive_Me$getCap().getKillTime(false) == 0) {
+        boolean sourceIsPlayer = (damageSource.getEntity() instanceof Player);
+        boolean playerIsCrouching = (sourceIsPlayer && damageSource.getEntity().isCrouching());
+        boolean killTimerIsExpired = revive_Me$getCap().getKillTime(false) == 0;
+        boolean actualDamage = damage > 0;
+
+        if (playerIsCrouching && killTimerIsExpired && actualDamage) {
             revive_Me$getCap().setDamageSource(damageSource);
-            revive_Me$getCap().kill((Player) this.level().getEntity(this.getId()));
+
+            revive_Me$getCap().forceDeath();
         }
+
+        if (!ReviveMeConfig.dieWhenTimerEnds && revive_Me$getCap().timeRanOut()) return;
 
         cir.setReturnValue(false);
     }

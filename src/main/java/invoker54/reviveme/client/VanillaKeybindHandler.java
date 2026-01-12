@@ -12,13 +12,17 @@ import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.glfw.GLFW;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class VanillaKeybindHandler {
     private static final Logger LOGGER = LogManager.getLogger();
     private static List<KeyMapping> vanillaKeyMappings;
     private static List<KeyMapping> movementMappings;
+    private static final Map<String, KeyMapping> foundBindings = new HashMap<>();
     public static boolean attackHeld = false;
     public static boolean useHeld = false;
     public static boolean overrideKeyblock = false;
@@ -30,7 +34,7 @@ public class VanillaKeybindHandler {
         vanillaKeyMappings = List.of(ArrayUtils.addAll(new KeyMapping[]{
                 /*options.keyAttack, options.keyUse,*/ options.keyUp, options.keyLeft, options.keyDown, options.keyRight, options.keyJump, options.keyShift, options.keySprint, options.keyDrop, options.keyInventory, options.keyChat, options.keyPlayerList, options.keyPickItem, options.keyCommand, options.keySocialInteractions, options.keyScreenshot, options.keyTogglePerspective, options.keySmoothCamera, options.keyFullscreen, options.keySpectatorOutlines, options.keySwapOffhand, options.keySaveHotbarActivator, options.keyLoadHotbarActivator, options.keyAdvancements}, options.keyHotbarSlots));
 
-        movementMappings = List.of(options.keyShift, options.keyLeft, options.keyUp, options.keyRight, options.keyDown);
+        movementMappings = List.of(options.keyLeft, options.keyUp, options.keyRight, options.keyDown);
 //        LOGGER.error("Vanilla keybindings new size: " + vanillaKeyMappings.size());
     }
 
@@ -55,9 +59,30 @@ public class VanillaKeybindHandler {
         return key;
     }
 
+    public static KeyMapping getOrCreateKey(String name) {
+        KeyMapping keyBinding = foundBindings.get(name);
+        if (keyBinding != null) return keyBinding;
+
+        //Second go through all keybinds
+        for (KeyMapping knownBinding : ClientUtil.getMinecraft().options.keyMappings) {
+            if (!knownBinding.getName().equals(name)) continue;
+            foundBindings.put(name, knownBinding);
+//            LOGGER.warn("FOUND VANILLA MATCH: " + name);
+            return knownBinding;
+        }
+
+//        LOGGER.warn("Making fake MATCH: " + name);
+
+        KeyMapping fakeBinding = new KeyMapping(name, GLFW.GLFW_KEY_A, "fake");
+        foundBindings.put(name, fakeBinding);
+        return fakeBinding;
+    }
+
     public static boolean isAllowedKeybind(KeyMapping keybinding){
         Player player = ClientUtil.getPlayer();
         if (keybinding == KeyInit.callForHelpKey.keyBind) return true;
+        if (keybinding == KeyInit.leftOption.keyBind) return true;
+        if (keybinding == KeyInit.rightOption.keyBind) return true;
 
         boolean isVanilla = VanillaKeybindHandler.isVanillaKeybind(keybinding);
         boolean isKeyInventory = keybinding == ClientUtil.getMinecraft().options.keyInventory;
@@ -65,7 +90,7 @@ public class VanillaKeybindHandler {
         boolean isKeySwapOffhand = keybinding == ClientUtil.getMinecraft().options.keySwapOffhand;
         boolean isSwapOrDrop = isKeyDrop || isKeySwapOffhand;
         ItemStack mainStack = player.getMainHandItem();
-        boolean isSacrificialItem = FallenCapability.GetFallCap(player).isSacrificialItem(mainStack);
+        boolean isSacrificialItem = FallenCapability.get(player).isSacrificialItem(mainStack);
         ReviveMeConfig.INTERACT_WITH_INVENTORY inventoryRule = ReviveMeConfig.interactWithInventory;
         boolean isAllowedKeybind = false;
 
@@ -83,4 +108,31 @@ public class VanillaKeybindHandler {
 
         return true;
     }
-}
+
+    public static boolean canBeDown(KeyMapping keyBinding){
+        if (ClientUtil.getWorld() == null) return true;
+        Player player = ClientUtil.getPlayer();
+        if (player == null) return true;
+        FallenCapability cap = FallenCapability.get(player);
+        if (!cap.isFallen()) return true;
+
+        if (!isAllowedKeybind(keyBinding)) return false;
+        if ((!ReviveMeConfig.canMove && isMovementKeybind(keyBinding))) return false;
+
+
+
+        //This is for jumping
+        if (keyBinding.equals(ClientUtil.getMinecraft().options.keyJump)) {
+            switch (ReviveMeConfig.canJump) {
+                case YES:
+                    break;
+                case LIQUID_ONLY:
+                    if (player.level().getFluidState(player.blockPosition()).isEmpty()) return false;
+                    break;
+                case NO:
+                    return false;
+            }
+        }
+
+        return true;
+    }}

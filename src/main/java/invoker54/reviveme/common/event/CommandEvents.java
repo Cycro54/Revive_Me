@@ -11,8 +11,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.CommandEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 
@@ -30,7 +28,7 @@ public class CommandEvents {
         if (player == null) return;
 //        LOGGER.debug("What's the root name? " + rootName);
 //        LOGGER.debug("Who did the command" + player.getName().getString());
-        if (!FallenCapability.GetFallCap(player).isFallen()) return;
+        if (!FallenCapability.get(player).isFallen()) return;
         boolean whitelist = ReviveMeConfig.blockedCommands.contains("//");
 //        LOGGER.warn("Is it whitelist? " + whitelist);
         boolean blockEverything = ReviveMeConfig.blockedCommands.contains("/");

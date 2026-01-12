@@ -9,8 +9,11 @@ import invoker54.invocore.client.util.TextUtil;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.client.gui.render.CircleRender;
+import invoker54.reviveme.common.InvoTextFormat;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
+import invoker54.reviveme.common.data.ReviveItemData;
+import invoker54.reviveme.init.KeyInit;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
@@ -39,6 +42,7 @@ public class RenderFallPlateEvent {
     public static final DecimalFormat df = new DecimalFormat("0.0");
     public static final int greenProgCircle = new Color(39, 235, 86, 255).getRGB();
     public static final int redProgCircle = new Color(173, 17, 17, 255).getRGB();
+    public static final int goldProgCircle = new Color(227, 175, 7,244).getRGB();
     public static final int blackBg = new Color(0, 0, 0, 176).getRGB();
 
     @SubscribeEvent
@@ -49,19 +53,19 @@ public class RenderFallPlateEvent {
         for (Entity entity : inst.level.entitiesForRendering()) {
 
             if (!(entity instanceof Player)) continue;
-            if (entity.equals(mC.player)) continue;
-            float distance = entity.distanceTo(mC.player);
+            if (entity.equals(ClientUtil.getMinecraft().player)) continue;
+            float distance = entity.distanceTo(ClientUtil.getMinecraft().player);
             double maxDistance = Math.max(ReviveMeConfig.reviveGlowMaxDistance, ReviveMeConfig.deathTimerMaxDistance);
             if (distance > maxDistance) continue;
 
             Player player = (Player) entity;
-            FallenCapability cap = FallenCapability.GetFallCap(player);
+            FallenCapability cap = FallenCapability.get(player);
             PoseStack stack = event.getPoseStack();
 
             if (!cap.isFallen()) continue;
 
-            HitResult rayResult = mC.player.level().clip(
-                    new ClipContext(mC.player.getEyePosition(1.0F), entity.getEyePosition(1.0F)
+            HitResult rayResult = ClientUtil.getMinecraft().player.level().clip(
+                    new ClipContext(ClientUtil.getMinecraft().player.getEyePosition(1.0F), entity.getEyePosition(1.0F)
                             , ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, entity));
             boolean targetSeen = rayResult.getType() == HitResult.Type.MISS;
 
@@ -84,9 +88,9 @@ public class RenderFallPlateEvent {
             RenderSystem.disableDepthTest();
 
             //Getting into position
-            Vec3 difference = entity.position().subtract(mC.gameRenderer.getMainCamera().getPosition());
+            Vec3 difference = entity.position().subtract(ClientUtil.getMinecraft().gameRenderer.getMainCamera().getPosition());
             stack.translate(difference.x, difference.y + yOffset, difference.z);
-            stack.mulPose(mC.getEntityRenderDispatcher().cameraOrientation());
+            stack.mulPose(ClientUtil.getMinecraft().getEntityRenderDispatcher().cameraOrientation());
             stack.scale(-0.025F, -0.025F, 0.025F);
             stack.scale(sizeOffset, sizeOffset, sizeOffset);
 
@@ -96,30 +100,36 @@ public class RenderFallPlateEvent {
                 int chosenColor = 0;
                 boolean canRender = false;
 
-                if (!mC.player.isCrouching() && !player.isDeadOrDying()) {
+                if (!ClientUtil.getMinecraft().player.isCrouching() && !player.isDeadOrDying()) {
                     canRender = true;
                     chosenColor = greenProgCircle;
 
-                    float seconds = cap.GetTimeLeft(false);
+                    float seconds = cap.getTimeLeft(false);
                     seconds += (seconds <= 0 ? 0 : 1);
-                    chosenText = InvoText.literal((seconds <= 0) ? "INF" : Integer.toString((int) seconds))
-                            .withStyle(true, ChatFormatting.BOLD)
-                            .withStyle(false, cap.hasEnough(inst.player) ? ChatFormatting.GREEN : ChatFormatting.RED);
-                } else if (mC.player.isCrouching() || player.isDeadOrDying()) {
+                    if (ReviveMeConfig.timeLeft == 0) chosenText = InvoText.literal("INF");
+                    else if (seconds > 0) chosenText = InvoText.literal(Integer.toString((int) seconds));
+                    else chosenText = InvoText.literal("RIP");
+                    chosenText.withStyle(true, InvoTextFormat.filter( ChatFormatting.BOLD))
+                            .withStyle(false, InvoTextFormat.filter( cap.hasEnough(inst.player) ? ChatFormatting.GREEN : ChatFormatting.RED));
+                } else if (ClientUtil.getMinecraft().player.isCrouching() || player.isDeadOrDying()) {
                     canRender = true;
                     chosenColor = redProgCircle;
 
                     chosenText = InvoText.literal(Integer.toString((int) Math.ceil(cap.getKillTime(false))))
-                            .withStyle(true, ChatFormatting.BOLD, ChatFormatting.RED);
+                            .withStyle(true, InvoTextFormat.filter( ChatFormatting.BOLD, ChatFormatting.RED));
                 }
 
                 if (canRender && distance < ReviveMeConfig.deathTimerMaxDistance) {
                     float endAngle = 360;
                     if (inst.player.isCrouching()) {
                         endAngle = endAngle * (cap.getKillTime(true));
-                    } else if (ReviveMeConfig.timeLeft != 0) endAngle *= cap.GetTimeLeft(true);
+                    } else if (ReviveMeConfig.timeLeft != 0) endAngle *= Math.max(0, cap.getTimeLeft(true));
 
-                    if (cap.GetTimeLeft(false) <= 0)
+                    //Overheal thing
+                    CircleRender.drawArc(stack, 0, 0, radius + 2, 0,
+                            Math.max(0.001D,cap.getOverhealPercentage() * 360), goldProgCircle);
+
+                    if (cap.getTimeLeft(false) <= 0)
                         CircleRender.drawArc(stack, 0, 0, radius, 0, endAngle, chosenColor);
                     else CircleRender.drawArc(stack, 0, 0, radius, 0, endAngle, chosenColor);
 
@@ -133,38 +143,38 @@ public class RenderFallPlateEvent {
                 }
 
                 InvoText message = null;
-                if (mC.crosshairPickEntity == player && !player.isDeadOrDying()) {
-                    if (mC.player.isCrouching()) {
+                if (ClientUtil.getMinecraft().crosshairPickEntity == player && !player.isDeadOrDying()) {
+                    if (ClientUtil.getMinecraft().player.isCrouching()) {
                         if (cap.getKillTime(false) > 0) {
                             message = InvoText.translate("revive_me.fall_plate.cant_kill");
                         } else {
                             message = InvoText.translate("revive_me.fall_plate.kill").setArgs(
                                     InvoText.literal(VanillaKeybindHandler.getKey(inst.options.keyAttack).getDisplayName().getString())
-                                            .withStyle(true, ChatFormatting.YELLOW, ChatFormatting.BOLD).getText()
+                                            .withStyle(true, InvoTextFormat.filter( ChatFormatting.YELLOW, ChatFormatting.BOLD)).getText()
                             );
                         }
-                    } else if (cap.hasEnough(mC.player)) {
+                    } else if (cap.hasEnough(ClientUtil.getMinecraft().player)) {
                         message = InvoText.translate("revive_me.fall_plate.revive").setArgs(
-                                InvoText.literal(VanillaKeybindHandler.getKey(inst.options.keyUse).getDisplayName().getString())
-                                        .withStyle(true, ChatFormatting.YELLOW, ChatFormatting.BOLD).getText()
+                                InvoText.literal(VanillaKeybindHandler.getKey(KeyInit.rightOption.keyBind).getDisplayName().getString())
+                                        .withStyle(true, InvoTextFormat.filter( ChatFormatting.YELLOW, ChatFormatting.BOLD)).getText()
                         );
 
                     }
                 }
                 if (message == null && cap.isCallingForHelp()) {
                     message = InvoText.literal("")
-                            .append(InvoText.literal("ABBA ").withStyle(true, ChatFormatting.BOLD, ChatFormatting.RED, ChatFormatting.OBFUSCATED))
-                            .append(InvoText.literal("[").withStyle(true, ChatFormatting.BOLD).getText())
-                            .append(InvoText.translate("revive_me.call_for_help").withStyle(true, ChatFormatting.BOLD, ChatFormatting.GOLD))
-                            .append(InvoText.literal("]").withStyle(true, ChatFormatting.BOLD))
-                            .append(InvoText.literal(" ABBA").withStyle(true, ChatFormatting.BOLD, ChatFormatting.RED, ChatFormatting.OBFUSCATED));
+                            .append(InvoText.literal("ABBA ").withStyle(true, InvoTextFormat.filter( ChatFormatting.BOLD, ChatFormatting.RED, ChatFormatting.OBFUSCATED)))
+                            .append(InvoText.literal("[").withStyle(true, InvoTextFormat.filter( ChatFormatting.BOLD)).getText())
+                            .append(InvoText.translate("revive_me.call_for_help").withStyle(true, InvoTextFormat.filter( ChatFormatting.BOLD, ChatFormatting.GOLD)))
+                            .append(InvoText.literal("]").withStyle(true, InvoTextFormat.filter( ChatFormatting.BOLD)))
+                            .append(InvoText.literal(" ABBA").withStyle(true, InvoTextFormat.filter( ChatFormatting.BOLD, ChatFormatting.RED, ChatFormatting.OBFUSCATED)));
                 }
 
                 if (message != null) {
-                    int txtWidth = mC.font.width(message.getText());
+                    int txtWidth = ClientUtil.getMinecraft().font.width(message.getText());
                     int padding = 2;
                     int width = txtWidth + (padding * 2);
-                    int height = (mC.font.lineHeight + (padding * 2));
+                    int height = (ClientUtil.getMinecraft().font.lineHeight + (padding * 2));
                     int x0 = (-(width) / 2);
                     int y0 = -(height + radius);
                     InvoZone txtZone = new InvoZone(x0, width, y0, height);
@@ -174,20 +184,23 @@ public class RenderFallPlateEvent {
                     TextUtil.renderText(stack, message.getText(), false, 1,
                             txtZone.inflate(-2, -2), TextUtil.txtAlignment.MIDDLE);
                 }
-            } else if (!mC.player.getUUID().equals(cap.getOtherPlayer()) && distance < ReviveMeConfig.deathTimerMaxDistance) {
+            } else if (!ClientUtil.getMinecraft().player.getUUID().equals(cap.getOtherPlayer()) && distance < ReviveMeConfig.deathTimerMaxDistance) {
                 int radius = 20;
+                Player reviver = ClientUtil.getMinecraft().player.level().getPlayerByUUID(cap.getOtherPlayer());
+                boolean hasReviveItem = ReviveItemData.getData(reviver.getMainHandItem(), ReviveItemData.USER.REVIVER) != null;
 
                 //region Render the revive text
                 InvoText message = ReviveScreenEvent.beingRevivedText;
-                int txtWidth = mC.font.width(message.getText());
+                if (hasReviveItem) message = ReviveScreenEvent.useItemText;
+                int txtWidth = ClientUtil.getMinecraft().font.width(message.getText());
                 int padding = 1;
 
                 int width = txtWidth + (padding * 2);
-                int height = (mC.font.lineHeight + (padding * 2));
+                int height = (ClientUtil.getMinecraft().font.lineHeight + (padding * 2));
 
                 ClientUtil.blitColor(stack, -(width) / 2, width, -(height + radius), height, blackBg);
 
-                height = mC.font.lineHeight;
+                height = ClientUtil.getMinecraft().font.lineHeight;
                 TextUtil.renderText(message.getText(), stack, -txtWidth / 2F, -(height + radius + padding), false);
                 //endregion
 

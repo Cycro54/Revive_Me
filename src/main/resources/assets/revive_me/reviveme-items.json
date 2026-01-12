@@ -1,0 +1,81 @@
+{
+  "bed": {
+    "displayName": "key:reviveme.item.name.bed",
+    "description": "key:reviveme.item.description.bed",
+    "itemTag": "minecraft:beds",
+    "itemUser": "FALLEN",
+    "reviveHealth": 4,
+    "reviveFood": 4,
+    "reviveEffects": [
+      "minecraft:blindness:0:200"
+    ],
+    "reviveCommands": [
+      "execute as @p if entity @s in minecraft:the_nether run summon minecraft:creeper ~ ~1 ~ {ExplosionRadius:4,Fuse:0}",
+      "execute as @p if entity @s in minecraft:the_end run summon minecraft:creeper ~ ~1 ~ {ExplosionRadius:4,Fuse:0}"
+    ]
+  },
+  "golden_apple": {
+    "displayName": "key:reviveme.item.name.golden_apple",
+    "description": "key:reviveme.item.description.golden_apple",
+    "itemResourceLocation": "minecraft:golden_apple",
+    "reviveFood": 10,
+    "reviveEffects": [
+      "PARENT",
+      "minecraft:regeneration:1:100",
+      "minecraft:absorption:0:2400"
+    ]
+  },
+  "enchanted_golden_apple": {
+    "displayName": "key:reviveme.item.name.enchanted_golden_apple",
+    "description": "key:reviveme.item.description.enchanted_golden_apple",
+    "itemResourceLocation": "minecraft:enchanted_golden_apple",
+    "reviveHealth": 16,
+    "reviveFood": 16,
+    "reviveEffects": [
+      "minecraft:fire_resistance:0:6000",
+      "minecraft:resistance:0:6000",
+      "minecraft:regeneration:1:400",
+      "minecraft:absorption:3:2400"
+    ]
+  },
+  "totem_of_undying": {
+    "displayName": "key:reviveme.item.name.totem_of_undying",
+    "description": "key:reviveme.item.description.totem_of_undying",
+    "itemResourceLocation": "minecraft:totem_of_undying",
+    "reviveEffects": [
+      "PARENT",
+      "minecraft:regeneration:1:900",
+      "minecraft:absorption:1:100"
+    ]
+  },
+  "nether_star": {
+    "displayName": "key:reviveme.item.name.nether_star",
+    "description": "key:reviveme.item.description.nether_star",
+    "itemResourceLocation": "minecraft:nether_star",
+    "user": "FALLEN",
+    "reviveHealth": -1,
+    "reviveFood": -1,
+    "reviveEffects": [
+      "minecraft:fire_resistance:5:300",
+      "minecraft:resistance:3:300",
+      "minecraft:absorption:3:2400",
+      "minecraft:regeneration:2:400",
+      "minecraft:strength:3:300"
+    ],
+    "reviveCommands": [
+      "/execute at @p run summon minecraft:creeper ~ ~1 ~ {ExplosionRadius:4,Fuse:0}",
+      "/execute at @p run summon minecraft:lightning_bolt ~ ~3 ~"
+    ]
+  },
+  "ender_pearl": {
+    "displayName": "key:reviveme.item.name.ender_pearl",
+    "description": "key:reviveme.item.description.ender_pearl",
+    "itemResourceLocation": "minecraft:ender_pearl",
+    "user": "FALLEN",
+    "reviveSeconds": 0,
+    "reviveChance": 0,
+    "fallenTimerChange": 15,
+    "refreshOptions": true,
+    "useReviveOnFail": false
+  }
+}
