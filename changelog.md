@@ -1,6 +1,6 @@
-# 1.16.5-1.15.37
+# 1.16.5-1.15.38
 
-<div><pre><strong>Fixes</strong><br>-Revive item command output is now blocked if Silence_Commands is true<br>-The revive-items-example.json should now be properly updated</pre></div>
+<div><pre><strong>Fixes</strong><br>-Revive item command output is now blocked if Silence_Commands is true<br>-You can now change your selected item if you have no self-revives left<br>-The revive-items-example.json should now be properly updated</pre></div>
 
 # 1.16.5-1.15.36
 
