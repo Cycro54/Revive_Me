@@ -2,6 +2,7 @@ package invoker54.reviveme.mixin;
 
 import com.mojang.authlib.GameProfile;
 import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerPlayerGameMode;
@@ -35,7 +36,7 @@ public abstract class ServerPlayerMixin extends Player {
 
         Entity entity = this.level.getEntity(this.getId());
         if (!(entity instanceof Player)) return null;
-        revive_Me$cap = FallenCapability.GetFallCap((Player)entity);
+        revive_Me$cap = FallenCapability.get((Player)entity);
 
         return this.revive_Me$cap;
     }
@@ -53,8 +54,9 @@ public abstract class ServerPlayerMixin extends Player {
             cancellable = true)
     private void isCreative(CallbackInfoReturnable<Boolean> cir) {
         if (this.gameMode.getGameModeForPlayer() == GameType.CREATIVE) return;
-        FallenCapability cap = FallenCapability.GetFallCap(this);
+        FallenCapability cap = FallenCapability.get(this);
         if (!cap.isFallen()) return;
+        if (!ReviveMeConfig.dieWhenTimerEnds && cap.timeRanOut()) return;
 
         cir.setReturnValue(FallenCapability.FALLEN_HAS_CREATIVE);
     }
@@ -71,11 +73,18 @@ public abstract class ServerPlayerMixin extends Player {
         if (revive_Me$getCap() == null) return;
         if (!revive_Me$getCap().isFallen()) return;
 
-        if ((damageSource.getEntity() instanceof Player)
-                && damageSource.getEntity().isCrouching() && revive_Me$getCap().getKillTime(false) == 0) {
+        boolean sourceIsPlayer = (damageSource.getEntity() instanceof Player);
+        boolean playerIsCrouching = (sourceIsPlayer && damageSource.getEntity().isCrouching());
+        boolean killTimerIsExpired = revive_Me$getCap().getKillTime(false) == 0;
+        boolean actualDamage = damage > 0;
+
+        if (playerIsCrouching && killTimerIsExpired && actualDamage) {
             revive_Me$getCap().setDamageSource(damageSource);
-            revive_Me$getCap().kill((Player) this.level.getEntity(this.getId()));
+
+            revive_Me$getCap().forceDeath();
         }
+
+        if (!ReviveMeConfig.dieWhenTimerEnds && revive_Me$getCap().timeRanOut()) return;
 
         cir.setReturnValue(false);
     }

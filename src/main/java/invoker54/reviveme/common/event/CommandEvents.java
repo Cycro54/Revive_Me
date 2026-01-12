@@ -28,7 +28,7 @@ public class CommandEvents {
         if (player == null) return;
 //        LOGGER.debug("What's the root name? " + rootName);
 //        LOGGER.debug("Who did the command" + player.getName().getString());
-        if (!FallenCapability.GetFallCap(player).isFallen()) return;
+        if (!FallenCapability.get(player).isFallen()) return;
         boolean whitelist = ReviveMeConfig.blockedCommands.contains("//");
 //        LOGGER.warn("Is it whitelist? " + whitelist);
         boolean blockEverything = ReviveMeConfig.blockedCommands.contains("/");

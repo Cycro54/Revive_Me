@@ -25,26 +25,33 @@ public class SoundEvents {
     private static final InvoSound fallen_state_random_sound = new InvoSound(SoundInit.FALLEN_STATE_HEART_BEAT, SoundSource.AMBIENT).setVolume((float) (1F * ReviveMeConfig.soundLevel)).
             setPitch(1.0F).setRepeatDelay(200, true).setGlobal(true).setPreModifySound(
                     (invoSound -> {
-                        invoSound.setPitch(MathUtil.randomFloat(0.8F, 1.2F));
-                        invoSound.setVolume((float) (MathUtil.randomFloat(1.3F, 1.1F) * ReviveMeConfig.soundLevel));
                         int delay = MathUtil.randomInt(10, 16);
-                        invoSound.setRepeatDelay(delay * 20, true);
+                        Player player = ClientUtil.getPlayer();
+                        if (player != null) {
+                            FallenCapability cap = FallenCapability.get(player);
+                            if (cap.getTimeLeft(false) < 0) delay = MathUtil.randomInt(45, 90);
+                        }
+
+                        invoSound.setPitch(MathUtil.randomFloat(0.8F, 1.2F));
+                        invoSound.setVolume((float) (MathUtil.randomFloat(1.3F,1.1F) * ReviveMeConfig.soundLevel));
+                        invoSound.setRepeatDelay(delay*20, true);
                     })
             );
     private static final InvoSound fallen_state_ticking_sound = new InvoSound(SoundInit.FALLEN_STATE_TICK_TOCK, SoundSource.AMBIENT)
             .setGlobal(true).setPreModifySound((invoSound -> {
                 Player player = ClientUtil.getPlayer();
                 if (player == null) return;
-                FallenCapability cap = FallenCapability.GetFallCap(player);
-                float percentage = cap.GetTimeLeft(true);
-                if (ReviveMeConfig.timeLeft == 0) {
+                FallenCapability cap = FallenCapability.get(player);
+                float percentage = cap.getTimeLeft(true);
+                if (ReviveMeConfig.timeLeft == 0 || cap.getTimeLeft(false) < 0){
                     invoSound.setPitch(MathUtil.randomFloat(0.5F, 0.75F));
-                    invoSound.setVolume((float) (MathUtil.randomFloat(0.1F, 0.3F) * ReviveMeConfig.soundLevel));
-                    invoSound.setRepeatDelay(5 * 20, false);
-                } else {
+                    invoSound.setVolume((float) (MathUtil.randomFloat(0.1F, 0.2F) * ReviveMeConfig.soundLevel));
+                    invoSound.setRepeatDelay(5*20,false);
+                }
+                else {
                     invoSound.setPitch(MathUtil.lerp(percentage, 0.7F, 0.4F));
                     invoSound.setVolume((float) (MathUtil.lerp(((1 - Math.pow(2, -10 * percentage))), 0.3F, 0.01F) * ReviveMeConfig.soundLevel));
-                    invoSound.setRepeatDelay(0, false);
+                    invoSound.setRepeatDelay(0,false);
                 }
             }));
 
@@ -52,7 +59,7 @@ public class SoundEvents {
             .setGlobal(true).setPreModifySound((invoSound -> {
                 Player player = ClientUtil.getPlayer();
                 if (player == null) return;
-                FallenCapability cap = FallenCapability.GetFallCap(player);
+                FallenCapability cap = FallenCapability.get(player);
                 float pitch = MathUtil.lerp(cap.getProgress(true), 0.8F, 1.2F);
                 invoSound.setVolume((float) (1.0f * ReviveMeConfig.soundLevel));
                 invoSound.setPitch(pitch);
@@ -64,29 +71,29 @@ public class SoundEvents {
             });
 
     @SubscribeEvent
-    public static void fallenNoiseEvent(TickEvent.ClientTickEvent event) {
+    public static void fallenNoiseEvent(TickEvent.ClientTickEvent event){
         if (event.phase == TickEvent.Phase.END) return;
         if (ClientUtil.getPlayer() == null) return;
 
-        FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
+        FallenCapability cap = FallenCapability.get(ClientUtil.getPlayer());
         if (!cap.isFallen() || cap.getOtherPlayer() != null) return;
 
-        if (cap.GetTimeLeft(false) > 5) fallen_state_random_sound.playWhenStopped();
-        if (cap.GetTimeLeft(false) % 1 == 0 && cap.GetTimeLeft(false) > 0  || ReviveMeConfig.timeLeft == 0) fallen_state_ticking_sound.play();
+        if (cap.getTimeLeft(false) > 5 || ReviveMeConfig.timeLeft == 0 || !ReviveMeConfig.dieWhenTimerEnds) fallen_state_random_sound.playWhenStopped();
+        if ((cap.getTimeLeft(false) % 1 == 0)) fallen_state_ticking_sound.play();
     }
 
     @SubscribeEvent
-    public static void reviveNoiseEvent(TickEvent.ClientTickEvent event) {
+    public static void reviveNoiseEvent(TickEvent.ClientTickEvent event){
         if (event.phase == TickEvent.Phase.END) return;
         if (ClientUtil.getPlayer() == null) return;
 
-        FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
-        if (cap.getOtherPlayer() == null) {
+        FallenCapability cap = FallenCapability.get(ClientUtil.getPlayer());
+        if (cap.getOtherPlayer() == null){
             if (!revive_background_sound.isDonePlaying()) revive_background_sound.stopIt();
 //            if (!revive_sound.isDonePlaying()) revive_sound.stopIt();
             return;
         }
-        if ((cap.getProgress(false)/20f) % 0.5F == 0 && cap.GetTimeLeft(true) != 1) revive_sound.play();
+        if ((cap.getProgress(false)/20f) % 0.5F == 0 && cap.getTimeLeft(true) != 1) revive_sound.play();
         revive_background_sound.playWhenStopped();
     }
 

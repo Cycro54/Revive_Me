@@ -13,15 +13,19 @@
     "SlotMixin"
   ],
   "client": [
+    "ClientEntityMixin",
     "KeyMappingMixin",
-    "LocalPlayerMixin",
+    "KeyBindingMapMixin",
     "MinecraftMixin",
+    "PlayerControllerMixin",
+    "PlayerInventoryMixin",
+    "PlayerMixin",
     "PlayerRendererMixin",
     "WidgetMixin",
-    "KeyBindingMapMixin",
-    "PlayerMixin"
+    "compatibility.ControllableButtonBindingMixin"
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "plugin": "invoker54.reviveme.mixin.compatibility.MixinPlugin"
 }

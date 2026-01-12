@@ -18,7 +18,7 @@ public class NetworkHandler {
     //Increment the first number if you add new stuff to NetworkHandler class
     //Increment the middle number each time you make a new Message
     //Increment the last number each time you fix a bug
-    private static final String PROTOCOL_VERSION = "1.6.0";
+    private static final String PROTOCOL_VERSION = "1.8.0";
 
     public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
 
@@ -39,8 +39,11 @@ public class NetworkHandler {
         INSTANCE.registerMessage(0, SyncClientCapMsg.class, SyncClientCapMsg::Encode, SyncClientCapMsg::Decode, SyncClientCapMsg::handle);
         INSTANCE.registerMessage(1, RestartDeathTimerMsg.class, RestartDeathTimerMsg::Encode, RestartDeathTimerMsg::Decode, RestartDeathTimerMsg::handle);
         INSTANCE.registerMessage(2, SyncConfigMsg.class, SyncConfigMsg::Encode, SyncConfigMsg::Decode, SyncConfigMsg::handle);
-        INSTANCE.registerMessage(3, CallForHelpMsg.class, (msg,buf)->{}, it -> new CallForHelpMsg(), CallForHelpMsg::handle);
+        INSTANCE.registerMessage(3, CallForHelpMsg.class, CallForHelpMsg::encode, CallForHelpMsg::decode, CallForHelpMsg::handle);
         INSTANCE.registerMessage(4, SelfReviveMsg.class, SelfReviveMsg::encode, SelfReviveMsg::decode, SelfReviveMsg::handle);
+        INSTANCE.registerMessage(5, ReviveItemMsg.class, ReviveItemMsg::encode, ReviveItemMsg::decode, ReviveItemMsg::handle);
+        INSTANCE.registerMessage(6, RefreshOptionsMsg.class, (message, buf) -> {}, it -> new RefreshOptionsMsg(), RefreshOptionsMsg::handle);
+        INSTANCE.registerMessage(7, BeginReviveMsg.class, BeginReviveMsg::encode, BeginReviveMsg::decode, BeginReviveMsg::handle);
     }
 
     //Custom method used to send data to players

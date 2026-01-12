@@ -4,6 +4,7 @@ package invoker54.reviveme.common.event;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
+import invoker54.reviveme.common.data.ReviveItemData;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.SyncClientCapMsg;
 import net.minecraft.nbt.CompoundTag;
@@ -21,21 +22,28 @@ public class ReviverEvents {
         if (event.isCanceled()) return;
         if (!(event.getEntity() instanceof Player)) return;
         Player reviverPlayer = (Player) event.getEntity();
-        FallenCapability reviveCap = FallenCapability.GetFallCap(reviverPlayer);
+        FallenCapability reviveCap = FallenCapability.get(reviverPlayer);
         if (reviveCap.isFallen()) return;
         if (!reviveCap.isReviver(reviveCap.getOtherPlayer())) return;
         Player fallenEntity = reviverPlayer.level.getPlayerByUUID(reviveCap.getOtherPlayer());
         if (fallenEntity == null) return;
-        FallenCapability fallCap = FallenCapability.GetFallCap(fallenEntity);
+        FallenCapability fallCap = FallenCapability.get(fallenEntity);
 
-        reviveCap.setProgress(reviverPlayer.level.getGameTime(), ReviveMeConfig.reviveTime);
-        fallCap.setProgress(reviverPlayer.level.getGameTime(), ReviveMeConfig.reviveTime);
+        ReviveItemData itemData = ReviveItemData.getData(reviverPlayer.getMainHandItem(), ReviveItemData.USER.REVIVER);
+        if (itemData != null){
+            reviveCap.setProgress(reviverPlayer.level.getGameTime(), itemData.getReviveSeconds()/20d);
+            fallCap.setProgress(reviverPlayer.level.getGameTime(), itemData.getReviveSeconds()/20d);
+        }
+        else {
+            reviveCap.setProgress(reviverPlayer.level.getGameTime(), ReviveMeConfig.reviveTime);
+            fallCap.setProgress(reviverPlayer.level.getGameTime(), ReviveMeConfig.reviveTime);
+        }
 
         CompoundTag nbt = new CompoundTag();
         nbt.put(reviverPlayer.getStringUUID(), reviveCap.writeNBT());
         nbt.put(fallenEntity.getStringUUID(), fallCap.writeNBT());
 
-        NetworkHandler.sendToPlayer(fallenEntity, new SyncClientCapMsg(nbt));
-        NetworkHandler.sendToPlayer(reviverPlayer, new SyncClientCapMsg(nbt));
+        NetworkHandler.sendToPlayer(fallenEntity, new SyncClientCapMsg(nbt, true));
+        NetworkHandler.sendToPlayer(reviverPlayer, new SyncClientCapMsg(nbt, true));
     }
 }

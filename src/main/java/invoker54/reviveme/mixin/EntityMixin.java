@@ -36,46 +36,9 @@ public abstract class EntityMixin {
 
         Entity entity = this.level.getEntity(this.getId());
         if (!(entity instanceof Player)) return null;
-        revive_Me$cap = FallenCapability.GetFallCap((Player) entity);
+        revive_Me$cap = FallenCapability.get((Player) entity);
 
         return this.revive_Me$cap;
-    }
-
-    @Inject(
-            method = "getTeamColor",
-            at = {
-                    @At(value = "HEAD")
-            }, cancellable = true)
-    private void getTeamColor(CallbackInfoReturnable<Integer> cir){
-        if (!this.level.isClientSide) return;
-        FallenCapability cap = revive_Me$getCap();
-        if (cap == null) return;
-        if (!cap.isFallen()) return;
-        double timePassed = (cap.callForHelpTicks()/20d);
-
-        Team team = this.getTeam();
-        int preColor;
-
-        if (timePassed < 3 && timePassed % 1 < 0.5F){
-            preColor = 16777215;
-        }
-        else if (team != null && team.getColor().getColor() != null){
-            preColor = team.getColor().getColor();
-        }
-        else {
-            preColor = new Color(248, 80, 29,255).getRGB();
-        }
-
-        Color postColor = new Color(preColor);
-        if (ReviveMeConfig.timeLeft != 0 && preColor != 16777215) {
-            float percentLeft = Math.max(0, Math.min(cap.GetTimeLeft(true), 1));
-            postColor = new Color(
-                    Math.round(postColor.getRed() * percentLeft),
-                    Math.round(postColor.getGreen() * percentLeft),
-                    Math.round(postColor.getBlue() * percentLeft));
-        }
-
-        cir.setReturnValue(postColor.getRGB());
     }
 
     @Inject(
@@ -87,7 +50,7 @@ public abstract class EntityMixin {
         Entity entity = this.level.getEntity(this.getId());
         if (!(entity instanceof Player player)) return;
 
-        if (!FallenCapability.GetFallCap(player).isFallen()) return;
+        if (!FallenCapability.get(player).isFallen()) return;
 
         switch (ReviveMeConfig.fallenPose){
             case CROUCH -> cir.setReturnValue(pose == Pose.CROUCHING);
@@ -106,6 +69,7 @@ public abstract class EntityMixin {
         if (revive_Me$getCap() == null) return;
         if (!revive_Me$getCap().isFallen()) return;
         if (this.level.isClientSide) return;
+        if (!ReviveMeConfig.dieWhenTimerEnds && revive_Me$getCap().timeRanOut()) return;
 
         cir.setReturnValue(true);
     }

@@ -1,6 +1,7 @@
 package invoker54.reviveme.common.network.message;
 
 import invoker54.reviveme.common.capability.FallenCapability;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.network.NetworkEvent;
@@ -31,10 +32,11 @@ public class SelfReviveMsg {
             if (player == null) return;
             if (!player.isAlive()) return;
 
-            FallenCapability cap = FallenCapability.GetFallCap(player);
-            if (!cap.canSelfRevive()) {
-                cap.kill(player);
-            } else {
+            FallenCapability cap = FallenCapability.get(player);
+            if (!cap.canSelfRevive() && ReviveMeConfig.canGiveUp){
+                cap.forceDeath();
+            }
+            else {
                 cap.useReviveOption(cap.getSelfReviveOption(msg.selectedOption), player);
             }
         });

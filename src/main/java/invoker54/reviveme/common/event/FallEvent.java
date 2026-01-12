@@ -1,5 +1,6 @@
 package invoker54.reviveme.common.event;
 
+import invoker54.invocore.client.util.InvoText;
 import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
@@ -27,43 +28,47 @@ public class FallEvent {
     private static final ModLogger LOGGER = ModLogger.getLogger(FallEvent.class, ReviveMeConfig.debugMode);
 
     public static boolean cancelEvent(Player player, DamageSource source) {
-        FallenCapability instance = FallenCapability.GetFallCap(player);
+        FallenCapability instance = FallenCapability.get(player);
 
         instance.refreshSelfReviveTypes(player);
 
-        if (!instance.canSelfRevive() && ((!player.getServer().isDedicatedServer() &&
-                player.getServer().getPlayerCount() == 1))) return false;
+//        if (!instance.canSelfRevive() && ((!player.getServer().isDedicatedServer() &&
+//                player.getServer().getPlayerCount() == 1))) return false;
 
 //        LOGGER.info("Are they fallen? " + instance.isFallen());
         if (!instance.isFallen()) {
 //            LOGGER.info("MAKING THEM FALLEN");
-            NetworkHandler.sendMessage(Component.literal(player.getName().getString())
-                    .append(Component.translatable("revive-me.chat.player_fallen")), false, player);
+            NetworkHandler.sendMessage(InvoText.translate("revive-me.chat.player_fallen",
+                    player.getName(), source.getLocalizedDeathMessage(player)).getText(), false, player);
 
             //Set to fallen state
             instance.setFallen(true);
 
-            //Set health to 1
-            player.setHealth(1);
+            double maxHealth = ReviveMeConfig.fallenHealth;
+            if (maxHealth <= 0) maxHealth = player.getMaxHealth();
+            else if (maxHealth < 1) maxHealth = player.getMaxHealth() * maxHealth;
+            maxHealth = Math.max(maxHealth, 1);
+            //Set health to fallen health
+            player.setHealth((float) maxHealth);
 
             //Set food to 0
-            player.getFoodData().setFoodLevel(0);
+            player.getFoodData().setFoodLevel(1);
 
             //Set last damage source for later
             instance.setDamageSource(source);
 
             //Set time left to whatever is in config file
-            instance.SetTimeLeft(player.level.getGameTime(), ReviveMeConfig.timeLeft);
+            instance.SetTimeLeft(player.level.getGameTime(), ReviveMeConfig.timeLeft, true);
 
             //grab the FALLEN EFFECT amplifier for later use
-            if (player.hasEffect(MobEffectInit.FALLEN_EFFECT)) {
+            if (player.hasEffect(MobEffectInit.FALLEN_EFFECT)){
                 instance.setPenaltyMultiplier(player.getEffect(MobEffectInit.FALLEN_EFFECT).getAmplifier() + 1);
                 //Remove the FallenEffect so it doesn't get saved
                 player.removeEffect(MobEffectInit.FALLEN_EFFECT);
             }
 
             //Save all of their potion effects
-            if (ReviveMeConfig.revertEffectsOnRevive) {
+            if (ReviveMeConfig.revertEffectsOnRevive){
                 instance.saveEffects(player);
             }
             instance.removeOriginalEffects(player);
@@ -80,21 +85,23 @@ public class FallEvent {
             //Close any containers they have open as well.
             player.closeContainer();
 
+            //Set the maxOverheal thingy
+            instance.setMaxOverheal();
+
             //Finally send capability code to all players
             CompoundTag nbt = new CompoundTag();
 
             //System.out.println("Am I fallen?: " + FallenCapability.GetFallCap(player).isFallen());
             if (instance.getOtherPlayer() != null) {
-
                 Player otherPlayer = player.level.getPlayerByUUID(instance.getOtherPlayer());
                 if (otherPlayer != null) {
-                    FallenCapability otherCap = FallenCapability.GetFallCap(otherPlayer);
+                    FallenCapability otherCap = FallenCapability.get(otherPlayer);
                     otherCap.resumeFallTimer();
-                    otherCap.setOtherPlayer(null);
+                    otherCap.setOtherPlayerAndItem(null, null);
 
                     nbt.put(otherPlayer.getStringUUID(), otherCap.writeNBT());
                 }
-                instance.setOtherPlayer(null);
+                instance.setOtherPlayerAndItem(null, null);
             }
             nbt.put(player.getStringUUID(), instance.writeNBT());
 
@@ -104,33 +111,32 @@ public class FallEvent {
                 if (!(entity instanceof Mob mob)) continue;
                 if (mob.getTarget() == null) continue;
                 if (mob.getTarget().getId() != player.getId()) continue;
-                if (mob instanceof NeutralMob) {
-                    ((NeutralMob) mob).playerDied(player);
+                if (mob instanceof NeutralMob){
+                    ((NeutralMob)mob).playerDied(player);
                 }
                 mob.aiStep();
             }
-            player.setHealth(1);
-
+            player.setHealth((float) maxHealth);
 
             NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player),
-                    new SyncClientCapMsg(nbt));
-
-        } else instance.setFallen(false);
+                    new SyncClientCapMsg(nbt, true));
+        }
+        else instance.setFallen(false);
 
         return instance.isFallen();
     }
 
-    public static void modifyPotionEffects(Player player) {
-        for (String string : ReviveMeConfig.downedEffects) {
+    public static void modifyPotionEffects(Player player){
+        for (String string : ReviveMeConfig.downedEffects){
             try {
                 String[] array = string.split(":");
 //                LOGGER.info("The effect split into pieces: " + Arrays.toString(array));
-                ResourceLocation effectLocation = new ResourceLocation(array[0], array[1]);
+                ResourceLocation effectLocation = new ResourceLocation(array[0],array[1]);
                 int tier = Integer.parseInt(array[2]);
 //                LOGGER.info("The tier: " + tier);
                 MobEffect effect = ForgeRegistries.MOB_EFFECTS.getValue(effectLocation);
-                if (effect == null) {
-                    LOGGER.error("Incorrect MOD ID or Potion Effect: " + string);
+                if (effect == null){
+                    LOGGER.error("Incorrect MOD ID or Potion MobEffect: " + string);
                     continue;
                 }
 
@@ -138,7 +144,8 @@ public class FallEvent {
                 if (effectInstance == null) {
                     player.addEffect(new MobEffectInstance(effect, Integer.MAX_VALUE, tier));
                 }
-            } catch (Exception e) {
+            }
+            catch (Exception e){
                 LOGGER.error("This string couldn't be parsed: " + string);
             }
         }
