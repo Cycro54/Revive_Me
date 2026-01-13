@@ -102,6 +102,7 @@
   "revive_me.fallenScreen.items.change_item": "Change item: [Scroll Hotbar]",
   "revive_me.fallenScreen.items.cant_give_up_description": "There is no escape.",
   "revive_me.fallenScreen.items.give_up_description": "Will cause you to die.",
+  "revive_me.fallenScreen.items.no_refresh_description": "\n Refresh items is disabled.",
   "revive_me.fallenScreen.items.give_up": "Give Up",
 
   "__comment": "This is for Revive Item Custom names",

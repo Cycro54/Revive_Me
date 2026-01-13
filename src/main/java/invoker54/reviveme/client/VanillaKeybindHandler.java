@@ -135,4 +135,5 @@ public class VanillaKeybindHandler {
         }
 
         return true;
-    }}
+    }
+}

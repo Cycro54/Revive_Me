@@ -10,7 +10,6 @@ import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.RefreshOptionsMsg;
-import invoker54.reviveme.common.network.message.SyncClientCapMsg;
 import net.minecraft.nbt.*;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -21,7 +20,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameRules;
 import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.tags.IReverseTag;
 
@@ -417,17 +415,13 @@ public class ReviveItemData extends ReviveConfigData {
 
         //Fallen Player
         cap.setOtherPlayerAndItem(null, null);
-        CompoundTag nbt = new CompoundTag();
-        nbt.put(fallen.getStringUUID(), cap.writeNBT());
-        NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> fallen), new SyncClientCapMsg(nbt, true));
+        cap.syncClient(true);
         if (this.refreshOptions) NetworkHandler.sendToPlayer(fallen, new RefreshOptionsMsg());
 
         if (fallen != reviver && reviver != null) {
             FallenCapability reviveCap = FallenCapability.get(reviver);
             reviveCap.setOtherPlayerAndItem(null, null);
-            nbt = new CompoundTag();
-            nbt.put(reviver.getStringUUID(), reviveCap.writeNBT());
-            NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> reviver), new SyncClientCapMsg(nbt, true));
+            reviveCap.syncClient(true);
         }
     }
 
@@ -439,7 +433,8 @@ public class ReviveItemData extends ReviveConfigData {
         for (String s : this.getReviveCommands()){
             String properString = s.replace("@s", reviver.getName().getString())
                     .replace("@p", fallen.getName().getString());
-            fallen.getServer().getCommands().performPrefixedCommand(fallen.createCommandSourceStack(), properString);
+            fallen.getServer().getCommands().performPrefixedCommand(
+                    fallen.createCommandSourceStack().withPermission(5), properString);
         }
         commandFeedback.set(isAlreadySilenced, fallen.getServer());
     }

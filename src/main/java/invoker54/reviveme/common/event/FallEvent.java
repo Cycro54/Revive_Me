@@ -6,9 +6,7 @@ import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
-import invoker54.reviveme.common.network.message.SyncClientCapMsg;
 import invoker54.reviveme.init.MobEffectInit;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
@@ -19,7 +17,6 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
@@ -88,7 +85,6 @@ public class FallEvent {
             instance.setMaxOverheal();
 
             //Finally send capability code to all players
-            CompoundTag nbt = new CompoundTag();
 
             //System.out.println("Am I fallen?: " + FallenCapability.GetFallCap(player).isFallen());
             if (instance.getOtherPlayer() != null) {
@@ -98,11 +94,10 @@ public class FallEvent {
                     otherCap.resumeFallTimer();
                     otherCap.setOtherPlayerAndItem(null, null);
 
-                    nbt.put(otherPlayer.getStringUUID(), otherCap.writeNBT());
+                    otherCap.syncClient(true);
                 }
                 instance.setOtherPlayerAndItem(null, null);
             }
-            nbt.put(player.getStringUUID(), instance.writeNBT());
 
             player.setHealth(0);
             //Make all angerable enemies nearby forgive the player.
@@ -117,8 +112,7 @@ public class FallEvent {
             }
             player.setHealth((float) maxHealth);
 
-            NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player),
-                    new SyncClientCapMsg(nbt, true));
+            instance.syncClient(true);
         }
         else instance.setFallen(false);
 

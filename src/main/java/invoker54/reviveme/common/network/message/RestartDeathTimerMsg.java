@@ -1,13 +1,10 @@
 package invoker54.reviveme.common.network.message;
 
 import invoker54.reviveme.common.capability.FallenCapability;
-import invoker54.reviveme.common.network.NetworkHandler;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
 import java.util.UUID;
@@ -42,25 +39,20 @@ public class RestartDeathTimerMsg {
             //Reviver player cap
             Player reviverPlayer = list.getPlayer(UUID.fromString(msg.reviverPlayer));
             if (reviverPlayer != null) {
-                CompoundTag tag = new CompoundTag();
                 FallenCapability reviverCap = FallenCapability.get(reviverPlayer);
                 reviverCap.setOtherPlayerAndItem(null, null);
 
-                tag.put(reviverPlayer.getStringUUID(), reviverCap.writeNBT());
-                NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> reviverPlayer),
-                        new SyncClientCapMsg(tag, true));
+                reviverCap.syncClient(true);
             }
 
             if (msg.fallenPlayer.isEmpty()) return;
             Player fallenPlayer = list.getPlayer(UUID.fromString(msg.fallenPlayer));
             if (fallenPlayer != null){
-                CompoundTag tag = new CompoundTag();
                 FallenCapability fallenCap = FallenCapability.get(fallenPlayer);
                 fallenCap.setOtherPlayerAndItem(null, null);
                 fallenCap.resumeFallTimer();
-                tag.put(fallenPlayer.getStringUUID(), fallenCap.writeNBT());
-                NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> fallenPlayer),
-                        new SyncClientCapMsg(tag, true));
+
+                fallenCap.syncClient(true);
             }
         });
         context.setPacketHandled(true);
