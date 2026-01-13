@@ -57,7 +57,7 @@
   "sounds.reviveme.call_for_help": "Call For Help",
 
   "__comment": "This is for Keys",
-  "key.category.reviveme": "Revive Me!",
+  "key.category.revive_me": "Revive Me!",
   "key.revive_me.callForHelpKey": "Call For Help",
   "key.revive_me.leftOption": "Left Option",
   "key.revive_me.rightOption": "Right Option",
