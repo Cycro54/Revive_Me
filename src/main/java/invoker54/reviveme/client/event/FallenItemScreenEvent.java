@@ -333,6 +333,7 @@ public class FallenItemScreenEvent {
         int cutOffPoint = (int) (textZone.width() * (textZone.height()/8));
         InvoText description = ReviveMeConfig.canGiveUp ? giveUpDescriptionText : cantGiveUpDescriptionText;
         if (!ReviveMeConfig.refreshItems) description = description.deepCopy().append(noRefreshDescriptionText);
+        if (data != null) description = data.getDescription();
 
         int textWidth = mC.font.width(description.getText());
         cutOffPoint = Math.max(cutOffPoint, textWidth/4);
