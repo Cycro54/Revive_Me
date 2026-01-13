@@ -6,20 +6,17 @@ import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
-import invoker54.reviveme.common.network.message.SyncClientCapMsg;
 import invoker54.reviveme.init.EffectInit;
 import invoker54.reviveme.init.SoundInit;
 import invoker54.reviveme.mixin.FoodMixin;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.play.server.SUpdateHealthPacket;
 import net.minecraft.potion.Effect;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.util.FoodStats;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
-import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
@@ -185,17 +182,13 @@ public class ReviveConfigData {
 
         cap.setFallen(false);
 
-        CompoundNBT nbt = new CompoundNBT();
-        nbt.put(fallen.getStringUUID(), cap.writeNBT());
-
         fallen.level.playSound(null, fallen.getX(), fallen.getY(), fallen.getZ(),
                 SoundInit.REVIVED, SoundCategory.PLAYERS, 1.0F, MathUtil.randomFloat(0.7F, 1.0F));
 
         if (!fallen.level.isClientSide) {
             NetworkHandler.sendMessage(reviveText.getText(), isCommand, fallen);
 
-            NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> fallen),
-                    new SyncClientCapMsg(nbt, true));
+            cap.syncClient(true);
         }
     }
 
@@ -233,10 +226,7 @@ public class ReviveConfigData {
 
         cap = FallenCapability.get(reviver);
         cap.setOtherPlayerAndItem(null, null);
-        CompoundNBT nbt = new CompoundNBT();
-        nbt.put(reviver.getStringUUID(), cap.writeNBT());
 
-        NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> reviver),
-                new SyncClientCapMsg(nbt, true));
+        cap.syncClient(true);
     }
 }

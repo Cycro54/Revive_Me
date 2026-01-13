@@ -44,6 +44,7 @@ public class FallenItemScreenEvent {
     private static final InvoText useItemText = InvoText.translate(itemLangDirectory +"use_item");
     private static final InvoText changeItemText = InvoText.translate(itemLangDirectory +"change_item");
     private static final InvoText giveUpDescriptionText = InvoText.translate(itemLangDirectory +"give_up_description");
+    private static final InvoText noRefreshDescriptionText = InvoText.translate(itemLangDirectory +"no_refresh_description");
     private static final InvoText cantGiveUpDescriptionText = InvoText.translate(itemLangDirectory +"cant_give_up_description");
     private static final InvoText giveUpText = InvoText.translate(itemLangDirectory +"give_up");
     private static final InvoText notEnoughText = InvoText.translate(itemLangDirectory +"not_enough");
@@ -78,7 +79,7 @@ public class FallenItemScreenEvent {
     public static void renderItemPage(MatrixStack stack, double switchPercentage, InvoZone workZone, InvoZone leftZone, InvoZone rightZone){
         passedTicks = (mC.player.level.getGameTime() + FallScreenEvent.getPartialTicks()) - previousTick;
 
-        if (mC.level.getGameTime() % 10 == 0) refreshItemData();
+        if (ReviveMeConfig.refreshItems && mC.level.getGameTime() % 10 == 0) refreshItemData();
 
         leftZone.setRight(MathUtil.lerp(1 - switchPercentage, leftZone.right(), workZone.x()));
         rightZone.setX(MathUtil.lerp(1 - switchPercentage, rightZone.x(), workZone.right()));
@@ -317,7 +318,7 @@ public class FallenItemScreenEvent {
             InvoText nameText = InvoText.component(pair.getKey().getDisplayName().copy());
             if (!pair.getKey().hasCustomHoverName() && data != null && !data.getDisplayName().getString().isEmpty()) nameText = data.getDisplayName();
             if (data == null){
-                if (ReviveMeConfig.canGiveUp) nameText = giveUpText;
+                if (ReviveMeConfig.canGiveUp) nameText = giveUpText.deepCopy();
                 else nameText = FallScreenEvent.cantGiveUp.deepCopy();
             }
 
@@ -331,6 +332,7 @@ public class FallenItemScreenEvent {
 
         int cutOffPoint = (int) (textZone.width() * (textZone.height()/8));
         InvoText description = ReviveMeConfig.canGiveUp ? giveUpDescriptionText : cantGiveUpDescriptionText;
+        if (!ReviveMeConfig.refreshItems) description = description.deepCopy().append(noRefreshDescriptionText);
         if (data != null) description = data.getDescription();
 
         int textWidth = mC.font.width(description.getText());
@@ -504,7 +506,7 @@ public class FallenItemScreenEvent {
         VanillaKeybindHandler.attackHeld = false;
         VanillaKeybindHandler.useHeld = false;
 
-        if (isItemScreenActive) refreshItemData();
+        if (ReviveMeConfig.refreshItems && isItemScreenActive) refreshItemData();
     }
 
     public static double getSwitchPercentage() {

@@ -5,10 +5,7 @@ import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.data.ReviveItemData;
-import invoker54.reviveme.common.network.NetworkHandler;
-import invoker54.reviveme.common.network.message.SyncClientCapMsg;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -39,11 +36,7 @@ public class ReviverEvents {
             fallCap.setProgress(reviverPlayer.level.getGameTime(), ReviveMeConfig.reviveTime);
         }
 
-        CompoundNBT nbt = new CompoundNBT();
-        nbt.put(reviverPlayer.getStringUUID(), reviveCap.writeNBT());
-        nbt.put(fallenEntity.getStringUUID(), fallCap.writeNBT());
-
-        NetworkHandler.sendToPlayer(fallenEntity, new SyncClientCapMsg(nbt, true));
-        NetworkHandler.sendToPlayer(reviverPlayer, new SyncClientCapMsg(nbt, true));
+        reviveCap.syncClient(true);
+        fallCap.syncClient(true);
     }
 }

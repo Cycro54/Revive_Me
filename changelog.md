@@ -1,3 +1,6 @@
+# 1.16.5-1.15.41
+
+<div><div><pre><strong>Additions</strong><br>-Refresh_Item_List config: Refresh revive item list while in the fallen state<br><br><strong>Fixes</strong><br>-Gave revive commands higher permission<br>-Checks if reviver is present before applying item cooldown</pre></div></div>
 # 1.16.5-1.15.40
 
 <div><div><pre><strong>Fixes</strong><br>-clampLoop shouldn't infinitely loop anymore</pre></div></div>

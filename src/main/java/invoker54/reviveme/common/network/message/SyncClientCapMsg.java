@@ -1,14 +1,15 @@
 package invoker54.reviveme.common.network.message;
 
 import invoker54.invocore.client.util.ClientUtil;
+import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.client.VanillaKeybindHandler;
+import invoker54.reviveme.client.event.FallenItemScreenEvent;
 import invoker54.reviveme.common.capability.FallenCapability;
-import invoker54.reviveme.init.KeyInit;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.INBT;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
 
@@ -16,22 +17,26 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 public class SyncClientCapMsg {
+    public static ModLogger LOGGER = ModLogger.getLogger(SyncClientCapMsg.class, ReviveMeConfig.debugMode);
     //The data
-    private INBT nbtData;
+    private String uuid;
+    private CompoundNBT capDataTag;
     private boolean resetBinds;
 
-    public SyncClientCapMsg(INBT nbtData, boolean resetBinds){
-        this.nbtData = nbtData;
+    public SyncClientCapMsg(String uuid, CompoundNBT capDataTag, boolean resetBinds){
+        this.uuid = uuid;
+        this.capDataTag = capDataTag;
         this.resetBinds = resetBinds;
     }
 
     public static void Encode(SyncClientCapMsg msg, PacketBuffer buffer){
-        buffer.writeNbt((CompoundNBT) msg.nbtData);
+        buffer.writeUtf(msg.uuid);
+        buffer.writeNbt(msg.capDataTag);
         buffer.writeBoolean(msg.resetBinds);
     }
 
     public static SyncClientCapMsg Decode(PacketBuffer buffer){
-        return new SyncClientCapMsg(buffer.readNbt(), buffer.readBoolean());
+        return new SyncClientCapMsg(buffer.readUtf(), buffer.readNbt(), buffer.readBoolean());
     }
 
     //This is how the Network Handler will handle the message
@@ -43,21 +48,19 @@ public class SyncClientCapMsg {
 
             ClientWorld world = Minecraft.getInstance().level;
             if (world == null) return;
+            PlayerEntity player = world.getPlayerByUUID(UUID.fromString(msg.uuid));
 
-            CompoundNBT nbt = (CompoundNBT) msg.nbtData;
+            if (player == null) return;
+            FallenCapability.get(player).readNBT(msg.capDataTag);
 
-            for (String key : nbt.getAllKeys()) {
-                PlayerEntity player = world.getPlayerByUUID(UUID.fromString(key));
-                if (player == null) continue;
+            if (player != ClientUtil.getPlayer()) return;
 
-                FallenCapability cap = FallenCapability.get(player);
-
-                cap.readNBT(nbt.get(key));
-                if (player == ClientUtil.getPlayer() && msg.resetBinds){
-                    VanillaKeybindHandler.useHeld = (!cap.isFallen() && !KeyInit.rightOption.keyBind.isDown());
-                    VanillaKeybindHandler.attackHeld = false;
-                }
+            if (msg.resetBinds) {
+                VanillaKeybindHandler.useHeld = false;
+                VanillaKeybindHandler.attackHeld = false;
             }
+
+            if (!ReviveMeConfig.refreshItems) FallenItemScreenEvent.refreshItemData();
         });
         context.setPacketHandled(true);
     }

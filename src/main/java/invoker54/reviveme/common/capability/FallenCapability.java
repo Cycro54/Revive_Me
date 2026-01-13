@@ -402,10 +402,7 @@ public class FallenCapability {
 
                     refreshSelfReviveTypes(player);
 
-                    CompoundNBT nbt = new CompoundNBT();
-                    nbt.put(player.getStringUUID(), this.writeNBT());
-                    NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player),
-                            new SyncClientCapMsg(nbt, true));
+                    this.syncClient(true);
                     return;
                 }
                 else if (!ReviveMeConfig.canGiveUp && ReviveMeConfig.maxSelfRevives != -1){
@@ -413,10 +410,7 @@ public class FallenCapability {
 
                     this.selfReviveCount = ReviveMeConfig.maxSelfRevives;
 
-                    CompoundNBT nbt = new CompoundNBT();
-                    nbt.put(player.getStringUUID(), this.writeNBT());
-                    NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player),
-                            new SyncClientCapMsg(nbt, true));
+                    this.syncClient(true);
                     return;
                 }
                 break;
@@ -656,6 +650,12 @@ public class FallenCapability {
             player.addEffect(instance);
         }
         this.savedEffectsTag = new CompoundNBT();
+    }
+
+    public void syncClient(boolean resetBinds){
+//        LOGGER.error("UUID? " + (this.player.getUUID()));
+        NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> this.player),
+                new SyncClientCapMsg(this.player.getStringUUID(), (CompoundNBT) this.writeNBT(), resetBinds));
     }
 
     public INBT writeNBT(){

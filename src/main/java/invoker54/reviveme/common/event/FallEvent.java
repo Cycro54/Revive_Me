@@ -6,20 +6,17 @@ import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
-import invoker54.reviveme.common.network.message.SyncClientCapMsg;
 import invoker54.reviveme.init.EffectInit;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.IAngerable;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.potion.Effect;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
@@ -88,7 +85,6 @@ public class FallEvent {
             instance.setMaxOverheal();
 
             //Finally send capability code to all players
-            CompoundNBT nbt = new CompoundNBT();
 
             //System.out.println("Am I fallen?: " + FallenCapability.GetFallCap(player).isFallen());
             if (instance.getOtherPlayer() != null) {
@@ -98,11 +94,10 @@ public class FallEvent {
                     otherCap.resumeFallTimer();
                     otherCap.setOtherPlayerAndItem(null, null);
 
-                    nbt.put(otherPlayer.getStringUUID(), otherCap.writeNBT());
+                    otherCap.syncClient(true);
                 }
                 instance.setOtherPlayerAndItem(null, null);
             }
-            nbt.put(player.getStringUUID(), instance.writeNBT());
 
             player.setHealth(0);
             //Make all angerable enemies nearby forgive the player.
@@ -118,8 +113,7 @@ public class FallEvent {
             }
             player.setHealth((float) maxHealth);
 
-            NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player),
-                    new SyncClientCapMsg(nbt, true));
+            instance.syncClient(true);
         }
         else instance.setFallen(false);
 

@@ -10,7 +10,6 @@ import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.RefreshOptionsMsg;
-import invoker54.reviveme.common.network.message.SyncClientCapMsg;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
@@ -20,7 +19,6 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.world.GameRules;
 import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.fml.network.PacketDistributor;
 
 import java.io.File;
 import java.io.InputStream;
@@ -408,17 +406,13 @@ public class ReviveItemData extends ReviveConfigData {
 
         //Fallen Player
         cap.setOtherPlayerAndItem(null, null);
-        CompoundNBT nbt = new CompoundNBT();
-        nbt.put(fallen.getStringUUID(), cap.writeNBT());
-        NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> fallen), new SyncClientCapMsg(nbt, true));
+        cap.syncClient(true);
         if (this.refreshOptions) NetworkHandler.sendToPlayer(fallen, new RefreshOptionsMsg());
 
         if (fallen != reviver && reviver != null) {
             FallenCapability reviveCap = FallenCapability.get(reviver);
             reviveCap.setOtherPlayerAndItem(null, null);
-            nbt = new CompoundNBT();
-            nbt.put(reviver.getStringUUID(), reviveCap.writeNBT());
-            NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> reviver), new SyncClientCapMsg(nbt, true));
+            reviveCap.syncClient(true);
         }
     }
 
@@ -430,7 +424,8 @@ public class ReviveItemData extends ReviveConfigData {
         for (String s : this.getReviveCommands()){
             String properString = s.replace("@s", reviver.getName().getString())
                     .replace("@p", fallen.getName().getString());
-            fallen.getServer().getCommands().performCommand(fallen.createCommandSourceStack(), properString);
+            fallen.getServer().getCommands().performCommand(
+                    fallen.createCommandSourceStack().withPermission(5), properString);
         }
         commandFeedback.set(isAlreadySilenced, fallen.getServer());
     }
