@@ -3,22 +3,20 @@ package invoker54.reviveme.commands;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import invoker54.invocore.client.util.InvoText;
 import invoker54.reviveme.common.capability.FallenData;
+import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.event.FallEvent;
-import invoker54.reviveme.common.event.FallenTimerEvent;
 import invoker54.reviveme.init.NetworkInit;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 
 public class FixCommand {
-    private static final Logger LOGGER = LogManager.getLogger();
-
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
                 Commands.literal("revivemefix")
@@ -31,27 +29,25 @@ public class FixCommand {
     }
 
     private static int fixPlayer(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
-        ServerPlayer caller;
+        ServerPlayer fallen;
+        Entity caller = commandContext.getSource().getEntity();
         try {
-            caller = EntityArgument.getPlayer(commandContext, "player");
+            fallen = EntityArgument.getPlayer(commandContext, "player");
         }
         catch (Exception e){
-            if (!commandContext.getSource().isPlayer()){
+            if (!(commandContext.getSource().getEntity() instanceof ServerPlayer)){
                 return 1;
             }
-            caller = commandContext.getSource().getPlayer();
+            fallen = (ServerPlayer) commandContext.getSource().getEntity();
         }
-        FallenData cap = FallenData.get(caller);
+        FallenData cap = FallenData.get(fallen);
 
-        if (!caller.isAlive()){
+        if (!fallen.isAlive()){
             return 1;
         }
 
-        //TODO: Remove this in future versions.
-        caller.setInvulnerable(false);
-
-        NetworkInit.sendMessage((Component.translatable("revive_me.commands.fix")),
-                true, caller);
+        NetworkInit.sendMessage(InvoText.translate("revive_me.commands.fix",
+                fallen.getDisplayName()).getText(),true, fallen);
 
         //This should fix the player if they are downed
         if (cap.isFallen()){
@@ -59,18 +55,19 @@ public class FixCommand {
             if (damageSource == null) damageSource = caller.damageSources().fellOutOfWorld();
 
             //If they are out of time, smite them.
-            if (cap.shouldDie()){
-                cap.kill(caller);
+            if (cap.timeRanOut() && ReviveMeConfig.dieWhenTimerEnds){
+                cap.forceDeath();
                 return 1;
             }
 
             cap.setFallen(false);
-            FallEvent.cancelEvent(caller, damageSource);
+            fallen.removeAllEffects();
+            FallEvent.cancelEvent(fallen, damageSource);
         }
 
         //This should fix the player if they are no longer fallen
         else {
-            FallenTimerEvent.revivePlayer(caller,true);
+            ReviveMeConfig.configReviveData.revivePlayer(fallen, true, (Player) caller, "command");
         }
 
         return 1;

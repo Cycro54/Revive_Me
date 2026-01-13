@@ -1,14 +1,14 @@
 package invoker54.reviveme.common.event;
 
+import invoker54.invocore.client.util.InvoText;
 import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
-import invoker54.reviveme.common.network.payload.SyncClientCapMsg;
 import invoker54.reviveme.init.MobEffectInit;
 import invoker54.reviveme.init.NetworkInit;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.Component;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
@@ -18,7 +18,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.Optional;
 
@@ -30,28 +29,33 @@ public class FallEvent {
 
         instance.refreshSelfReviveTypes(player);
 
-        if (!instance.canSelfRevive() && ((!player.getServer().isDedicatedServer() &&
-                player.getServer().getPlayerCount() == 1))) return false;
+//        if (!instance.canSelfRevive() && ((!player.getServer().isDedicatedServer() &&
+//                player.getServer().getPlayerCount() == 1))) return false;
 
 //        LOGGER.info("Are they fallen? " + instance.isFallen());
         if (!instance.isFallen()) {
 //            LOGGER.info("MAKING THEM FALLEN");
-            NetworkInit.sendMessage(Component.translatable("revive_me.chat.player_fallen", player.getDisplayName()), false, player);
+            NetworkInit.sendMessage(InvoText.translate("revive_me.chat.player_fallen",
+                    player.getName(), source.getLocalizedDeathMessage(player)).getText(), false, player);
 
             //Set to fallen state
             instance.setFallen(true);
 
-            //Set health to 1
-            player.setHealth(1);
+            double maxHealth = ReviveMeConfig.fallenHealth;
+            if (maxHealth <= 0) maxHealth = player.getMaxHealth();
+            else if (maxHealth < 1) maxHealth = player.getMaxHealth() * maxHealth;
+            maxHealth = Math.max(maxHealth, 1);
+            //Set health to fallen health
+            player.setHealth((float) maxHealth);
 
             //Set food to 0
-            player.getFoodData().setFoodLevel(0);
+            player.getFoodData().setFoodLevel(1);
 
             //Set last damage source for later
             instance.setDamageSource(source);
 
             //Set time left to whatever is in config file
-            instance.SetTimeLeft(player.level().getGameTime(), ReviveMeConfig.timeLeft);
+            instance.SetTimeLeft(player.level().getGameTime(), ReviveMeConfig.timeLeft, true);
 
             //grab the FALLEN EFFECT amplifier for later use
             if (player.hasEffect(MobEffectInit.FALLEN_EFFECT)){
@@ -78,23 +82,25 @@ public class FallEvent {
             //Close any containers they have open as well.
             player.closeContainer();
 
+            //Set the maxOverheal thingy
+            instance.setMaxOverheal();
+
             //Finally send capability code to all players
-//            CompoundTag nbt = new CompoundTag();
+            CompoundTag nbt = new CompoundTag();
 
-            //System.out.println("Am I fallen?: " + FallenData.get(player).isFallen());
+            //System.out.println("Am I fallen?: " + FallenData.GetFallCap(player).isFallen());
             if (instance.getOtherPlayer() != null) {
-
                 Player otherPlayer = player.level().getPlayerByUUID(instance.getOtherPlayer());
                 if (otherPlayer != null) {
                     FallenData otherCap = FallenData.get(otherPlayer);
                     otherCap.resumeFallTimer();
-                    otherCap.setOtherPlayer(null);
+                    otherCap.setOtherPlayerAndItem(null, null);
 
-                    PacketDistributor.sendToPlayersTrackingEntityAndSelf(otherPlayer, new SyncClientCapMsg(otherPlayer.getUUID(), otherCap.writeNBT()));
+                    nbt.put(otherPlayer.getStringUUID(), otherCap.writeNBT());
                 }
-                instance.setOtherPlayer(null);
+                instance.setOtherPlayerAndItem(null, null);
             }
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(player, new SyncClientCapMsg(player.getUUID(), instance.writeNBT()));
+            nbt.put(player.getStringUUID(), instance.writeNBT());
 
             player.setHealth(0);
             //Make all angerable enemies nearby forgive the player.
@@ -107,9 +113,11 @@ public class FallEvent {
                 }
                 mob.aiStep();
             }
-            player.setHealth(1);
+            player.setHealth((float) maxHealth);
 
-        } else instance.setFallen(false);
+            instance.syncClient(true);
+        }
+        else instance.setFallen(false);
 
         return instance.isFallen();
     }

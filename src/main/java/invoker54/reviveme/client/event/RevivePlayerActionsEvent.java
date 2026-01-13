@@ -8,6 +8,7 @@ import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.payload.RestartDeathTimerMsg;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -56,19 +57,12 @@ public class RevivePlayerActionsEvent {
             cancelEvent = !VanillaKeybindHandler.useHeld;
         }
 
+        if (!cancelEvent){
+            cancelEvent = myCap.getReviveStack() != null && !ItemStack.isSameItem(event.getEntity().getMainHandItem(), myCap.getReviveStack());
+        }
+
         if (cancelEvent){
-//            String targPlayerUUID = "";
-            myCap.setOtherPlayer(null);
-
-            if (targPlayer != null) {
-                FallenData targCap = FallenData.get(targPlayer);
-                targCap.setOtherPlayer(null);
-
-//                targPlayerUUID = targPlayer.getStringUUID();
-            }
-
             PacketDistributor.sendToServer(new RestartDeathTimerMsg());
-//            NetworkHandler.INSTANCE.sendToServer(new RestartDeathTimerMsg(targPlayerUUID, inst.player.getStringUUID()));
         }
     }
 
@@ -80,6 +74,7 @@ public class RevivePlayerActionsEvent {
 
         FallenData cap = FallenData.get((Player) inst.crosshairPickEntity);
         if (!cap.isFallen()) return;
+        if (cap.getOtherPlayer() == null) return;
         if (!inst.player.isUsingItem()) return;
 
         inst.gameMode.releaseUsingItem(event.getEntity());

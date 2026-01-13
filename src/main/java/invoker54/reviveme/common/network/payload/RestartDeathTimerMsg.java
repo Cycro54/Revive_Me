@@ -6,7 +6,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import static invoker54.reviveme.ReviveMe.makeResource;
@@ -23,16 +22,18 @@ public record RestartDeathTimerMsg() implements CustomPacketPayload {
                     context.enqueueWork(()->{
                         Player reviverPlayer = context.player();
                         FallenData reviverCap = FallenData.get(reviverPlayer);
-                        if (reviverCap.getOtherPlayer() == null) return;
-                        Player fallenPlayer = reviverPlayer.level().getPlayerByUUID(reviverCap.getOtherPlayer());
+
+                        Player fallenPlayer = reviverCap.getOtherPlayer() == null ?
+                                null : reviverPlayer.level().getPlayerByUUID(reviverCap.getOtherPlayer());
+
+                        reviverCap.setOtherPlayerAndItem(null, null);
+                        reviverCap.syncClient(true);
+
                         if (fallenPlayer == null) return;
                         FallenData fallenCap = FallenData.get(fallenPlayer);
-
-                        reviverCap.setOtherPlayer(null);
-                        fallenCap.setOtherPlayer(null);
-
-                        PacketDistributor.sendToPlayersTrackingEntityAndSelf(reviverPlayer, new SyncClientCapMsg(reviverPlayer.getUUID(), reviverCap.writeNBT()));
-                        PacketDistributor.sendToPlayersTrackingEntityAndSelf(fallenPlayer, new SyncClientCapMsg(fallenPlayer.getUUID(), fallenCap.writeNBT()));
+                        fallenCap.setOtherPlayerAndItem(null, null);
+                        fallenCap.resumeFallTimer();
+                        fallenCap.syncClient(true);
                     });
                 }
         );

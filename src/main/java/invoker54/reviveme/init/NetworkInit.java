@@ -30,6 +30,9 @@ public class NetworkInit {
         SyncClientCapMsg.register(registrar);
         SyncConfigMsg.register(registrar);
         CallForHelpMsg.register(registrar);
+        ReviveItemMsg.register(registrar);
+        RefreshOptionsMsg.register(registrar);
+        BeginReviveMsg.register(registrar);
     }
 
     public static String createID(Class<?> msgClass){

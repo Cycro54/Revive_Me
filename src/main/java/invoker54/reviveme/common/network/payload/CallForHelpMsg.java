@@ -10,36 +10,46 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import org.jetbrains.annotations.NotNull;
 
 import static invoker54.reviveme.ReviveMe.makeResource;
 
-public record CallForHelpMsg() implements CustomPacketPayload {
+public record CallForHelpMsg(boolean isSneaking) implements CustomPacketPayload {
     private static final ModLogger LOGGER = ModLogger.getLogger(CallForHelpMsg.class, ReviveMeConfig.debugMode);
 
     public static final CustomPacketPayload.Type<CallForHelpMsg> TYPE =
             new CustomPacketPayload.Type<>(makeResource(NetworkInit.createID(CallForHelpMsg.class)));
 
     public static final StreamCodec<FriendlyByteBuf, CallForHelpMsg> CODEC =
-            StreamCodec.of((A,B)->{}, friendlyByteBuf -> new CallForHelpMsg());
+            StreamCodec.of(CallForHelpMsg::encode, CallForHelpMsg::new);
+
+    public static void encode(FriendlyByteBuf buf, CallForHelpMsg msg){
+        buf.writeBoolean(msg.isSneaking);
+    }
+
+    public CallForHelpMsg(FriendlyByteBuf buf){
+        this(buf.readBoolean());
+    }
 
     public static void register(PayloadRegistrar registrar) {
         registrar.playToServer(TYPE, CODEC, (msg, context) -> {
-                    context.enqueueWork(()->{
+                    context.enqueueWork(() -> {
                         Player player = context.player();
+                        if (player == null) return;
                         if (player.isDeadOrDying()) return;
                         FallenData cap = FallenData.get(player);
-                        cap.callForHelp();
 
-                        PacketDistributor.sendToPlayersTrackingEntityAndSelf(player, new SyncClientCapMsg(player.getUUID(), cap.writeNBT()));
+                        cap.callForHelp(msg.isSneaking);
+
+                        cap.syncClient(false);
 
                         float pitch = MathUtil.randomFloat(0.7f, 1.4F);
                         float volume = MathUtil.randomFloat(1.0f, 1.5F);
 
                         player.playSound(SoundInit.CALL_FOR_HELP, volume, pitch);
                     });
+
                 }
         );
     }

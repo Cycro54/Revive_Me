@@ -3,15 +3,12 @@ package invoker54.reviveme.common.event;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
-import invoker54.reviveme.common.network.payload.SyncClientCapMsg;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerPlayer;
+import invoker54.reviveme.common.data.ReviveItemData;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 @EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class ReviverEvents {
@@ -26,14 +23,17 @@ public class ReviverEvents {
         if (fallenEntity == null) return;
         FallenData fallCap = FallenData.get(fallenEntity);
 
-        reviveCap.setProgress(reviverPlayer.level().getGameTime(), ReviveMeConfig.reviveTime);
-        fallCap.setProgress(reviverPlayer.level().getGameTime(), ReviveMeConfig.reviveTime);
+        ReviveItemData itemData = ReviveItemData.getData(reviverPlayer.getMainHandItem(), ReviveItemData.USER.REVIVER);
+        if (itemData != null){
+            reviveCap.setProgress(reviverPlayer.level().getGameTime(), itemData.getReviveSeconds()/20d);
+            fallCap.setProgress(reviverPlayer.level().getGameTime(), itemData.getReviveSeconds()/20d);
+        }
+        else {
+            reviveCap.setProgress(reviverPlayer.level().getGameTime(), ReviveMeConfig.reviveTime);
+            fallCap.setProgress(reviverPlayer.level().getGameTime(), ReviveMeConfig.reviveTime);
+        }
 
-        CompoundTag nbt = new CompoundTag();
-        nbt.put(reviverPlayer.getStringUUID(), reviveCap.writeNBT());
-        nbt.put(fallenEntity.getStringUUID(), fallCap.writeNBT());
-
-        PacketDistributor.sendToPlayer((ServerPlayer) fallenEntity, new SyncClientCapMsg(reviverPlayer.getStringUUID(), reviveCap.writeNBT()));
-        PacketDistributor.sendToPlayer((ServerPlayer) reviverPlayer, new SyncClientCapMsg(fallenEntity.getStringUUID(), fallCap.writeNBT()));
+        reviveCap.syncClient(true);
+        fallCap.syncClient(true);
     }
 }

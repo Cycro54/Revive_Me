@@ -5,7 +5,6 @@ import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.event.FallScreenEvent;
 import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
-import invoker54.reviveme.common.network.payload.SyncClientCapMsg;
 import invoker54.reviveme.common.network.payload.SyncConfigMsg;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -23,19 +22,22 @@ public class CapabilityEvents {
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent event){
         //System.out.println("LOGGED IN BROS");
         FallenData cap = FallenData.get(event.getEntity());
+        if (cap.isFallen() && ReviveMeConfig.pauseFallenTimerOnDisconnect) cap.resumeFallTimer();
 
-        PacketDistributor.sendToPlayersTrackingEntityAndSelf(event.getEntity(), new SyncClientCapMsg(event.getEntity().getUUID(), cap.writeNBT()));
+        cap.syncClient(false);
         PacketDistributor.sendToPlayer((ServerPlayer) event.getEntity(), new SyncConfigMsg(ReviveMeConfig.serialize()));
     }
 
     @SubscribeEvent
     public static void onLogout(PlayerEvent.PlayerLoggedOutEvent event){
-        if (!ReviveMeConfig.dieOnDisconnect) return;
         Player player = event.getEntity();
         if (!player.isAlive()) return;
         FallenData cap = FallenData.get(player);
         if (!cap.isFallen()) return;
-        cap.kill(player);
+        //Do this just in case.
+        cap.pauseTimerOnLogout();
+        if (!ReviveMeConfig.dieOnDisconnect) return;
+        cap.forceDeath();
     }
 
     @SubscribeEvent
@@ -45,7 +47,15 @@ public class CapabilityEvents {
 
         //Grab and send their cap data
         FallenData cap = FallenData.get(targPlayer);
-        PacketDistributor.sendToPlayer((ServerPlayer) event.getEntity(), new SyncClientCapMsg(event.getTarget().getUUID(), cap.writeNBT()));
+        cap.syncClient(false);
+    }
+
+    @SubscribeEvent
+    public static void onDimensionChange(PlayerEvent.PlayerChangedDimensionEvent event){
+        if (event.getEntity().level().isClientSide) return;
+
+        FallenData cap = FallenData.get(event.getEntity());
+        cap.syncClient(false);
     }
 
     @SubscribeEvent
@@ -54,7 +64,6 @@ public class CapabilityEvents {
         if (!(event.getEntity() instanceof Player player)) return;
 
         FallenData cap = FallenData.get(player);
-
-        PacketDistributor.sendToPlayer((ServerPlayer) event.getEntity(), new SyncClientCapMsg(event.getEntity().getUUID(), cap.writeNBT()));
+        cap.syncClient(false);
     }
 }

@@ -1,0 +1,114 @@
+{
+  "EXAMPLE": {
+    "__comment": "You shouldn't edit this file, It's only for examples",
+    "version": 2,
+    "__comment": "Revive item must AT LEAST have one of these : 'itemResourceLocation', 'itemTag', 'nbtData'",
+    "__comment": "Everything else is optional.",
+    "parentID": "Parent revive item to inherit missing values from. Take it from the group id (group id of this is 'EXAMPLE'). Make sure not to loop (1->2->1 [ERROR]).",
+    "itemResourceLocation": "(Not inherited) The items ID. Example: 'minecraft:golden_apple'",
+    "itemTag": "(Not inherited) The tag(s) the item must have. Example: 'minecraft:acacia_logs'",
+    "nbtData": "(Not inherited) The data the item must have. (Has to be an exact match) Example: '{CustomTag:'MyPickaxe'}",
+    "displayName": "(Not inherited) Name of this revive item that will show in game (leave blank to show selected item's name) (add 'key:' to use translation key)",
+    "description": "(Not inherited) Description for this revive item and what it does (writing what the revive commands do is suggested.) (add 'key:' to use translation key)",
+    "itemUser": "Who can use the item. VALUES: 'REVIVER' , 'FALLEN', 'BOTH' (Default:BOTH)",
+    "reviveSeconds": "How long it takes to revive. (follows the same rules as Revive_Time config). (Default:Revive_Time config)",
+    "reviveHealth": "How much health the player will be revived with. (follows the same rules as Revive_Health config) (Default:Revive_Health config)",
+    "reviveFood": "How much food you will be revived with. (follows the same rules as Revive_Food config) (Default:Revive_Food config)",
+    "penaltyTimer": "how long the revive penalty effects will last in SECONDS. (follows the same rules as Revive_Penalty_Timer config) (Default:Revive_Penalty_Timer config)",
+    "countRequired": "How much of the revive item is needed. (Default:1)",
+    "__comment": "These are revive chance options",
+    "reviveChance": "Chance of being revived. 0.0 to 1.0 (Default: 1.0)",
+    "fallenTimerChange": "How many seconds to add/remove from the current timer if you fail the reviveChance check. Can be negative. (Default: 0)",
+    "refreshOptions": "If self revive options should be refreshed if you fail the reviveChance check (default: false)",
+    "useReviveOnFail": "If a revive should be used when failing revive chance check. (Default:true)",
+    "reviveEffects": [
+      "What effects you revive with. This must be in square brackets ['1','2','3']. (Add 'PARENT' to include parent group effects. If 'parentID' is empty, it will take from the Revive_Effects config). (follows the same rules as Revive_Effects config)"
+    ],
+    "reviveCommands": [
+      "What Minecraft commands to run after being revived. This must be in square brackets ['1','2','3']. Add 'PARENT' to include parent group commands. (@p: player being revived, @s: player using revive item) Example: ['/execute at @s run summon minecraft:tnt ~ ~ ~' (This will make the player using the revive item explode)]"
+    ]
+  },
+  "generic_revive_item": {
+    "nbtData": "{CustomTag:'MyPickaxe'}",
+    "reviveEffects": ["PARENT"]
+  },
+  "bed": {
+    "displayName": "key:reviveme.item.name.bed",
+    "description": "key:reviveme.item.description.bed",
+    "itemTag": "minecraft:beds",
+    "itemUser": "FALLEN",
+    "reviveHealth": 4,
+    "reviveFood": 4,
+    "reviveEffects": [
+      "minecraft:blindness:0:200"
+    ],
+    "reviveCommands": [
+      "execute as @p if entity @s in minecraft:the_nether run summon minecraft:creeper ~ ~1 ~ {ExplosionRadius:4,Fuse:0}",
+      "execute as @p if entity @s in minecraft:the_end run summon minecraft:creeper ~ ~1 ~ {ExplosionRadius:4,Fuse:0}"
+    ]
+  },
+  "golden_apple": {
+    "displayName": "key:reviveme.item.name.golden_apple",
+    "description": "key:reviveme.item.description.golden_apple",
+    "itemResourceLocation": "minecraft:golden_apple",
+    "reviveFood": 10,
+    "reviveEffects": [
+      "PARENT",
+      "minecraft:regeneration:1:100",
+      "minecraft:absorption:0:2400"
+    ]
+  },
+  "enchanted_golden_apple": {
+    "displayName": "key:reviveme.item.name.enchanted_golden_apple",
+    "description": "key:reviveme.item.description.enchanted_golden_apple",
+    "itemResourceLocation": "minecraft:enchanted_golden_apple",
+    "reviveHealth": 16,
+    "reviveFood": 16,
+    "reviveEffects": [
+      "minecraft:fire_resistance:0:6000",
+      "minecraft:resistance:0:6000",
+      "minecraft:regeneration:1:400",
+      "minecraft:absorption:3:2400"
+    ]
+  },
+  "totem_of_undying": {
+    "displayName": "key:reviveme.item.name.totem_of_undying",
+    "description": "key:reviveme.item.description.totem_of_undying",
+    "itemResourceLocation": "minecraft:totem_of_undying",
+    "reviveEffects": [
+      "PARENT",
+      "minecraft:regeneration:1:900",
+      "minecraft:absorption:1:100"
+    ]
+  },
+  "nether_star": {
+    "displayName": "key:reviveme.item.name.nether_star",
+    "description": "key:reviveme.item.description.nether_star",
+    "itemResourceLocation": "minecraft:nether_star",
+    "user": "FALLEN",
+    "reviveHealth": -1,
+    "reviveFood": -1,
+    "reviveEffects": [
+      "minecraft:fire_resistance:5:300",
+      "minecraft:resistance:3:300",
+      "minecraft:absorption:3:2400",
+      "minecraft:regeneration:2:400",
+      "minecraft:strength:3:300"
+    ],
+    "reviveCommands": [
+      "/execute at @p run summon minecraft:creeper ~ ~1 ~ {ExplosionRadius:4,Fuse:0}",
+      "/execute at @p run summon minecraft:lightning_bolt ~ ~3 ~"
+    ]
+  },
+  "ender_pearl": {
+    "displayName": "key:reviveme.item.name.ender_pearl",
+    "description": "key:reviveme.item.description.ender_pearl",
+    "itemResourceLocation": "minecraft:ender_pearl",
+    "user": "FALLEN",
+    "reviveSeconds": 0,
+    "reviveChance": 0,
+    "fallenTimerChange": 15,
+    "refreshOptions": true,
+    "useReviveOnFail": false
+  }
+}

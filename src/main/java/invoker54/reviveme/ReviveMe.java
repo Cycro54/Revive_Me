@@ -1,16 +1,16 @@
 package invoker54.reviveme;
 
+import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.init.AttachmentTypesInit;
+import invoker54.reviveme.init.CompatibilityInit;
+import invoker54.reviveme.init.DamageTypeInit;
 import invoker54.reviveme.init.MobEffectInit;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 @Mod(ReviveMe.MOD_ID)
 public class ReviveMe
@@ -19,14 +19,16 @@ public class ReviveMe
     public static IEventBus bus;
 
     // Directly reference a log4j logger.
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final ModLogger LOGGER = ModLogger.getLogger(ReviveMe.class, ReviveMeConfig.debugMode);
 
     public ReviveMe(IEventBus modEventBus, ModContainer modContainer) {
+        DamageTypeInit.init();
 
         AttachmentTypesInit.registerAttachments(modEventBus);
         MobEffectInit.registerEffects(modEventBus);
         //This is for configs
-        modContainer.registerConfig(ModConfig.Type.COMMON, ReviveMeConfig.COMMON_SPEC, "reviveme-common.toml");
+        modContainer.registerConfig(ModConfig.Type.COMMON, ReviveMeConfig.COMMON_SPEC, "reviveme/reviveme-common.toml");
+        CompatibilityInit.ControllableInit();
     }
 
     public static ResourceLocation makeResource(String id){

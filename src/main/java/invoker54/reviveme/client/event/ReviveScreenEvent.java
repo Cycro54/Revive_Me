@@ -22,6 +22,7 @@ import static invoker54.reviveme.ReviveMe.makeResource;
 public class ReviveScreenEvent {
     private static final Minecraft inst = Minecraft.getInstance();
     public static InvoText beingRevivedText = InvoText.translate("reviveScreen.being_revived");
+    public static InvoText useItemText = InvoText.translate("reviveScreen.use_item");
     public static InvoText revivingText = InvoText.translate("reviveScreen.reviving");
 
     public static final int bgColor = new Color(35,35,35,255).getRGB();
@@ -39,13 +40,18 @@ public class ReviveScreenEvent {
             InvoZone workZone = new InvoZone(0, guiGraphics.guiWidth(), 0, guiGraphics.guiHeight());
 
             InvoText titleText;
+
+//        Player reviver = cap.isFallen() ? ClientUtil.getMinecraft().player.level().getPlayerByUUID(cap.getOtherPlayer()) : ClientUtil.getMinecraft().player;
+            boolean hasReviveItem = cap.getReviveStack() != null;
             //Only do the red if you are the fallen
             if (cap.isFallen()) {
                 ClientUtil.blitColor(stack, workZone, 1615855616);
                 titleText = beingRevivedText;
+                if (hasReviveItem) titleText = useItemText;
             } else {
                 ClientUtil.blitColor(stack, workZone, revColor);
                 titleText = revivingText;
+                if (hasReviveItem) titleText = useItemText;
             }
 
             InvoZone textZone = workZone.copy().splitHeight(5, 1);

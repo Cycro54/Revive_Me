@@ -22,58 +22,17 @@ import java.util.Map;
 @Pseudo
 @Mixin(KeyMapping.class)
 public abstract class KeyMappingMixin implements Comparable<KeyMapping>, IKeyMappingExtension {
-    //TODO: Remove all the useless Shadow stuff
     @Shadow
-    private int clickCount;
-    @Shadow @Final private static KeyMappingLookup MAP;
-    @Shadow private boolean isDown;
+    private boolean isDown;
 
-    @Shadow public abstract String getName();
+    @Shadow
+    private InputConstants.Key key;
 
-    @Shadow private InputConstants.Key key;
-    @Shadow @Final private static Map<String, KeyMapping> ALL;
-    @Shadow @Final private String name;
-
-    @Shadow public abstract boolean matchesMouse(int p_90831_);
-
-    @Shadow public abstract void setDown(boolean value);
+    @Shadow
+    public abstract void setDown(boolean p_225593_1_);
 
     @Unique
     private static final ModLogger LOGGERT = ModLogger.getLogger(KeyMappingMixin.class, ReviveMeConfig.debugMode);
-
-    @Inject(
-            method = "set",
-            at = {
-                    @At(value = "HEAD")
-            },
-            cancellable = true
-    )
-    private static void set(InputConstants.Key input, boolean isDown, CallbackInfo ci) {
-        if (ClientUtil.getWorld() == null) return;
-        if (ClientUtil.getPlayer() == null) return;
-        if (VanillaKeybindHandler.getKey(ClientUtil.getMinecraft().options.keyUse).equals(input)) VanillaKeybindHandler.useHeld = isDown;
-        if (VanillaKeybindHandler.getKey(ClientUtil.getMinecraft().options.keyAttack).equals(input)) VanillaKeybindHandler.attackHeld = isDown;
-    }
-    //TODO: Remove this later...
-//
-//    @Inject(
-//            method = "click",
-//            at = {
-//                    @At(value = "HEAD")
-//            },
-//            cancellable = true
-//    )
-//    private static void click(InputConstants.Key input, CallbackInfo ci){
-//        if (ClientUtil.getWorld() == null) return;
-//        if (ClientUtil.getPlayer() == null) return;
-//        FallenCapability cap = FallenCapability.GetFallCap(ClientUtil.getPlayer());
-//        if (!cap.isFallen()) return;
-//
-//        KeyMapping keybinding = MAP.lookupActive(input);
-//        if (keybinding == null) return;
-//
-//        if (!revive_Me_1_16_5$shouldPass(keybinding)) ci.cancel();
-//    }
 
     @Inject(
             method = "matches",
@@ -128,32 +87,9 @@ public abstract class KeyMappingMixin implements Comparable<KeyMapping>, IKeyMap
             cancellable = true)
     private void isDown(CallbackInfoReturnable<Boolean> cir) {
         if (!this.isDown) return;
-        if (ClientUtil.getWorld() == null) return;
-        Player player = ClientUtil.getPlayer();
-        if (player == null) return;
-        FallenData cap = FallenData.get(player);
+        KeyMapping keyBinding = ((KeyMapping) (Object) this);
+        if (VanillaKeybindHandler.canBeDown(keyBinding)) return;
 
-        KeyMapping keyBinding = ((KeyMapping)(Object)this);
-        if (cap.isFallen()) {
-            if (!VanillaKeybindHandler.isAllowedKeybind(keyBinding) && this.isDown){
-                cir.setReturnValue(false);
-                this.setDown(false);
-            }
-            if ((!ReviveMeConfig.canMove && VanillaKeybindHandler.isMovementKeybind(keyBinding))) cir.setReturnValue(false);
-
-            //This is for jumping
-            if (keyBinding.equals(ClientUtil.getMinecraft().options.keyJump)) {
-                switch (ReviveMeConfig.canJump) {
-                    case YES:
-                        return;
-                    case LIQUID_ONLY:
-                        if (player.level().getFluidState(player.blockPosition()).isEmpty()) cir.setReturnValue(false);
-                        return;
-                    case NO:
-                        cir.setReturnValue(false);
-                        return;
-                }
-            }
-        }
+        this.setDown(false);
     }
 }
