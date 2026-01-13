@@ -1,3 +1,7 @@
+# 1.18.2-2.11.2
+
+<div><div><pre><strong>Additions</strong><br>-Refresh_Item_List config: Refresh revive item list while in the fallen state<br><br><strong>Fixes</strong><br>-Gave revive commands higher permission<br>-Checks if reviver is present before applying item cooldown</pre></div></div>
+
 # 1.18.2-2.11.1
 
 <div><pre><strong>Changes<br></strong>-bed revive item explodes if used in the nether or end<br><strong>Fixes</strong><br>-Revive item command output is now blocked if Silence_Commands is true<br>-You can now change your selected item if you have no self-revives left<br>-The revive-items-example.json should now be properly updated<br>-clampLoop shouldn't infinitely loop anymore</pre></div>

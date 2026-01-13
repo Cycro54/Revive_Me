@@ -4,13 +4,10 @@ import invoker54.invocore.common.ModLogger;
 import invoker54.invocore.common.util.MathUtil;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
-import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.init.SoundInit;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.PacketDistributor;
 
 import java.util.function.Supplier;
 
@@ -39,10 +36,7 @@ public class CallForHelpMsg {
 
             cap.callForHelp(msg.isSneaking);
 
-            CompoundTag nbt = new CompoundTag();
-            nbt.put(player.getStringUUID(), cap.writeNBT());
-
-            NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player), new SyncClientCapMsg(nbt, false));
+            cap.syncClient(false);
 
             float pitch = MathUtil.randomFloat(0.7f, 1.4F);
             float volume = MathUtil.randomFloat(1.0f, 1.5F);

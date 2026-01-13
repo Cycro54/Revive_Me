@@ -1,28 +1,11 @@
 package invoker54.reviveme.common.event;
 
-import invoker54.invocore.client.util.InvoText;
 import invoker54.invocore.common.ModLogger;
-import invoker54.invocore.common.util.MathUtil;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.data.ReviveItemData;
-import invoker54.reviveme.common.network.NetworkHandler;
-import invoker54.reviveme.common.network.message.SyncClientCapMsg;
-import invoker54.reviveme.init.MobEffectInit;
-import invoker54.reviveme.init.SoundInit;
-import invoker54.reviveme.mixin.FoodMixin;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.game.ClientboundSetHealthPacket;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.food.FoodData;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingHealEvent;
@@ -31,8 +14,6 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.registries.ForgeRegistries;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class FallenTimerEvent {
@@ -59,10 +40,7 @@ public class FallenTimerEvent {
             return;
         }
         if (ReviveMeConfig.overhealAmount != 0) {
-            CompoundTag nbt = new CompoundTag();
-            nbt.put(player.getStringUUID(), cap.writeNBT());
-            NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player),
-                    new SyncClientCapMsg(nbt, false));
+            cap.syncClient(false);
         }
 
         float maxHealth = (float) ReviveMeConfig.fallenHealth;
@@ -129,7 +107,7 @@ public class FallenTimerEvent {
 
         Player reviver = event.player.getServer().getPlayerList().getPlayer(cap.getOtherPlayer());
 
-        if (cap.getReviveStack() != null) reviver.getCooldowns().addCooldown(cap.getReviveStack().getItem(), 30);
+        if (reviver != null && cap.getReviveStack() != null) reviver.getCooldowns().addCooldown(cap.getReviveStack().getItem(), 30);
 
         //If tick progress finishes, revive the fallen player and take whatever you need to take from the reviver
         if (cap.getProgress(true) < 1) return;
