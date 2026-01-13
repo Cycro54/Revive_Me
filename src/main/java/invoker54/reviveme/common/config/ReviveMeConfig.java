@@ -53,6 +53,7 @@ public final class ReviveMeConfig {
     public static boolean randomizeSelfReviveOptions;
     public static boolean onlyUseAvailableOptions;
     public static Double selfPenaltyPercentage;
+    public static Boolean refreshItems;
     public static Double reviveChance;
     public static boolean reviveChanceKillOnFail;
     public static Double sacrificialItemPercent;
@@ -153,6 +154,7 @@ public final class ReviveMeConfig {
         disableSelfReviveIfPlayerDowned = COMMON.disableSelfReviveIfPlayerDowned.get();
         randomizeSelfReviveOptions = COMMON.randomizeSelfReviveOptions.get();
         selfPenaltyPercentage = COMMON.selfPenaltyPercentage.get();
+        refreshItems = COMMON.refreshItems.get();
         reviveChance = COMMON.reviveChance.get();
         reviveChanceKillOnFail = COMMON.reviveChanceKillOnFail.get();
         sacrificialItemPercent = COMMON.sacrificialItemPercent.get();
@@ -252,6 +254,8 @@ public final class ReviveMeConfig {
         mainTag.putBoolean("randomizeSelfReviveOptions", randomizeSelfReviveOptions);
         //Self Revive Penalty Percentage
         mainTag.putDouble("selfPenaltyPercentage", selfPenaltyPercentage);
+        //Refresh Items
+        mainTag.putBoolean("refreshItems", refreshItems);
         //Revive Chance
         mainTag.putDouble("reviveChance", reviveChance);
         //Sacrificial Item Percentage
@@ -332,6 +336,8 @@ public final class ReviveMeConfig {
         randomizeSelfReviveOptions = mainTag.getBoolean("randomizeSelfReviveOptions");
         //Self Revive Penalty Percentage
         selfPenaltyPercentage = mainTag.getDouble("selfPenaltyPercentage");
+        //Refresh Items
+        refreshItems = mainTag.getBoolean("refreshItems");
         //Revive Chance
         reviveChance = mainTag.getDouble("reviveChance");
         //Sacrificial Item Percentage
@@ -419,6 +425,7 @@ public final class ReviveMeConfig {
         public final ForgeConfigSpec.ConfigValue<Boolean> randomizeSelfReviveOptions;
         public final ForgeConfigSpec.ConfigValue<Boolean> onlyUseAvailableOptions;
         public final ForgeConfigSpec.ConfigValue<Double> selfPenaltyPercentage;
+        public final ForgeConfigSpec.ConfigValue<Boolean> refreshItems;
         public final ForgeConfigSpec.ConfigValue<Double> reviveChance;
         public final ForgeConfigSpec.ConfigValue<Boolean> reviveChanceKillOnFail;
         public final ForgeConfigSpec.ConfigValue<Double> sacrificialItemPercent;
@@ -477,6 +484,7 @@ public final class ReviveMeConfig {
             randomizeSelfReviveOptions = builder.comment("If the chosen self-revive options are picked randomly.").define("Randomize_Self_Revive_Options", true);
             onlyUseAvailableOptions = builder.comment("If the mod should only pick self-revive options that you would meet the requirements for (when possible)").define("Only_Use_Available_Options", false);
             selfPenaltyPercentage = builder.comment("Increases the cost of self-revival options each time you self-revive. Stacks additively. Resets to 0 on fallen penalty timer expiration.").defineInRange("Self_Penalty_Percentage", 0.25, 0, 1);
+            refreshItems = builder.comment("If the revive item list should refresh continuously (if false it will refresh once when entering fallen state)").define("Refresh_Item_List", false);
             builder.pop();
 
             builder.push("Revive Type Settings");

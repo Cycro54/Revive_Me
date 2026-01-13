@@ -6,11 +6,9 @@ import invoker54.invocore.common.util.MathUtil;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
-import invoker54.reviveme.common.network.message.SyncClientCapMsg;
 import invoker54.reviveme.init.MobEffectInit;
 import invoker54.reviveme.init.SoundInit;
 import invoker54.reviveme.mixin.FoodMixin;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundSetHealthPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,7 +17,6 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
-import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
@@ -185,17 +182,13 @@ public class ReviveConfigData {
 
         cap.setFallen(false);
 
-        CompoundTag nbt = new CompoundTag();
-        nbt.put(fallen.getStringUUID(), cap.writeNBT());
-
         fallen.level.playSound(null, fallen.getX(), fallen.getY(), fallen.getZ(),
                 SoundInit.REVIVED, SoundSource.PLAYERS, 1.0F, MathUtil.randomFloat(0.7F, 1.0F));
 
         if (!fallen.level.isClientSide) {
             NetworkHandler.sendMessage(reviveText.getText(), isCommand, fallen);
 
-            NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> fallen),
-                    new SyncClientCapMsg(nbt, true));
+            cap.syncClient(true);
         }
     }
 
@@ -233,10 +226,7 @@ public class ReviveConfigData {
 
         cap = FallenCapability.get(reviver);
         cap.setOtherPlayerAndItem(null, null);
-        CompoundTag nbt = new CompoundTag();
-        nbt.put(reviver.getStringUUID(), cap.writeNBT());
 
-        NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> reviver),
-                new SyncClientCapMsg(nbt, true));
+        cap.syncClient(true);
     }
 }

@@ -5,9 +5,6 @@ import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.data.ReviveItemData;
-import invoker54.reviveme.common.network.NetworkHandler;
-import invoker54.reviveme.common.network.message.SyncClientCapMsg;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
 import net.minecraftforge.event.TickEvent;
@@ -17,7 +14,6 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class FallenTimerEvent {
@@ -44,10 +40,7 @@ public class FallenTimerEvent {
             return;
         }
         if (ReviveMeConfig.overhealAmount != 0) {
-            CompoundTag nbt = new CompoundTag();
-            nbt.put(player.getStringUUID(), cap.writeNBT());
-            NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player),
-                    new SyncClientCapMsg(nbt, false));
+            cap.syncClient(false);
         }
 
         float maxHealth = (float) ReviveMeConfig.fallenHealth;
@@ -114,7 +107,7 @@ public class FallenTimerEvent {
 
         Player reviver = event.player.getServer().getPlayerList().getPlayer(cap.getOtherPlayer());
 
-        if (cap.getReviveStack() != null) reviver.getCooldowns().addCooldown(cap.getReviveStack().getItem(), 30);
+        if (reviver != null && cap.getReviveStack() != null) reviver.getCooldowns().addCooldown(cap.getReviveStack().getItem(), 30);
 
         //If tick progress finishes, revive the fallen player and take whatever you need to take from the reviver
         if (cap.getProgress(true) < 1) return;

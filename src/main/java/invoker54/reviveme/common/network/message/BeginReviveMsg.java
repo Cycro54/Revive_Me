@@ -4,13 +4,10 @@ import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.data.ReviveItemData;
-import invoker54.reviveme.common.network.NetworkHandler;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.PacketDistributor;
 
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -71,13 +68,8 @@ public class BeginReviveMsg {
             cap.setProgress(player.level.getGameTime(), reviveSeconds);
             cap.setOtherPlayerAndItem(targPlayer.getUUID(), handStack);
 
-            //Make sure the fallen client has this data too
-            CompoundTag nbt = new CompoundTag();
-
-            nbt.put(player.getStringUUID(), cap.writeNBT());
-            nbt.put(targPlayer.getStringUUID(), targCap.writeNBT());
-
-            NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> targPlayer), new SyncClientCapMsg(nbt, false));
+            cap.syncClient(false);
+            targCap.syncClient(false);
         });
 
         context.setPacketHandled(true);
