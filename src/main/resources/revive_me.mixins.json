@@ -22,7 +22,8 @@
     "PlayerMixin",
     "PlayerRendererMixin",
     "WidgetMixin",
-    "compatibility.ControllableButtonBindingMixin"
+    "compatibility.ControllableButtonBindingMixin",
+    "compatibility.ControllableInputHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

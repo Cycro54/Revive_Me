@@ -1,6 +1,7 @@
 package invoker54.reviveme.mixin.compatibility;
 
 import com.mrcrayfish.controllable.client.binding.ButtonBinding;
+import com.mrcrayfish.controllable.client.binding.context.BindingContext;
 import invoker54.invocore.client.util.ClientUtil;
 import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.client.VanillaKeybindHandler;
@@ -13,6 +14,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
@@ -30,6 +32,11 @@ public abstract class ControllableButtonBindingMixin {
     @Shadow
     public abstract String getLabelKey();
 
+    @Shadow
+    public abstract BindingContext getContext();
+
+    @Shadow
+    private boolean pressed;
     @Unique
     private static List<ButtonBinding> revive_Me_vanillaBindingList = new ArrayList<>();
 
@@ -40,7 +47,6 @@ public abstract class ControllableButtonBindingMixin {
         Player player = ClientUtil.getPlayer();
         if (player == null) return false;
         FallenData cap = FallenData.get(player);
-        if (!cap.isFallen()) return false;
 
         if (revive_Me_vanillaBindingList.isEmpty()){
             revive_Me_vanillaBindingList.addAll(Arrays.asList(SCROLL_HOTBAR_LEFT, SCROLL_HOTBAR_RIGHT, PAUSE_GAME, NEXT_CREATIVE_TAB, PREVIOUS_CREATIVE_TAB, NEXT_RECIPE_TAB, PREVIOUS_RECIPE_TAB,
@@ -62,23 +68,26 @@ public abstract class ControllableButtonBindingMixin {
         KeyMapping keyBinding = VanillaKeybindHandler.getOrCreateKey(this.getLabelKey());
         if (revive_Me_vanillaBindingList.contains(((ButtonBinding)(Object)this))) return;
         if (VanillaKeybindHandler.canBeDown(keyBinding)) return;
+        this.pressed = false;
         cir.setReturnValue(false);
     }
 
-//    @Inject(
-//            remap = false,
-//            method = "isButtonPressed",
-//            at = {
-//                    @At(value = "HEAD")
-//            },
-//            cancellable = true)
-//    public void isButtonPressed(CallbackInfoReturnable<Boolean> cir) {
-//        if (!revive_Me_1_16_5$_isPlayerDown()) return;
-//        KeyMapping keyBinding = VanillaKeybindHandler.getOrCreateKey(this.getLabelKey());
-//        if  (revive_Me_vanillaBindingList.contains(((ButtonBinding)(Object)this))) return;
-//        if (VanillaKeybindHandler.isAllowedKeybind(keyBinding)) return;
-//        cir.setReturnValue(false);
-//    }
+    @Inject(
+            remap = false,
+            method = "setPressed",
+            at = {
+                    @At(value = "HEAD")
+            },
+            cancellable = true)
+    public void setPressed(boolean pressed, CallbackInfo ci) {
+        if (!revive_Me_1_16_5$_isPlayerDown()) return;
+        KeyMapping keyBinding = VanillaKeybindHandler.getOrCreateKey(this.getLabelKey());
+        if  (revive_Me_vanillaBindingList.contains(((ButtonBinding)(Object)this))) return;
+        if (VanillaKeybindHandler.isAllowedKeybind(keyBinding)) return;
+        this.pressed = false;
+        ci.cancel();
+    }
+
 //
 //    @Inject(
 //            remap = false,

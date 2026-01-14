@@ -127,7 +127,7 @@ public class FallenItemScreenEvent {
 
         //Top
 
-        InvoText itemText = useItemText.deepCopy().setArgs(InvoText.translate(KeyInit.rightOption.keyBind.getKey().getName())
+        InvoText itemText = useItemText.deepCopy().setArgs(InvoText.component(VanillaKeybindHandler.getKey(KeyInit.rightOption.keyBind).getDisplayName().copy())
                 .withStyle(true, InvoTextFormat.filter(ChatFormatting.BOLD, ChatFormatting.YELLOW)).getText());
         ClientUtil.blitColor(stack, middleZone, blackFadeColor);
         TextUtil.renderText(stack, itemText.getText(), true, 2, textZone.copy()

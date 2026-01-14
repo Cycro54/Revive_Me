@@ -26,6 +26,9 @@ public class MixinPlugin implements IMixinConfigPlugin {
         if (mixinClassName.contains("invoker54.reviveme.mixin.compatibility.ControllableButtonBindingMixin")){
             return targetClassName.contains("com.mrcrayfish.controllable.client.binding.ButtonBinding");
         }
+        if (mixinClassName.contains("invoker54.reviveme.mixin.compatibility.ControllableInputHandlerMixin")){
+            return targetClassName.contains("com.mrcrayfish.controllable.client.InputHandler");
+        }
         return true;
     }
 

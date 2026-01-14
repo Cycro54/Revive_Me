@@ -45,6 +45,8 @@ public record SyncClientCapMsg(String uuid, CompoundTag capDataTag, boolean rese
                         Level level = context.player().level();
                         Player player = level.getPlayerByUUID(UUID.fromString(msg.uuid));
                         if (player == null) return;
+                        FallenData data = FallenData.get(player);
+                        boolean wasFallen = data.isFallen();
                         FallenData.get(player).readNBT(msg.capDataTag);
 
                         if (player != ClientUtil.getPlayer()) return;
@@ -54,7 +56,7 @@ public record SyncClientCapMsg(String uuid, CompoundTag capDataTag, boolean rese
                             VanillaKeybindHandler.attackHeld = false;
                         }
 
-                        if (!ReviveMeConfig.refreshItems) FallenItemScreenEvent.refreshItemData();
+                        if (!ReviveMeConfig.refreshItems && (!wasFallen)) FallenItemScreenEvent.refreshItemData();
                     });
                 }
         );

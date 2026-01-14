@@ -22,6 +22,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.settings.IKeyConflictContext;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.neoforged.neoforge.client.settings.KeyModifier;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -53,9 +54,10 @@ public class KeyInit {
 
                     CallForHelpEvent.sendCallToServer(isSneaking, cap.isCallingForHelp());
                 }));
+        callForHelpKey.keyBind.setKeyConflictContext(new CustomContext());
 
         leftOption = KeybindsInit.addBind(new CustomKeybind(new KeyMapping("key." + ReviveMe.MOD_ID + "." + "leftOption",
-                KeyConflictContext.GUI, InputConstants.Type.MOUSE, GLFW.GLFW_MOUSE_BUTTON_1, "key.category." + ReviveMe.MOD_ID),
+                new CustomContext(), InputConstants.Type.MOUSE, GLFW.GLFW_MOUSE_BUTTON_1, "key.category." + ReviveMe.MOD_ID),
                 (action) -> {
                     if (leftOption.keyBind.getKey().getType() == InputConstants.Type.MOUSE && !KeyEvents.isPostMouse)
                         return;
@@ -64,6 +66,8 @@ public class KeyInit {
                     FallenData cap = FallenData.get(ClientUtil.getPlayer());
                     if (!cap.isFallen()) return;
                     boolean isClick = action == GLFW.GLFW_PRESS;
+                    LOGGER.error("THIS IS RUNNING TOOO: " + (isClick));
+
 
                     if (ClientUtil.getMinecraft().player.isCrouching() && isClick) {
                         FallenItemScreenEvent.switchReviveScreens();
@@ -79,7 +83,7 @@ public class KeyInit {
 //        ClientUtil.getMinecraft().options.keyMappings = ArrayUtils.add(options.keyMappings, key);
 
         rightOption = KeybindsInit.addBind(new CustomKeybind(new KeyMapping("key." + ReviveMe.MOD_ID + "." + "rightOption",
-                KeyConflictContext.GUI, InputConstants.Type.MOUSE, GLFW.GLFW_MOUSE_BUTTON_2, "key.category." + ReviveMe.MOD_ID),
+                new CustomContext(), InputConstants.Type.MOUSE, GLFW.GLFW_MOUSE_BUTTON_2, "key.category." + ReviveMe.MOD_ID),
                 (action) -> {
                     if (rightOption.keyBind.getKey().getType() == InputConstants.Type.MOUSE && !KeyEvents.isPostMouse)
                         return;
@@ -102,5 +106,21 @@ public class KeyInit {
                 (action) -> {
                 }));
 //        ClientRegistry.registerKeyBinding(tooltip.keyBind);
+    }
+
+    public static class CustomContext implements IKeyConflictContext{
+
+        @Override
+        public boolean isActive() {
+            if (ClientUtil.getPlayer() == null) return false;
+            FallenData data = FallenData.get(ClientUtil.getPlayer());
+            if (!data.isFallen() && ClientUtil.getMinecraft().crosshairPickEntity == null) return false;
+            return true;
+        }
+
+        @Override
+        public boolean conflicts(IKeyConflictContext iKeyConflictContext) {
+            return false;
+        }
     }
 }

@@ -80,7 +80,9 @@ public class FallenPlayerActionsEvent {
             if (maxTicks == 0) maxTicks = 1;
 
             if (timeHeld == maxTicks){
-                CompoundTag tag = (CompoundTag) dataStackList.get(FallenItemScreenEvent.selectedItem).getKey().save(ClientUtil.getWorld().registryAccess());
+                ItemStack chosenStack = dataStackList.get(FallenItemScreenEvent.selectedItem).getKey();
+                CompoundTag tag = new CompoundTag();
+                if (!chosenStack.isEmpty()) tag = (CompoundTag) chosenStack.save(ClientUtil.getWorld().registryAccess());
                 PacketDistributor.sendToServer(new ReviveItemMsg(tag));
 
             }

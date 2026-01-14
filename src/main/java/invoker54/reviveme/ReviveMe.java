@@ -11,6 +11,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 
 @Mod(ReviveMe.MOD_ID)
 public class ReviveMe
@@ -26,8 +27,12 @@ public class ReviveMe
 
         AttachmentTypesInit.registerAttachments(modEventBus);
         MobEffectInit.registerEffects(modEventBus);
+        modEventBus.addListener(this::clientSetup);
         //This is for configs
         modContainer.registerConfig(ModConfig.Type.COMMON, ReviveMeConfig.COMMON_SPEC, "reviveme/reviveme-common.toml");
+    }
+
+    private void clientSetup(FMLClientSetupEvent event){
         CompatibilityInit.ControllableInit();
     }
 

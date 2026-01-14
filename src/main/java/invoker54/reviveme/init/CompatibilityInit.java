@@ -1,7 +1,6 @@
 package invoker54.reviveme.init;
 
 import invoker54.invocore.common.ModLogger;
-import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.compatibility.controllable.client.events.ControllableModEvents;
 import net.neoforged.fml.ModList;

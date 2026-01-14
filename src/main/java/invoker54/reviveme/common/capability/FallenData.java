@@ -3,6 +3,7 @@ package invoker54.reviveme.common.capability;
 import invoker54.invocore.common.ModLogger;
 import invoker54.invocore.common.util.CommonUtil;
 import invoker54.invocore.common.util.MathUtil;
+import invoker54.reviveme.client.event.FallenItemScreenEvent;
 import invoker54.reviveme.common.ReviveMathUtil;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.data.ReviveConfigData;
