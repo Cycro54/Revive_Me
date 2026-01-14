@@ -1,3 +1,7 @@
+# 1.16.5-1.15.42
+
+<div><pre><strong>Fixes</strong><br>-Kill Revive now checks if source entity is a Living Entity<br>-Removed refresh item exploit</pre></div>
+
 # 1.16.5-1.15.41
 
 <div><div><pre><strong>Additions</strong><br>-Refresh_Item_List config: Refresh revive item list while in the fallen state<br><br><strong>Fixes</strong><br>-Gave revive commands higher permission<br>-Checks if reviver is present before applying item cooldown</pre></div></div>
