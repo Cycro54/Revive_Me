@@ -50,6 +50,8 @@ public class SyncClientCapMsg {
             Player player = world.getPlayerByUUID(UUID.fromString(msg.uuid));
 
             if (player == null) return;
+            FallenCapability data = FallenCapability.get(player);
+            boolean wasFallen = data.isFallen();
             FallenCapability.get(player).readNBT(msg.capDataTag);
 
             if (player != ClientUtil.getPlayer()) return;
@@ -59,7 +61,7 @@ public class SyncClientCapMsg {
                 VanillaKeybindHandler.attackHeld = false;
             }
 
-            if (!ReviveMeConfig.refreshItems) FallenItemScreenEvent.refreshItemData();
+            if (!ReviveMeConfig.refreshItems && (!wasFallen)) FallenItemScreenEvent.refreshItemData();
         });
         context.setPacketHandled(true);
     }
