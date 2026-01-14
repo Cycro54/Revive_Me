@@ -66,7 +66,7 @@ public class KillRevivePotionEffect extends MobEffect {
         @SubscribeEvent
         public static void killMobEvent(LivingDeathEvent event) {
             Entity sourceEntity = event.getSource().getEntity();
-            if (sourceEntity == null) return;
+            if (!(sourceEntity instanceof LivingEntity)) return;
             LivingEntity entity = (LivingEntity) sourceEntity;
             MobEffectInstance instance = entity.getEffect(MobEffectInit.KILL_REVIVE_EFFECT);
             if (instance == null) return;
