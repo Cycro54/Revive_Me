@@ -42,7 +42,7 @@ public class KillRevivePotionEffect extends MobEffect {
         return new ArrayList<>();
     }
 
-    public static boolean isAllowedEntity(Entity entity){
+    public static boolean isAllowedEntity(Entity entity) {
         if (entity == null) return false;
 
         boolean isWhitelist = ReviveMeConfig.reviveKillBlackList.contains("//");
@@ -52,7 +52,7 @@ public class KillRevivePotionEffect extends MobEffect {
 
         boolean hasMatch = classificationList.contains(entity.getType().getCategory().toString());
 
-        if (!hasMatch){
+        if (!hasMatch) {
             hasMatch = ReviveMeConfig.reviveKillBlackList.stream().anyMatch(listString ->
                     ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString().contains(listString));
         }
@@ -66,7 +66,7 @@ public class KillRevivePotionEffect extends MobEffect {
         @SubscribeEvent
         public static void killMobEvent(LivingDeathEvent event) {
             Entity sourceEntity = event.getSource().getEntity();
-            if (sourceEntity == null) return;
+            if (!(sourceEntity instanceof LivingEntity)) return;
             LivingEntity entity = (LivingEntity) sourceEntity;
             MobEffectInstance instance = entity.getEffect(MobEffectInit.KILL_REVIVE_EFFECT);
             if (instance == null) return;
@@ -99,7 +99,7 @@ public class KillRevivePotionEffect extends MobEffect {
 
             DamageSource killSource = new DamageSource(entity.level().registryAccess()
                     .lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(DamageTypeInit.KILL_REVIVE));
-        if (!(entity instanceof ServerPlayer)){
+            if (!(entity instanceof ServerPlayer)) {
                 if (completed) entity.hurt(killSource, 20 * (effect.getAmplifier() + 1));
                 return;
             }
