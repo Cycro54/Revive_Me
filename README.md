@@ -8,22 +8,22 @@ Shtuff to do now
 * ~Fix: players can fly while in the fallen state (Mekanism is causing this, I can probs fix it)~
   
 Shtuff to do next large update
-* ~Revive items with customizable options: (https://github.com/Cycro54/Revive_Me/issues/33), (https://github.com/Cycro54/Revive_Me/issues/35) (50 hours)~
-* ~Make it so you can change what effects you revive with (2 hours 40 min)~
-* ~(Config) Option to stop the premature removal of the fallen penalty timer effect. (30 min.)~
-* ~(Config) Pause fallen Timer on DC (30 MIN)~
+* ~Revive items with customizable options: (https://github.com/Cycro54/Revive_Me/issues/33), (https://github.com/Cycro54/Revive_Me/issues/35)~
+* ~Make it so you can change what effects you revive with~
+* ~(Config) Option to stop the premature removal of the fallen penalty timer effect.~
+* ~(Config) Pause fallen Timer on DC~
 * ~Fix the Revive Me fail command text (The text that shows isn't correct.)~
 * ~Player appears to be crouching after being revived, they shouldn't be~
-* ~Make it so player knows if check hotbar is turned off when sacrificing items (30 min.)~
-* ~Stop self revive options from killing you if canGiveUp is set to false (15-30 min.)~
-* ~The config comment "#How long the Help call effects will last in SECONDS" has a mistake, must fix! (5 min)~
+* ~Make it so player knows if check hotbar is turned off when sacrificing items~
+* ~Stop self revive options from killing you if canGiveUp is set to false~
+* ~The config comment "#How long the Help call effects will last in SECONDS" has a mistake, must fix!~
 * ~Change Destroy mobs default timer to 30 from 20 seconds~
-* ~Config for if the Death Timer is dispellable or not (15 min.)~
-* ~Be able to see what revives and downs a player (when revived, and when entering fallen state) (15 min.)~
-* ~Add a entity blacklist(which can also be made into a whitelist) for the Kill Revive Effect (so players can't kill chickens and call it a day), (be able to block/allow classes,and MODIDs) (https://github.com/Cycro54/Revive_Me/issues/46) (30 min)~
-* ~Make a blacklist for revertable effects and add kill timer effect to it. (30 min.)~
+* ~Config for if the Death Timer is dispellable or not~
+* ~Be able to see what revives and downs a player (when revived, and when entering fallen state)~
+* ~Add a entity blacklist(which can also be made into a whitelist) for the Kill Revive Effect (so players can't kill chickens and call it a day), (be able to block/allow classes,and MODIDs) (https://github.com/Cycro54/Revive_Me/issues/46)~
+* ~Make a blacklist for revertable effects and add kill timer effect to it.~
 * ~(Config) If your timer runs out, instead of outright dying, you will be able to take damage instead~
-* ~sneak R to toggle auto call (30 min.)~
+* ~sneak R to toggle auto call~
 * ~(config) add option to turn off bold text~
 
 Shtuff to maybe do later
