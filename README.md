@@ -26,10 +26,11 @@ Shtuff to do next large update
 * ~sneak R to toggle auto call (30 min.)~
 * ~(config) add option to turn off bold text~
 
-Shtuff to maybe do
+Shtuff to maybe do later
+* Data pack support for items and attributes (if I ever add attributes)
 * Attribute creation/modification (https://github.com/Cycro54/Revive_Me/issues/45)
 * Add stats to statistic page for Revive me
-* (Not adding, someone else can if they want) Think about making a custom resource pack or something, (change the way the player looks when they are down, change a couple textures n stuff maybe??) (Look at Posture mod: https://www.curseforge.com/minecraft/mc-mods/posture)
+* (Probs not adding, someone else can if they want) Think about making a custom resource pack or something, (change the way the player looks when they are down, change a couple textures n stuff maybe??) (Look at Posture mod: https://www.curseforge.com/minecraft/mc-mods/posture)
 * ~Add compatibility with MrCrayfishs controller mod~
 * (Config) Add a way for certain types of damage sources to bypass my mod besides invulnerability
 * (Config) Add option to kill player even when they are revived, but to respawn them exactly where they die
