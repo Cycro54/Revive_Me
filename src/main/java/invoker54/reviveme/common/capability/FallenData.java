@@ -3,7 +3,6 @@ package invoker54.reviveme.common.capability;
 import invoker54.invocore.common.ModLogger;
 import invoker54.invocore.common.util.CommonUtil;
 import invoker54.invocore.common.util.MathUtil;
-import invoker54.reviveme.client.event.FallenItemScreenEvent;
 import invoker54.reviveme.common.ReviveMathUtil;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.data.ReviveConfigData;
@@ -414,7 +413,7 @@ public class FallenData implements INBTSerializable<CompoundTag> {
         this.selfReviveTypeList.add(selfrevivetype);
     }
 
-    public void useReviveOption(SELFREVIVETYPE selectedOption, Player player) {
+    public void useReviveOption(SELFREVIVETYPE selectedOption) {
         Inventory playerInv = player.getInventory();
 
         double penaltyPercentage = this.getSelfPenaltyPercentage();
@@ -544,15 +543,14 @@ public class FallenData implements INBTSerializable<CompoundTag> {
                 switch (this.selfReviveTypeList.get(a)) {
                     case RANDOM_ITEMS:
                         if (getItemList().isEmpty()) continue;
-                        break;
                     case EXPERIENCE:
                         if (player.experienceLevel < ReviveMeConfig.minReviveXPLevel) continue;
-                        break;
-                    default:
-                        break;
+                    default:{
+                        this.selfReviveTypeList.add(0, this.selfReviveTypeList.remove(a));
+                        count++;
+                    }
                 }
-                this.selfReviveTypeList.add(0, this.selfReviveTypeList.remove(a));
-                count++;
+
             }
         }
     }

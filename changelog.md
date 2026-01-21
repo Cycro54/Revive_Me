@@ -1,3 +1,7 @@
+# 1.21.1-5.5.7
+
+<div><pre><strong>Fixes</strong><br>-Only_Use_Available_Options config should work now</pre></div>
+
 # 1.21.1-5.5.6
 
 <div><pre><strong>Fixes</strong><br>-Kill Revive now checks if source entity is a Living Entity</pre></div>

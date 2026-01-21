@@ -42,12 +42,16 @@ public record SyncClientCapMsg(String uuid, CompoundTag capDataTag, boolean rese
     public static void register(PayloadRegistrar registrar){
         registrar.playToClient(TYPE, CODEC, (msg, context) -> {
                     context.enqueueWork(()->{
-                        Level level = context.player().level();
-                        Player player = level.getPlayerByUUID(UUID.fromString(msg.uuid));
+                        //System.out.println("Syncing cap data for a client...");
+
+                        Level world = ClientUtil.getWorld();
+                        if (world == null) return;
+                        Player player = world.getPlayerByUUID(UUID.fromString(msg.uuid));
+
                         if (player == null) return;
                         FallenData data = FallenData.get(player);
                         boolean wasFallen = data.isFallen();
-                        FallenData.get(player).readNBT(msg.capDataTag);
+                        data.readNBT(msg.capDataTag);
 
                         if (player != ClientUtil.getPlayer()) return;
 

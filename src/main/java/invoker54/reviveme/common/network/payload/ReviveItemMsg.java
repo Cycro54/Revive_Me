@@ -44,6 +44,11 @@ public record ReviveItemMsg(CompoundTag itemNBT) implements CustomPacketPayload 
 
 
                         FallenData cap = FallenData.get(player);
+                        if (!cap.isFallen()){
+                            cap.syncClient(true);
+                            return;
+                        }
+
                         if (reviveData == null || !cap.canSelfRevive()){
                             if (ReviveMeConfig.canGiveUp) cap.forceDeath();
                             return;
