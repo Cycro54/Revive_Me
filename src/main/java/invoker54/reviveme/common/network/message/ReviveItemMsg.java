@@ -42,6 +42,11 @@ public class ReviveItemMsg {
 
 
             FallenCapability cap = FallenCapability.get(player);
+            if (!cap.isFallen()){
+                cap.syncClient(true);
+                return;
+            }
+
             if (reviveData == null || !cap.canSelfRevive()){
                 if (ReviveMeConfig.canGiveUp) cap.forceDeath();
                 return;

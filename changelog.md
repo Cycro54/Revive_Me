@@ -1,6 +1,11 @@
+# 1.20.1-4.5.6
+
+<div><pre><strong>Fixes</strong><br>-Only_Use_Available_Options config should work now</pre></div>
+
 # 1.20.1-4.5.5
 
 <div><pre><strong>Fixes</strong><br>-Kill Revive now checks if source entity is a Living Entity<br>-Removed refresh item exploit</pre></div>
+
 # 1.20.1-4.5.2
 
 <div><div><pre><strong>Additions</strong><br>-Refresh_Item_List config: Refresh revive item list while in the fallen state<br><br><strong>Fixes</strong><br>-Gave revive commands higher permission<br>-Checks if reviver is present before applying item cooldown</pre></div></div>
