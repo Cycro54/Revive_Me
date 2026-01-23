@@ -8,29 +8,30 @@ Shtuff to do now
 * ~Fix: players can fly while in the fallen state (Mekanism is causing this, I can probs fix it)~
   
 Shtuff to do next large update
-* ~Revive items with customizable options: (https://github.com/Cycro54/Revive_Me/issues/33), (https://github.com/Cycro54/Revive_Me/issues/35) (50 hours)~
-* ~Make it so you can change what effects you revive with (2 hours 40 min)~
-* ~(Config) Option to stop the premature removal of the fallen penalty timer effect. (30 min.)~
-* ~(Config) Pause fallen Timer on DC (30 MIN)~
+* ~Revive items with customizable options: (https://github.com/Cycro54/Revive_Me/issues/33), (https://github.com/Cycro54/Revive_Me/issues/35)~
+* ~Make it so you can change what effects you revive with~
+* ~(Config) Option to stop the premature removal of the fallen penalty timer effect.~
+* ~(Config) Pause fallen Timer on DC~
 * ~Fix the Revive Me fail command text (The text that shows isn't correct.)~
 * ~Player appears to be crouching after being revived, they shouldn't be~
-* ~Make it so player knows if check hotbar is turned off when sacrificing items (30 min.)~
-* ~Stop self revive options from killing you if canGiveUp is set to false (15-30 min.)~
-* ~The config comment "#How long the Help call effects will last in SECONDS" has a mistake, must fix! (5 min)~
+* ~Make it so player knows if check hotbar is turned off when sacrificing items~
+* ~Stop self revive options from killing you if canGiveUp is set to false~
+* ~The config comment "#How long the Help call effects will last in SECONDS" has a mistake, must fix!~
 * ~Change Destroy mobs default timer to 30 from 20 seconds~
-* ~Config for if the Death Timer is dispellable or not (15 min.)~
-* ~Be able to see what revives and downs a player (when revived, and when entering fallen state) (15 min.)~
-* ~Add a entity blacklist(which can also be made into a whitelist) for the Kill Revive Effect (so players can't kill chickens and call it a day), (be able to block/allow classes,and MODIDs) (https://github.com/Cycro54/Revive_Me/issues/46) (30 min)~
-* ~Make a blacklist for revertable effects and add kill timer effect to it. (30 min.)~
+* ~Config for if the Death Timer is dispellable or not~
+* ~Be able to see what revives and downs a player (when revived, and when entering fallen state)~
+* ~Add a entity blacklist(which can also be made into a whitelist) for the Kill Revive Effect (so players can't kill chickens and call it a day), (be able to block/allow classes,and MODIDs) (https://github.com/Cycro54/Revive_Me/issues/46)~
+* ~Make a blacklist for revertable effects and add kill timer effect to it.~
 * ~(Config) If your timer runs out, instead of outright dying, you will be able to take damage instead~
-* ~sneak R to toggle auto call (30 min.)~
+* ~sneak R to toggle auto call~
 * ~(config) add option to turn off bold text~
 
-Shtuff to maybe do
+Shtuff to maybe do later
+* Data pack support for items and attributes (if I ever add attributes)
 * Attribute creation/modification (https://github.com/Cycro54/Revive_Me/issues/45)
 * Add stats to statistic page for Revive me
-* (Not adding, someone else can if they want) Think about making a custom data pack or something, (change the way the player looks when they are down, change a couple textures n stuff maybe??) (Look at Posture mod: https://www.curseforge.com/minecraft/mc-mods/posture)
+* (Probs not adding, someone else can if they want) Think about making a custom resource pack or something, (change the way the player looks when they are down, change a couple textures n stuff maybe??) (Look at Posture mod: https://www.curseforge.com/minecraft/mc-mods/posture)
 * ~Add compatibility with MrCrayfishs controller mod~
 * (Config) Add a way for certain types of damage sources to bypass my mod besides invulnerability
 * (Config) Add option to kill player even when they are revived, but to respawn them exactly where they die
-* (Not adding) Maybe add a config that makes it so if the regular death event runs first, all of the listeners will at least know if the Death event is canceled with my mod
+* (Config) Maybe add a config that makes it so if the regular death event runs first, all of the listeners will at least know if the Death event is canceled with my mod
