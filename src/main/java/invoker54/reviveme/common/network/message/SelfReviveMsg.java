@@ -33,11 +33,16 @@ public class SelfReviveMsg {
             if (!player.isAlive()) return;
 
             FallenCapability cap = FallenCapability.get(player);
+            if (!cap.isFallen()){
+                cap.syncClient(true);
+                return;
+            }
+
             if (!cap.canSelfRevive() && ReviveMeConfig.canGiveUp){
                 cap.forceDeath();
             }
             else {
-                cap.useReviveOption(cap.getSelfReviveOption(msg.selectedOption), player);
+                cap.useReviveOption(cap.getSelfReviveOption(msg.selectedOption));
             }
         });
 

@@ -1,3 +1,7 @@
+# 1.16.5-1.15.43
+
+<div><pre><strong>Fixes</strong><br>-Only_Use_Available_Options config should work now</pre></div>
+
 # 1.16.5-1.15.42
 
 <div><pre><strong>Fixes</strong><br>-Kill Revive now checks if source entity is a Living Entity<br>-Removed refresh item exploit</pre></div>

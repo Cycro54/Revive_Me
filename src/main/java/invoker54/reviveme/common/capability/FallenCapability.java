@@ -379,7 +379,7 @@ public class FallenCapability {
         this.selfReviveTypeList.add(selfrevivetype);
     }
 
-    public void useReviveOption(SELFREVIVETYPE selectedOption, PlayerEntity player) {
+    public void useReviveOption(SELFREVIVETYPE selectedOption) {
         PlayerInventory playerInv = player.inventory;
 
         double penaltyPercentage = this.getSelfPenaltyPercentage();
@@ -505,15 +505,14 @@ public class FallenCapability {
                 switch (this.selfReviveTypeList.get(a)) {
                     case RANDOM_ITEMS:
                         if (getItemList().isEmpty()) continue;
-                        break;
                     case EXPERIENCE:
                         if (player.experienceLevel < ReviveMeConfig.minReviveXPLevel) continue;
-                        break;
-                    default:
-                        break;
+                    default:{
+                        this.selfReviveTypeList.add(0, this.selfReviveTypeList.remove(a));
+                        count++;
+                    }
                 }
-                this.selfReviveTypeList.add(0, this.selfReviveTypeList.remove(a));
-                count++;
+
             }
         }
     }

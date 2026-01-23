@@ -151,6 +151,7 @@ public final class ReviveMeConfig {
         maxSelfRevives = COMMON.maxSelfRevives.get();
         disableSelfReviveIfPlayerDowned = COMMON.disableSelfReviveIfPlayerDowned.get();
         randomizeSelfReviveOptions = COMMON.randomizeSelfReviveOptions.get();
+        onlyUseAvailableOptions = COMMON.onlyUseAvailableOptions.get();
         selfPenaltyPercentage = COMMON.selfPenaltyPercentage.get();
         refreshItems = COMMON.refreshItems.get();
         reviveChance = COMMON.reviveChance.get();
