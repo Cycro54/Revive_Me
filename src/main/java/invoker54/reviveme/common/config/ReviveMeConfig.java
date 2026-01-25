@@ -554,7 +554,7 @@ public final class ReviveMeConfig {
 
             builder.push("Timer Settings");
             timeLeft = builder.comment("How long you have before death. Setting to 0 will disable the timer").defineInRange("Time_Left", 60, 0, Integer.MAX_VALUE);
-            dieWhenTimerEnds = builder.comment("If you should die when the death timer ends. If set to false, you will instead be targetable by mobs.").define("Die_When_Timer_Ends", true);
+            dieWhenTimerEnds = builder.comment("If you should die when the death timer ends. If set to false, you will instead be targetable by mobs.").define("Die_When_Timer_Ends", false);
             pauseFallenTimerOnDisconnect = builder.comment("If the fallen timer should pause on disconnect (Multiplayer only)").define("Pause_Fallen_Timer_On_Disconnect", false);
             timeReductionPenalty = builder.comment("How much time (in seconds) your death timer loses each time you fall. (Less than 1 is a percentage of max death time, -1 will take away the max)").defineInRange("Time_Reduction_Penalty", 5, -1F, Double.MAX_VALUE);
             fallenPenaltyTimer = builder.comment("how long the revive penalty effects will last in SECONDS").defineInRange("Revive_Penalty_Timer", 45, 0F, Double.MAX_VALUE);
