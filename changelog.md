@@ -1,3 +1,7 @@
+# 1.19.2-3.11.4
+
+<div><pre><strong>Changes</strong><br>-Die_When_Timer_Ends is now false by default<br><br><strong>Fixes</strong><br>-Revive Tool tips should work now<br>-Item_User config should now properly block/allow revive items</pre></div>
+
 # 1.19.2-3.11.3
 
 <div><pre><strong>Fixes</strong><br>-Only_Use_Available_Options config should work now</pre></div>
