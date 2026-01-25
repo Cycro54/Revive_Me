@@ -42,6 +42,7 @@ public class ReviveToolTipEvents {
     public static final InvoText useReviveOnFailText = InvoText.translate(tooltipLangDirectory +"use_revive");
     public static final InvoText effectsText = InvoText.translate(tooltipLangDirectory +"effects");
     public static final InvoText unlimitedText = InvoText.translate(tooltipLangDirectory +"unlimited");
+    public static boolean isKeybindDown = false;
 
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void beforeToolTip(ItemTooltipEvent event) {
@@ -69,7 +70,7 @@ public class ReviveToolTipEvents {
 
         ReviveItemData itemData = ReviveItemData.getData(event.getItemStack(), ReviveItemData.USER.BOTH);
         if (itemData == null) return;
-        if (!KeyInit.tooltip.keyBind.isDown()) return;
+        if (!isKeybindDown) return;
         List<ITextComponent> list = event.getToolTip();
         list.clear();
 
