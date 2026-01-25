@@ -27,6 +27,7 @@ Shtuff to do next large update
 * ~(config) add option to turn off bold text~
 
 Shtuff to maybe do later
+* Revive Effects for Revive items don't inherit from Revive_Effects config by default, make sure that is known in Revive Items Example
 * Data pack support for items and attributes (if I ever add attributes)
 * Attribute creation/modification (https://github.com/Cycro54/Revive_Me/issues/45)
 * Add stats to statistic page for Revive me
