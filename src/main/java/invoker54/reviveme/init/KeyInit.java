@@ -9,6 +9,7 @@ import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.client.event.CallForHelpEvent;
 import invoker54.reviveme.client.event.FallenItemScreenEvent;
+import invoker54.reviveme.client.event.ReviveToolTipEvents;
 import invoker54.reviveme.common.ReviveMathUtil;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
@@ -92,7 +93,10 @@ public class KeyInit {
 
         tooltip = KeybindsInit.addBind(new CustomKeybind(new KeyMapping("key." + ReviveMe.MOD_ID + "." + "tooltip",
                 KeyConflictContext.GUI, KeyModifier.SHIFT, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_R, "key.category." + ReviveMe.MOD_ID),
-                (action) -> {}));
+                (action) -> {
+                    if (action == GLFW.GLFW_PRESS) ReviveToolTipEvents.isKeybindDown = true;
+                    if (action == GLFW.GLFW_RELEASE) ReviveToolTipEvents.isKeybindDown = false;
+                }));
         ClientRegistry.registerKeyBinding(tooltip.keyBind);
     }
 }

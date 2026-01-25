@@ -33,7 +33,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public class ReviveItemData extends ReviveConfigData {
     private static final ModLogger LOGGER = ModLogger.getLogger(ReviveItemData.class, ReviveMeConfig.debugMode);
@@ -234,16 +233,19 @@ public class ReviveItemData extends ReviveConfigData {
 //        this.maxUses = parentData.maxUses;
     }
 
-    public static ReviveItemData getData(ItemStack stack, USER user){
-        if (ReviveMeConfig.itemUser == USER.NONE) return null;
+    public static List<ReviveItemData> filterList(List<ReviveItemData> dataList, USER itemUser){
+        if (itemUser == USER.NONE) return new ArrayList<>();
+        if (itemUser == USER.BOTH) return dataList;
+        return dataList.stream().filter(data -> data.itemUser == USER.BOTH ||
+                data.itemUser == itemUser).toList();
+    }
 
-        boolean isFallen = (user == USER.FALLEN);
+    public static ReviveItemData getData(ItemStack stack, USER targetUser){
         if (stack == null) return null;
 
         List<ReviveItemData> itemDataList = new ArrayList<>(reviveItemMap.values());
-        if (ReviveMeConfig.itemUser != USER.BOTH){
-            itemDataList = itemDataList.stream().filter(data -> data.itemUser == ReviveMeConfig.itemUser).collect(Collectors.toList());
-        }
+        itemDataList = filterList(itemDataList, ReviveMeConfig.itemUser);
+        itemDataList = filterList(itemDataList, targetUser);
 
         for (ReviveItemData data : itemDataList){
             //resource location
@@ -266,11 +268,6 @@ public class ReviveItemData extends ReviveConfigData {
                 stack1.getOrCreateTag().merge(data.nbtData);
                 if (!ItemStack.tagMatches(stack1, stack)) continue;
             }
-            //User
-            if (user != USER.BOTH && (data.itemUser == USER.REVIVER && isFallen || data.itemUser == USER.FALLEN && !isFallen)){
-                continue;
-            }
-
             return data;
         }
         return null;
