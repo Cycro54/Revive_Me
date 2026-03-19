@@ -316,9 +316,9 @@ public class FallenData implements INBTSerializable<CompoundTag> {
         if (ReviveMeConfig.timeLeft == 0) maxSeconds = 0;
 
         if (divideByMax)
-            return (float) (1 - ((level.getGameTime() - fellStart)/ maxSeconds));
+            return (float) (1d - ((level.getGameTime() - fellStart)/ maxSeconds));
 
-        return (float) (((fellStart + maxSeconds) - level.getGameTime())/20);
+        return (float) (((fellStart + maxSeconds) - level.getGameTime())/20d);
     }
 
     public float getKillTime(boolean divideByMax){
@@ -436,8 +436,6 @@ public class FallenData implements INBTSerializable<CompoundTag> {
 
                     refreshSelfReviveTypes(player);
 
-                    CompoundTag nbt = new CompoundTag();
-                    nbt.put(player.getStringUUID(), this.writeNBT());
                     this.syncClient(true);
                     return;
                 }
@@ -446,8 +444,6 @@ public class FallenData implements INBTSerializable<CompoundTag> {
 
                     this.selfReviveCount = ReviveMeConfig.maxSelfRevives;
 
-                    CompoundTag nbt = new CompoundTag();
-                    nbt.put(player.getStringUUID(), this.writeNBT());
                     this.syncClient(true);
                     return;
                 }

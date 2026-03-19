@@ -35,6 +35,7 @@ public class ReviveRequirementScreen {
         //if (true) return;
         event.registerAboveAll(makeResource("requirement_screen"), (guiGraphics, tracker) -> {
             if (ClientUtil.getPlayer().isCreative() || ClientUtil.getPlayer().isSpectator()) return;
+            if (FallenData.get(ClientUtil.getPlayer()).isFallen()) return;
             //if (true) return;
             if (!(ClientUtil.getMinecraft().crosshairPickEntity instanceof Player)) return;
             if (((Player) ClientUtil.getMinecraft().crosshairPickEntity).isDeadOrDying()) return;

@@ -24,7 +24,7 @@ public record RestartDeathTimerMsg() implements CustomPacketPayload {
                         FallenData reviverCap = FallenData.get(reviverPlayer);
 
                         Player fallenPlayer = reviverCap.getOtherPlayer() == null ?
-                                null : reviverPlayer.level().getPlayerByUUID(reviverCap.getOtherPlayer());
+                                null : reviverPlayer.getServer().getPlayerList().getPlayer(reviverCap.getOtherPlayer());
 
                         reviverCap.setOtherPlayerAndItem(null, null);
                         reviverCap.syncClient(true);

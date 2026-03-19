@@ -1,5 +1,6 @@
 package invoker54.reviveme.client.event;
 
+import invoker54.invocore.client.util.ClientUtil;
 import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.VanillaKeybindHandler;
@@ -7,6 +8,7 @@ import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.payload.RestartDeathTimerMsg;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
@@ -41,14 +43,16 @@ public class RevivePlayerActionsEvent {
         //Check if it's a player
         //System.out.println("Player entity instance? : " + (inst.crosshairPickEntity instanceof Player));
 
-        cancelEvent = !(inst.crosshairPickEntity instanceof Player);
+        cancelEvent = targPlayer == null;
 
         //Check if that player is being revived by them
         if (!cancelEvent) {
 //            //System.out.println("Someone I'm reviving? : " + (FallenData.get((Player)inst.crosshairPickEntity).
 //                    compareUUID(myUUID)));
-            cancelEvent = !(FallenData.get((Player) inst.crosshairPickEntity).
-                    isReviver(myUUID));
+//            cancelEvent = !(FallenData.get((Player) inst.crosshairPickEntity).
+//                    isReviver(myUUID));
+            cancelEvent = (inst.crosshairPickEntity != targPlayer && (ReviveMeConfig.reviverMustLook ||
+                    ClientUtil.getPlayer().distanceTo(targPlayer) > ClientUtil.getPlayer().getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE)));
         }
 
         //Check if I'm holding the use button down

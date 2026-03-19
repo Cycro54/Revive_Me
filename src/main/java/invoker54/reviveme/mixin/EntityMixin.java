@@ -3,11 +3,9 @@ package invoker54.reviveme.mixin;
 import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.scores.PlayerTeam;
-import net.minecraft.world.scores.Team;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -16,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import javax.annotation.Nullable;
-import java.awt.*;
 
 @Mixin(Entity.class)
 public abstract class EntityMixin {
@@ -43,24 +40,25 @@ public abstract class EntityMixin {
         return this.revive_Me$cap;
     }
 
-    @Inject(
-            method = "hasPose",
-            at = {
-                    @At(value = "HEAD")
-            }, cancellable = true)
-    private void hasPose(Pose pose, CallbackInfoReturnable<Boolean> cir){
-//        if (!this.level.isClientSide) return;
-        Entity entity = this.level.getEntity(this.getId());
-        if (!(entity instanceof Player player)) return;
-
-        if (!FallenData.get(player).isFallen()) return;
-
-        switch (ReviveMeConfig.fallenPose){
-            case CROUCH -> cir.setReturnValue(pose == Pose.CROUCHING);
-            case PRONE -> cir.setReturnValue(pose == Pose.SWIMMING);
-            case SLEEP -> cir.setReturnValue(pose == Pose.SLEEPING);
-        }
-    }
+//    @Inject(
+//            method = "hasPose",
+//            at = {
+//                    @At(value = "HEAD")
+//            }, cancellable = true)
+//    private void hasPose(Pose pose, CallbackInfoReturnable<Boolean> cir){
+////        if (!this.level.isClientSide) return;
+//        Entity entity = this.level.getEntity(this.getId());
+//        if (!(entity instanceof Player player)) return;
+//
+//        if (!FallenData.get(player).isFallen()) return;
+//        LOGGER.warn("Fee Fi Fo Fum");
+//
+//        switch (ReviveMeConfig.fallenPose){
+//            case CROUCH -> cir.setReturnValue(pose == Pose.CROUCHING);
+//            case PRONE -> cir.setReturnValue(pose == Pose.SWIMMING);
+//            case SLEEP -> cir.setReturnValue(pose == Pose.SLEEPING);
+//        }
+//    }
 
     @Inject(
             method = "isInvulnerable",

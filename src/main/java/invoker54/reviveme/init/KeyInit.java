@@ -67,7 +67,7 @@ public class KeyInit {
                     FallenData cap = FallenData.get(ClientUtil.getPlayer());
                     if (!cap.isFallen()) return;
                     boolean isClick = action == GLFW.GLFW_PRESS;
-                    LOGGER.error("THIS IS RUNNING TOOO: " + (isClick));
+//                    LOGGER.error("THIS IS RUNNING TOOO: " + (isClick));
 
 
                     if (ClientUtil.getMinecraft().player.isCrouching() && isClick) {

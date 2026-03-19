@@ -8,7 +8,6 @@ import invoker54.reviveme.init.MobEffectInit;
 import invoker54.reviveme.init.NetworkInit;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
@@ -85,8 +84,8 @@ public class FallEvent {
             //Set the maxOverheal thingy
             instance.setMaxOverheal();
 
-            //Finally send capability code to all players
-            CompoundTag nbt = new CompoundTag();
+//            //Finally send capability code to all players
+//            CompoundTag nbt = new CompoundTag();
 
             //System.out.println("Am I fallen?: " + FallenData.GetFallCap(player).isFallen());
             if (instance.getOtherPlayer() != null) {
@@ -95,12 +94,11 @@ public class FallEvent {
                     FallenData otherCap = FallenData.get(otherPlayer);
                     otherCap.resumeFallTimer();
                     otherCap.setOtherPlayerAndItem(null, null);
-
-                    nbt.put(otherPlayer.getStringUUID(), otherCap.writeNBT());
+                    otherCap.syncClient(true);
                 }
                 instance.setOtherPlayerAndItem(null, null);
             }
-            nbt.put(player.getStringUUID(), instance.writeNBT());
+            instance.syncClient(true);
 
             player.setHealth(0);
             //Make all angerable enemies nearby forgive the player.
@@ -115,7 +113,6 @@ public class FallEvent {
             }
             player.setHealth((float) maxHealth);
 
-            instance.syncClient(true);
         }
         else instance.setFallen(false);
 

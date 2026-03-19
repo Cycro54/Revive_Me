@@ -1,5 +1,6 @@
 package invoker54.reviveme.mixin;
 
+import invoker54.invocore.client.util.InvoText;
 import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.event.FallEvent;
@@ -29,6 +30,10 @@ public class CommonHooksMixin {
     private static void onLivingDeath(LivingEntity entity, DamageSource src, CallbackInfoReturnable<Boolean> cir) {
         if (!(entity instanceof ServerPlayer)) return;
         if ((((ServerPlayer) entity).gameMode.getGameModeForPlayer() == GameType.CREATIVE)) return;
+        if (!ReviveMeConfig.reviveMeEnabled){
+            ((ServerPlayer) entity).displayClientMessage(InvoText.translate("revive_me.disabled").getText(), false);
+            return;
+        }
 
         boolean cancelled;
 

@@ -20,6 +20,7 @@
   "revive_me.commands.reload": "Revive Me items and config should be reloaded.",
   "revive_me.call_for_help": "REVIVE ME!",
   "effect.reviveme.fallen_effect.cant_remove": "[Revive Me] Can't remove Penalty Timer (go to creative first, or change in config)",
+  "revive_me.disabled": "Revive Me! is disabled in config",
 
   "__comment": "This is for self revive options",
   "revive_me.fallenScreen.self_revive.self_destruct_1": "Hold \n [%1$s] to [%2$s]",
