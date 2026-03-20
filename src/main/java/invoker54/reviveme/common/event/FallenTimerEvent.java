@@ -66,7 +66,7 @@ public class FallenTimerEvent {
         event.getEntity().setForcedPose(null); //Mixin will assign the correct pose (PlayerMixin)
 
         if (event.getEntity().level().isClientSide) return;
-        LOGGER.warn("What's pose: " + event.getEntity().getForcedPose());
+//        LOGGER.warn("What's pose: " + event.getEntity().getForcedPose());
 
         if (!ReviveMeConfig.reviveMeEnabled){
             event.getEntity().displayClientMessage(InvoText.translate("revive_me.disabled").getText(), false);
