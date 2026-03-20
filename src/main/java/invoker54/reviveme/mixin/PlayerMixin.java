@@ -44,11 +44,11 @@ public abstract class PlayerMixin extends LivingEntity {
     }
 
     @Inject(
-            method = "setForcedPose",
+            method = "setForcedPose(Lnet/minecraft/world/entity/Pose;)V",
             at = {
                     @At(value = "HEAD")
             },
-            cancellable = true)
+            cancellable = true, remap = false)
     private void setForcedPose(Pose pose, CallbackInfo ci){
         if (!FallenCapability.get(this).isFallen()) return;
         switch (ReviveMeConfig.fallenPose){
