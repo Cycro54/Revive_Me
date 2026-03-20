@@ -49,6 +49,7 @@ public class RenderFallPlateEvent {
     public static void renderWorldFallTimer(RenderLevelStageEvent event) {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
         Minecraft mC = ClientUtil.getMinecraft();
+        boolean iAmFallen = FallenCapability.get(ClientUtil.getPlayer()).isFallen();
 
         for (Entity entity : inst.level.entitiesForRendering()) {
 
@@ -70,6 +71,7 @@ public class RenderFallPlateEvent {
             boolean targetSeen = rayResult.getType() == HitResult.Type.MISS;
 
             if (distance > 10 && !cap.isCallingForHelp() && !targetSeen) continue;
+            if (!targetSeen && entity.getTeam() != ClientUtil.getPlayer().getTeam()) continue;
 
             float yOffset = entity.getBbHeight() * 0.40f;
             float sizeOffset = 0.5F;
@@ -143,7 +145,7 @@ public class RenderFallPlateEvent {
                 }
 
                 InvoText message = null;
-                if (ClientUtil.getMinecraft().crosshairPickEntity == player && !player.isDeadOrDying()) {
+                if (mC.crosshairPickEntity == player && !player.isDeadOrDying() && !iAmFallen) {
                     if (ClientUtil.getMinecraft().player.isCrouching()) {
                         if (cap.getKillTime(false) > 0) {
                             message = InvoText.translate("revive_me.fall_plate.cant_kill");

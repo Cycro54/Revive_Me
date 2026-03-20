@@ -49,7 +49,7 @@ public class KeyInit {
                     if (ClientUtil.getMinecraft().screen != null) return;
                     FallenCapability cap = FallenCapability.get(ClientUtil.getPlayer());
                     if (!cap.isFallen()) return;
-                    boolean isSneaking = ClientUtil.getMinecraft().player.isCrouching();
+                    boolean isSneaking = ClientUtil.getMinecraft().player.isShiftKeyDown();
                     if (!isSneaking && cap.isCallingForHelp()) return;
 
                     CallForHelpEvent.sendCallToServer(isSneaking, cap.isCallingForHelp());
@@ -66,7 +66,7 @@ public class KeyInit {
                     if (!cap.isFallen()) return;
                     boolean isClick = action == GLFW.GLFW_PRESS;
 
-                    if (ClientUtil.getMinecraft().player.isCrouching() && isClick) {
+                    if (ClientUtil.getMinecraft().player.isShiftKeyDown() && isClick) {
                         FallenItemScreenEvent.switchReviveScreens();
                         return;
                     } else if (isClick && FallenItemScreenEvent.isItemScreenActive) {

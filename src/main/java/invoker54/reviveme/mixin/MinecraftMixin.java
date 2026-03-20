@@ -11,20 +11,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.HitResult;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import javax.annotation.Nullable;
-
 @Mixin(Minecraft.class)
 public abstract class MinecraftMixin {
-
-    @Shadow
-    @Nullable
-    public Entity crosshairPickEntity;
 
     @Inject(
             method = "shouldEntityAppearGlowing",
@@ -38,6 +31,7 @@ public abstract class MinecraftMixin {
         if (distance < 10 || distance > ReviveMeConfig.reviveGlowMaxDistance) return;
         FallenCapability cap = FallenCapability.get((LivingEntity) entity);
         if (!cap.isFallen()) return;
+        if (entity.getTeam() != ClientUtil.getPlayer().getTeam()) return;
 
         HitResult rayResult = ClientUtil.getMinecraft().player.level().clip(
                 new ClipContext(ClientUtil.getMinecraft().player.getEyePosition(1.0F), entity.getEyePosition(1.0F)
