@@ -57,13 +57,16 @@ public class FallenTimerEvent {
     @SubscribeEvent
     public static void TickDownTimer(PlayerTickEvent.Pre event) {
         //System.out.println("Game time is: " + event.getEntity().level.getGameTime());
-        if (event.getEntity().level().isClientSide) return;
-
         if (event.getEntity().isDeadOrDying()) return;
 
         FallenData cap = FallenData.get(event.getEntity());
 
         if (!cap.isFallen() || cap.getOtherPlayer() != null) return;
+
+        event.getEntity().setForcedPose(null); //Mixin will assign the correct pose (PlayerMixin)
+
+        if (event.getEntity().level().isClientSide) return;
+        LOGGER.warn("What's pose: " + event.getEntity().getForcedPose());
 
         if (!ReviveMeConfig.reviveMeEnabled){
             event.getEntity().displayClientMessage(InvoText.translate("revive_me.disabled").getText(), false);

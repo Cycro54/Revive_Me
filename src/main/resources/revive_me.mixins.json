@@ -11,19 +11,18 @@
     "FoodMixin",
     "ServerLevelMixin",
     "ServerPlayerMixin",
-    "SlotMixin"
+    "SlotMixin",
+    "PlayerMixin"
   ],
   "client": [
     "ClientEntityMixin",
     "KeyBindingMapMixin",
     "KeyMappingMixin",
-    "LevelRendererMixin",
     "LocalPlayerMixin",
     "MinecraftMixin",
     "OptionsMixin",
     "PlayerControllerMixin",
     "PlayerInventoryMixin",
-    "PlayerMixin",
     "PlayerRendererMixin",
     "WidgetMixin",
     "compatibility.ControllableButtonBindingMixin",

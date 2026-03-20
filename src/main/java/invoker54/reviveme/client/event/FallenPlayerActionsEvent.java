@@ -38,8 +38,6 @@ public class FallenPlayerActionsEvent {
         if (!event.getEntity().level().isClientSide) return;
         if (event.getEntity() != ClientUtil.getPlayer()) return;
 
-        if (event.getEntity() != ClientUtil.getPlayer()) return;
-
         FallenData cap = FallenData.get(inst.player);
         boolean canSelfRevive = cap.canSelfRevive();
 

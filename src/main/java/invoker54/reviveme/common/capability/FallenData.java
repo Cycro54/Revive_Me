@@ -139,10 +139,13 @@ public class FallenData implements INBTSerializable<CompoundTag> {
             setOtherPlayerAndItem(null, null);
             this.calledForHelpTime = 0;
             this.isEffectsRemoved = false;
+            if (this.player == null) return;
+            this.player.setForcedPose(null); //Mixin will assign the correct pose (PlayerMixin)
         }
         else {
             if (this.level == null) return;
             this.fallenTick = this.level.getGameTime();
+            this.player.setForcedPose(null); //Mixin will assign the correct pose (PlayerMixin)
         }
     }
 
