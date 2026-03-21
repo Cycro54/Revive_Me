@@ -113,7 +113,7 @@ public class FallenTimerEvent {
 
         Player otherPlayer = event.getEntity().getServer().getPlayerList().getPlayer(cap.getOtherPlayer());
 
-        if (cap.getReviveStack() != null) otherPlayer.getCooldowns().addCooldown(cap.getReviveStack().getItem(), 30);
+        if (otherPlayer != null && cap.getReviveStack() != null) otherPlayer.getCooldowns().addCooldown(cap.getReviveStack().getItem(), 30);
 
         //If tick progress finishes, revive the fallen player and take whatever you need to take from the otherPlayer
         if (cap.getProgress(true) < 1) return;

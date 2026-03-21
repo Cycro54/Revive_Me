@@ -1,3 +1,11 @@
+# 1.21.1-5.7.13
+
+<div><pre><strong>Fixes</strong><br>-Should no longer crash if Reviver DCs<br>-Fallen keybinds should display correctly now</pre></div>
+
+# 1.21.1-5.7.12
+
+<div><pre><strong>Fixes</strong><br>-Removed LOGGER spam from FallenTimerEvent class<br>-Crouch pose should work properly now<br>-Call for help and change self-revive screen now checks if the player is holding shift key instead of crouching</pre></div>
+
 # 1.21.1-5.7.11
 
 <div><pre><strong>Changes</strong><br>-Simplified fallen pose, now bounding box and camera height will follow assigned pose.</pre></div>

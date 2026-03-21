@@ -123,7 +123,7 @@ public class FallScreenEvent {
             InvoZone reviveButtonZone = revive_help_button_IMG.getRenderZone();
             reviveButtonZone.setDown(workZone.down() - 16).setRight(workZone.right() - 16);
 
-            boolean isSneaking = ClientUtil.getMinecraft().player.isCrouching();
+            boolean isSneaking = ClientUtil.getMinecraft().player.isShiftKeyDown();
             //region This is for the call toggle tip
             InvoText toggleText = callToggleTip.setArgs(InvoText.literal(ClientUtil.getMinecraft().options.keyShift.getKey().getDisplayName().getString()).withStyle(false, InvoTextFormat.filter(ChatFormatting.YELLOW)).getText());
             if (isSneaking) toggleText = callToggleTip.setArgs(InvoText.translate(KeyInit.callForHelpKey.keyBind.getKey().getDisplayName().getString())

@@ -49,8 +49,7 @@ public abstract class LocalPlayerMixin extends AbstractClientPlayer {
     )
     private void isCrouching(CallbackInfoReturnable<Boolean> cir){
         if (!FallenData.get(this).isFallen()) return;
-        if (this.getPose() == Pose.CROUCHING) return;
-        cir.setReturnValue(this.isShiftKeyDown());
+        cir.setReturnValue(this.isShiftKeyDown() || this.getPose() == Pose.CROUCHING);
     }
 
 }
