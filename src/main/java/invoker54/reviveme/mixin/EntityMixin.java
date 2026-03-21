@@ -77,22 +77,22 @@ public abstract class EntityMixin {
         cir.setReturnValue(true);
     }
 
-    @Inject(
-            method = "refreshDimensions",
-            at = {
-                    @At(value = "HEAD")
-            })
-    private void refreshDimensionsHead(CallbackInfo ci){
-        this.revive_Me$grabOriginal = true;
-    }
-
-    @Inject(
-            method = "refreshDimensions",
-            at = {
-                    @At(value = "TAIL")
-            })
-    private void refreshDimensionsTail(CallbackInfo ci){
-        this.revive_Me$grabOriginal = false;
-    }
+//    @Inject(
+//            method = "refreshDimensions",
+//            at = {
+//                    @At(value = "HEAD")
+//            })
+//    private void refreshDimensionsHead(CallbackInfo ci){
+//        this.revive_Me$grabOriginal = true;
+//    }
+//
+//    @Inject(
+//            method = "refreshDimensions",
+//            at = {
+//                    @At(value = "TAIL")
+//            })
+//    private void refreshDimensionsTail(CallbackInfo ci){
+//        this.revive_Me$grabOriginal = false;
+//    }
 
 }
