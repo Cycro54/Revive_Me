@@ -56,6 +56,8 @@ public class FallenTimerEvent {
 
     @SubscribeEvent
     public static void TickDownTimer(TickEvent.PlayerTickEvent event) {
+        if (event.phase == TickEvent.Phase.END) return;
+
         //System.out.println("Game time is: " + event.player.level.getGameTime());
         if (event.player.isDeadOrDying()) return;
 
@@ -104,7 +106,7 @@ public class FallenTimerEvent {
     //Make sure this only runs for the person being revived
     @SubscribeEvent
     public static void TickProgress(TickEvent.PlayerTickEvent event) {
-        if (event.phase == TickEvent.Phase.END) return;
+        if (event.phase == TickEvent.Phase.START) return;
         if (event.side != LogicalSide.SERVER) return;
 
         FallenCapability cap = FallenCapability.get(event.player);
@@ -114,7 +116,7 @@ public class FallenTimerEvent {
 
         Player otherPlayer = event.player.getServer().getPlayerList().getPlayer(cap.getOtherPlayer());
 
-        if (cap.getReviveStack() != null) otherPlayer.getCooldowns().addCooldown(cap.getReviveStack().getItem(), 30);
+        if (otherPlayer != null && cap.getReviveStack() != null) otherPlayer.getCooldowns().addCooldown(cap.getReviveStack().getItem(), 30);
 
         //If tick progress finishes, revive the fallen player and take whatever you need to take from the otherPlayer
         if (cap.getProgress(true) < 1) return;
