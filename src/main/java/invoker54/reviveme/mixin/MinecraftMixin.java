@@ -24,10 +24,6 @@ import static invoker54.invocore.client.util.ClientUtil.mC;
 @Mixin(Minecraft.class)
 public abstract class MinecraftMixin {
 
-    @Shadow
-    @Nullable
-    public Entity crosshairPickEntity;
-
     @Inject(
             method = "shouldEntityAppearGlowing",
             at = {
@@ -40,6 +36,7 @@ public abstract class MinecraftMixin {
         if (distance < 10 || distance > ReviveMeConfig.reviveGlowMaxDistance) return;
         FallenCapability cap = FallenCapability.get((LivingEntity) entity);
         if (!cap.isFallen()) return;
+        if (entity.getTeam() != ClientUtil.getPlayer().getTeam()) return;
 
         HitResult rayResult = mC.player.level.clip(
                 new ClipContext(mC.player.getEyePosition(1.0F), entity.getEyePosition(1.0F)

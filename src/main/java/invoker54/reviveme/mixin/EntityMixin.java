@@ -43,23 +43,24 @@ public abstract class EntityMixin {
         return this.revive_Me$cap;
     }
 
-    @Inject(
-            method = "getPose",
-            at = {
-                    @At(value = "HEAD")
-            }, cancellable = true)
-    private void getPose(CallbackInfoReturnable<Pose> cir){
-        if (this.revive_Me$grabOriginal)return;
-
-        if (revive_Me$getCap() == null) return;
-        if (!revive_Me$getCap().isFallen()) return;
-
-        switch (ReviveMeConfig.fallenPose){
-            case CROUCH -> cir.setReturnValue(Pose.CROUCHING);
-            case PRONE -> cir.setReturnValue(Pose.SWIMMING);
-            case SLEEP -> cir.setReturnValue(Pose.SLEEPING);
-        }
-    }
+    //TODO: DELETE COMMENTED CODE
+//    @Inject(
+//            method = "getPose",
+//            at = {
+//                    @At(value = "HEAD")
+//            }, cancellable = true)
+//    private void getPose(CallbackInfoReturnable<Pose> cir){
+//        if (this.revive_Me$grabOriginal)return;
+//
+//        if (revive_Me$getCap() == null) return;
+//        if (!revive_Me$getCap().isFallen()) return;
+//
+//        switch (ReviveMeConfig.fallenPose){
+//            case CROUCH -> cir.setReturnValue(Pose.CROUCHING);
+//            case PRONE -> cir.setReturnValue(Pose.SWIMMING);
+//            case SLEEP -> cir.setReturnValue(Pose.SLEEPING);
+//        }
+//    }
 
     @Inject(
             method = "isInvulnerable",

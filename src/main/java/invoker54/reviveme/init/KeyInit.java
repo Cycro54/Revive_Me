@@ -46,7 +46,7 @@ public class KeyInit {
                     if (ClientUtil.mC.screen != null) return;
                     FallenCapability cap = FallenCapability.get(ClientUtil.getPlayer());
                     if (!cap.isFallen()) return;
-                    boolean isSneaking = ClientUtil.mC.player.isCrouching();
+                    boolean isSneaking = ClientUtil.getPlayer().isShiftKeyDown();
                     if (!isSneaking && cap.isCallingForHelp()) return;
 
                     CallForHelpEvent.sendCallToServer(isSneaking, cap.isCallingForHelp());
@@ -61,7 +61,7 @@ public class KeyInit {
                     if (!cap.isFallen()) return;
                     boolean isClick = action == GLFW.GLFW_PRESS;
 
-                    if (ClientUtil.mC.player.isCrouching() && isClick){
+                    if (ClientUtil.getPlayer().isShiftKeyDown() && isClick) {
                         FallenItemScreenEvent.switchReviveScreens();
                         return;
                     }

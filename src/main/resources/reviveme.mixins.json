@@ -5,21 +5,24 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "reviveme.refmap.json",
   "mixins": [
-    "EntityMixin",
-    "FoodMixin",
     "ForgeHooksMixin",
+    "EntityMixin",
+    "EventHooksMixin",
+    "FoodMixin",
     "ServerLevelMixin",
     "ServerPlayerMixin",
-    "SlotMixin"
+    "SlotMixin",
+    "PlayerMixin"
   ],
   "client": [
     "ClientEntityMixin",
-    "KeyMappingMixin",
     "KeyBindingMapMixin",
+    "KeyMappingMixin",
+    "LocalPlayerMixin",
     "MinecraftMixin",
+    "OptionsMixin",
     "PlayerControllerMixin",
     "PlayerInventoryMixin",
-    "PlayerMixin",
     "PlayerRendererMixin",
     "WidgetMixin",
     "compatibility.ControllableButtonBindingMixin"

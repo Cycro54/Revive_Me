@@ -124,9 +124,13 @@ public class FallenCapability {
             setOtherPlayerAndItem(null, null);
             this.calledForHelpTime = 0;
             this.isEffectsRemoved = false;
+            if (this.player == null) return;
+            this.player.setForcedPose(null); //Mixin will assign the correct pose (PlayerMixin)
         }
         else {
+            if (this.level == null) return;
             this.fallenTick = this.level.getGameTime();
+            this.player.setForcedPose(null); //Mixin will assign the correct pose (PlayerMixin)
         }
     }
 
@@ -279,9 +283,9 @@ public class FallenCapability {
         if (ReviveMeConfig.timeLeft == 0) maxSeconds = 0;
 
         if (divideByMax)
-            return (float) (1 - ((level.getGameTime() - fellStart)/ maxSeconds));
+            return (float) (1d - ((level.getGameTime() - fellStart)/ maxSeconds));
 
-        return (float) (((fellStart + maxSeconds) - level.getGameTime())/20);
+        return (float) (((fellStart + maxSeconds) - level.getGameTime())/20d);
     }
 
     public float getKillTime(boolean divideByMax){
