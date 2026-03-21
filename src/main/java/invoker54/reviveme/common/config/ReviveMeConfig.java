@@ -35,11 +35,14 @@ public final class ReviveMeConfig {
     public static final AtomicBoolean debugMode = new AtomicBoolean(true);
     public static final ModLogger LOGGER = ModLogger.getLogger(ReviveMeConfig.class, ReviveMeConfig.debugMode);
 
+    public static boolean reviveMeEnabled;
     public static ReviveItemData.USER itemUser;
     public static Integer timeLeft;
     public static Boolean dieWhenTimerEnds;
     public static boolean pauseFallenTimerOnDisconnect;
     public static Integer reviveTime;
+    public static boolean resetReviveOnHit;
+    public static boolean reviverMustLook;
     public static Double revivedHealth;
     public static Double revivedFood;
     public static FallenCapability.PENALTYPE penaltyType;
@@ -86,6 +89,14 @@ public final class ReviveMeConfig {
     }
 
     public static FALLEN_POSE fallenPose;
+
+    public enum FALLEN_PERSPECTIVE{
+        DEFAULT,
+        THIRD_PERSON,
+        R_THIRD_PERSON,
+        FIRST_PERSON
+    }
+    public static FALLEN_PERSPECTIVE fallenPerspective;
 
     public enum JUMP {
         YES,
@@ -136,6 +147,8 @@ public final class ReviveMeConfig {
         dieWhenTimerEnds = COMMON.dieWhenTimerEnds.get();
         pauseFallenTimerOnDisconnect = COMMON.pauseFallenTimerOnDisconnect.get();
         reviveTime = COMMON.reviveTime.get();
+        resetReviveOnHit = COMMON.resetReviveOnHit.get();
+        reviverMustLook = COMMON.reviverMustLook.get();
         revivedHealth = COMMON.revivedHealth.get();
         revivedFood = COMMON.revivedFood.get();
         penaltyType = COMMON.penaltyType.get();
@@ -205,6 +218,7 @@ public final class ReviveMeConfig {
         reviveGlowMaxDistance = COMMON.reviveGlowMaxDistance.get();
         deathTimerMaxDistance = COMMON.deathTimerMaxDistance.get();
         fallenPose = COMMON.fallenPose.get();
+        fallenPerspective = COMMON.fallenPerspective.get();
         canJump = COMMON.canJump.get();
         canMove = COMMON.canMove.get();
         interactWithInventory = COMMON.interactWithInventory.get();
@@ -224,6 +238,7 @@ public final class ReviveMeConfig {
         silenceCommandMessages = COMMON.silenceCommandMessages.get();
         universalChatMessages = COMMON.universalChatMessages.get();
         debugMode.set(COMMON.debugMode.get());
+        reviveMeEnabled = COMMON.reviveMeEnabled.get();
 
         //Revive data stuff
         configReviveData = new ReviveConfigData(revivedHealth, revivedFood, fallenPenaltyTimer, reviveEffects);
@@ -236,6 +251,8 @@ public final class ReviveMeConfig {
         mainTag.putString("itemUser", itemUser.toString());
         //Time Left
         mainTag.putInt("timeLeft", timeLeft);
+        //Reviver Must Look
+        mainTag.putBoolean("reviverMustLook", reviverMustLook);
         //Penalty Type
         mainTag.putString("penaltyType", penaltyType.name());
         //Penalty Amount
@@ -287,6 +304,8 @@ public final class ReviveMeConfig {
         mainTag.putDouble("deathTimerMaxDistance", deathTimerMaxDistance);
         //Fallen pose
         mainTag.putString("fallenPose", fallenPose.toString());
+        //Fallen perspective
+        mainTag.putString("fallenPerspective", fallenPerspective.toString());
         //can jump
         mainTag.putString("canJump", canJump.toString());
         //can move
@@ -319,6 +338,8 @@ public final class ReviveMeConfig {
         itemUser = ReviveItemData.USER.valueOf(mainTag.getString("itemUser"));
         //Time Left
         timeLeft = mainTag.getInt("timeLeft");
+        //Reviver Must Look
+        reviverMustLook = mainTag.getBoolean("reviverMustLook");
         //Penalty Type
         penaltyType = FallenCapability.PENALTYPE.valueOf(mainTag.getString("penaltyType"));
         //Penalty Amount
@@ -369,6 +390,8 @@ public final class ReviveMeConfig {
         deathTimerMaxDistance = mainTag.getDouble("deathTimerMaxDistance");
         //Fallen Pose
         fallenPose = FALLEN_POSE.valueOf(mainTag.getString("fallenPose"));
+        //Fallen Perspective
+        fallenPerspective = FALLEN_PERSPECTIVE.valueOf(mainTag.getString("fallenPerspective"));
         //Can Jump
         canJump = JUMP.valueOf(mainTag.getString("canJump"));
         //can Move
@@ -414,6 +437,8 @@ public final class ReviveMeConfig {
         public final ForgeConfigSpec.ConfigValue<Boolean> dieWhenTimerEnds;
         public final ForgeConfigSpec.ConfigValue<Boolean> pauseFallenTimerOnDisconnect;
         public final ForgeConfigSpec.ConfigValue<Integer> reviveTime;
+        public final ForgeConfigSpec.ConfigValue<Boolean> resetReviveOnHit;
+        public final ForgeConfigSpec.ConfigValue<Boolean> reviverMustLook;
         public final ForgeConfigSpec.ConfigValue<Double> revivedHealth;
         public final ForgeConfigSpec.ConfigValue<Double> revivedFood;
         public final ForgeConfigSpec.EnumValue<FallenCapability.PENALTYPE> penaltyType;
@@ -451,6 +476,7 @@ public final class ReviveMeConfig {
         public final ForgeConfigSpec.ConfigValue<Double> reviveGlowMaxDistance;
         public final ForgeConfigSpec.ConfigValue<Double> deathTimerMaxDistance;
         public final ForgeConfigSpec.ConfigValue<FALLEN_POSE> fallenPose;
+        public final ForgeConfigSpec.ConfigValue<FALLEN_PERSPECTIVE> fallenPerspective;
         public final ForgeConfigSpec.ConfigValue<JUMP> canJump;
         public final ForgeConfigSpec.ConfigValue<Boolean> canMove;
         public final ForgeConfigSpec.ConfigValue<INTERACT_WITH_INVENTORY> interactWithInventory;
@@ -470,6 +496,7 @@ public final class ReviveMeConfig {
         public final ForgeConfigSpec.ConfigValue<Boolean> silenceCommandMessages;
         public final ForgeConfigSpec.ConfigValue<Boolean> universalChatMessages;
         public final ForgeConfigSpec.ConfigValue<Boolean> debugMode;
+        public final ForgeConfigSpec.ConfigValue<Boolean> reviveMeEnabled;
 
         public CommonConfig(ForgeConfigSpec.Builder builder) {
             itemUser = builder.comment("Who can use revive items").defineEnum("Item_User", ReviveItemData.USER.BOTH);
@@ -563,8 +590,9 @@ public final class ReviveMeConfig {
             pvpTimer = builder.comment("How much time (in seconds) must pass before you may be killed by other players. Affected by time reduction penalty. Setting to -1 will disable this").defineInRange("PVP_Timer", 10, -1, Integer.MAX_VALUE);
             builder.pop();
 
-            builder.push("Movement Settings");
+            builder.push("Movement & Camera Settings");
             fallenPose = builder.comment("What pose you have whilst fallen").defineEnum("Fallen_Pose", FALLEN_POSE.CROUCH);
+            fallenPerspective = builder.comment("What perspective you have whilst fallen").defineEnum("Fallen_Perspective", FALLEN_PERSPECTIVE.DEFAULT);
             canJump = builder.comment("If the player may jump while fallen").defineEnum("Can_Jump", JUMP.YES);
             canMove = builder.comment("If the player may move while fallen").define("Can_Move", true);
             builder.pop();
@@ -572,6 +600,8 @@ public final class ReviveMeConfig {
 
             builder.push("Revive Settings");
             builder.push("Revivee Settings");
+            resetReviveOnHit = builder.comment("If revive progress resets when damage is taken").define("Reset_Revive_On_Hit", true);
+            reviverMustLook = builder.comment("If the reviver must look at the revivee to revive them").define("Reviver_Must_look", true);
             revivedHealth = builder.comment("How much health you will be revived with, -1 is max health, Less than 1 is percentage").defineInRange("Revive_Health", 10F, -1F, Integer.MAX_VALUE);
             revivedFood = builder.comment("How much food you will be revived with, -1 is max food, Less than 1 is percentage").defineInRange("Revive_Food", 6F, -1F, Integer.MAX_VALUE);
             reviveEffects = builder.comment("What effects you revive with (ModId:PotionEffect:Amplification:Ticks)(minecraft:fire_resistance:3:100)").defineList("Revive_Effects",
@@ -584,7 +614,7 @@ public final class ReviveMeConfig {
 
             builder.push("Reviver Settings");
             reviveTime = builder.comment("How long to revive someone").defineInRange("Revive_Time", 3, 0, Integer.MAX_VALUE);
-            penaltyType = builder.comment("What the reviver will lose").defineEnum("Penalty_Type", FallenCapability.PENALTYPE.FOOD);
+            penaltyType = builder.comment("What the reviver will lose (Reviver can use ITEM without it being selected. Selecting ITEM while Revive Items are disabled will disable this revive option.)").defineEnum("Penalty_Type", FallenCapability.PENALTYPE.FOOD);
             penaltyAmount = builder.comment("Amount that will be taken from reviver, Numbers below 1 and greater than 0 will turn it into a percentage").define("Penalty_Amount", 10D);
             cancelReviveOnDamage = builder.comment("If revive should be cancelled when taking damage").define("Cancel_Revive_On_Damage", false);
             builder.pop();
@@ -605,6 +635,7 @@ public final class ReviveMeConfig {
             builder.pop();
 
             debugMode = builder.comment("If debug mode should be activated (just for testing and troubleshooting)").define("Debug_Mode", true);
+            reviveMeEnabled = builder.comment("If Revive Me is enabled").define("Revive_Me_Enabled", true);
         }
     }
 }

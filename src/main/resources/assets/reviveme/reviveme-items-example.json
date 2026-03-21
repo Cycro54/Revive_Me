@@ -1,7 +1,7 @@
 {
   "EXAMPLE": {
     "__comment": "You shouldn't edit this file, It's only for examples",
-    "version": 2,
+    "version": 3,
     "__comment": "Revive item must AT LEAST have one of these : 'itemResourceLocation', 'itemTag', 'nbtData'",
     "__comment": "Everything else is optional.",
     "parentID": "Parent revive item to inherit missing values from. Take it from the group id (group id of this is 'EXAMPLE'). Make sure not to loop (1->2->1 [ERROR]).",
@@ -51,6 +51,7 @@
     "displayName": "key:reviveme.item.name.golden_apple",
     "description": "key:reviveme.item.description.golden_apple",
     "itemResourceLocation": "minecraft:golden_apple",
+    "countRequired": 2,
     "reviveFood": 10,
     "reviveEffects": [
       "PARENT",

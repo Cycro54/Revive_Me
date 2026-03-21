@@ -33,6 +33,7 @@ public class ReviveRequirementScreen {
         //if (true) return;
         event.registerAboveAll("requirement_screen", (gui, stack, partialTicks, fullWidth, fullHeight) -> {
             if (ClientUtil.getPlayer().isCreative() || ClientUtil.getPlayer().isSpectator()) return;
+            if (FallenCapability.get(ClientUtil.getPlayer()).isFallen()) return;
             //if (true) return;
             if (!(ClientUtil.mC.crosshairPickEntity instanceof Player)) return;
             if (((Player) ClientUtil.mC.crosshairPickEntity).isDeadOrDying()) return;

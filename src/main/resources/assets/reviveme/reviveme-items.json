@@ -18,6 +18,7 @@
     "displayName": "key:reviveme.item.name.golden_apple",
     "description": "key:reviveme.item.description.golden_apple",
     "itemResourceLocation": "minecraft:golden_apple",
+    "countRequired": 2,
     "reviveFood": 10,
     "reviveEffects": [
       "PARENT",

@@ -3,7 +3,6 @@ package invoker54.reviveme.mixin;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.scores.Team;
@@ -15,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import javax.annotation.Nullable;
-import java.awt.*;
 
 @Mixin(Entity.class)
 public abstract class EntityMixin {
@@ -41,23 +39,24 @@ public abstract class EntityMixin {
         return this.revive_Me$cap;
     }
 
-    @Inject(
-            method = "hasPose",
-            at = {
-                    @At(value = "HEAD")
-            }, cancellable = true)
-    private void hasPose(Pose pose, CallbackInfoReturnable<Boolean> cir){
-        Entity entity = this.level.getEntity(this.getId());
-        if (!(entity instanceof Player player)) return;
-
-        if (!FallenCapability.get(player).isFallen()) return;
-
-        switch (ReviveMeConfig.fallenPose){
-            case CROUCH -> cir.setReturnValue(pose == Pose.CROUCHING);
-            case PRONE -> cir.setReturnValue(pose == Pose.SWIMMING);
-            case SLEEP -> cir.setReturnValue(pose == Pose.SLEEPING);
-        }
-    }
+    //TODO: DELETE COMMENTED CODE
+//    @Inject(
+//            method = "hasPose",
+//            at = {
+//                    @At(value = "HEAD")
+//            }, cancellable = true)
+//    private void hasPose(Pose pose, CallbackInfoReturnable<Boolean> cir){
+//        Entity entity = this.level.getEntity(this.getId());
+//        if (!(entity instanceof Player player)) return;
+//
+//        if (!FallenCapability.get(player).isFallen()) return;
+//
+//        switch (ReviveMeConfig.fallenPose){
+//            case CROUCH -> cir.setReturnValue(pose == Pose.CROUCHING);
+//            case PRONE -> cir.setReturnValue(pose == Pose.SWIMMING);
+//            case SLEEP -> cir.setReturnValue(pose == Pose.SLEEPING);
+//        }
+//    }
 
     @Inject(
             method = "isInvulnerable",

@@ -1,5 +1,6 @@
 package invoker54.reviveme.client.event;
 
+import invoker54.invocore.client.util.ClientUtil;
 import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.VanillaKeybindHandler;
@@ -10,6 +11,7 @@ import invoker54.reviveme.common.network.message.RestartDeathTimerMsg;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.LogicalSide;
@@ -44,14 +46,17 @@ public class RevivePlayerActionsEvent {
         //Check if it's a player
         //System.out.println("Player entity instance? : " + (inst.crosshairPickEntity instanceof Player));
 
-        cancelEvent = !(inst.crosshairPickEntity instanceof Player);
+        cancelEvent = targPlayer == null;
 
+        //TODO: Delete commented code
         //Check if that player is being revived by them
         if (!cancelEvent) {
-//            //System.out.println("Someone I'm reviving? : " + (FallenCapability.GetFallCap((Player)inst.crosshairPickEntity).
+//            //System.out.println("Someone I'm reviving? : " + (FallenCapability.get((Player)inst.crosshairPickEntity).
 //                    compareUUID(myUUID)));
-            cancelEvent = !(FallenCapability.get((Player) inst.crosshairPickEntity).
-                    isReviver(myUUID));
+//            cancelEvent = !(FallenCapability.get((Player) inst.crosshairPickEntity).
+//                    isReviver(myUUID));
+            cancelEvent = (inst.crosshairPickEntity != targPlayer && (ReviveMeConfig.reviverMustLook ||
+                    ClientUtil.getPlayer().distanceTo(targPlayer) > ClientUtil.getPlayer().getAttributeValue(ForgeMod.REACH_DISTANCE.get())));
         }
 
         //Check if I'm holding the use button down
