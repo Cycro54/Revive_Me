@@ -33,6 +33,7 @@ public class ReviveRequirementScreen {
     public static void renderRequirementScreen(RenderGameOverlayEvent.Post event) {
         if (event.getType() != RenderGameOverlayEvent.ElementType.CHAT) return;
         if (getPlayer().isCreative() || getPlayer().isSpectator()) return;
+        if (FallenCapability.get(ClientUtil.getPlayer()).isFallen()) return;
         //if (true) return;
         if (!(mC.crosshairPickEntity instanceof PlayerEntity)) return;
         if (((PlayerEntity) mC.crosshairPickEntity).isDeadOrDying()) return;

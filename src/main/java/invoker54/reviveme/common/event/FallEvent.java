@@ -98,6 +98,7 @@ public class FallEvent {
                 }
                 instance.setOtherPlayerAndItem(null, null);
             }
+            instance.syncClient(true);
 
             player.setHealth(0);
             //Make all angerable enemies nearby forgive the player.
@@ -112,8 +113,6 @@ public class FallEvent {
                 mob.aiStep();
             }
             player.setHealth((float) maxHealth);
-
-            instance.syncClient(true);
         }
         else instance.setFallen(false);
 

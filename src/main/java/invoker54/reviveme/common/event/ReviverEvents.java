@@ -16,6 +16,7 @@ public class ReviverEvents {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onHitWhileReviving(LivingDamageEvent event) {
+        if (!ReviveMeConfig.resetReviveOnHit) return;
         if (event.isCanceled()) return;
         if (!(event.getEntityLiving() instanceof PlayerEntity)) return;
         PlayerEntity reviverPlayer = (PlayerEntity) event.getEntityLiving();

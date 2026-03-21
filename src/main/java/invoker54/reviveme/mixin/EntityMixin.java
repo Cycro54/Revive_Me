@@ -3,7 +3,6 @@ package invoker54.reviveme.mixin;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.Pose;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.world.World;
@@ -12,7 +11,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import javax.annotation.Nullable;
@@ -46,29 +44,30 @@ public abstract class EntityMixin {
         return this.revive_Me$cap;
     }
 
-    @Inject(
-            method = "getPose",
-            at = {
-                    @At(value = "HEAD")
-            }, cancellable = true)
-    private void getPose(CallbackInfoReturnable<Pose> cir){
-        if (this.revive_Me$grabOriginal)return;
-
-        if (revive_Me$getCap() == null) return;
-        if (!revive_Me$getCap().isFallen()) return;
-
-        switch (ReviveMeConfig.fallenPose) {
-            case CROUCH:
-                cir.setReturnValue(Pose.CROUCHING);
-                break;
-            case PRONE:
-                cir.setReturnValue(Pose.SWIMMING);
-                break;
-            case SLEEP:
-                cir.setReturnValue(Pose.SLEEPING);
-                break;
-        }
-    }
+    //TODO: DELETE COMMENTED CODE
+//    @Inject(
+//            method = "getPose",
+//            at = {
+//                    @At(value = "HEAD")
+//            }, cancellable = true)
+//    private void getPose(CallbackInfoReturnable<Pose> cir){
+//        if (this.revive_Me$grabOriginal)return;
+//
+//        if (revive_Me$getCap() == null) return;
+//        if (!revive_Me$getCap().isFallen()) return;
+//
+//        switch (ReviveMeConfig.fallenPose) {
+//            case CROUCH:
+//                cir.setReturnValue(Pose.CROUCHING);
+//                break;
+//            case PRONE:
+//                cir.setReturnValue(Pose.SWIMMING);
+//                break;
+//            case SLEEP:
+//                cir.setReturnValue(Pose.SLEEPING);
+//                break;
+//        }
+//    }
 
     @Inject(
             method = "isInvulnerable",
@@ -85,21 +84,21 @@ public abstract class EntityMixin {
         cir.setReturnValue(true);
     }
 
-    @Inject(
-            method = "refreshDimensions",
-            at = {
-                    @At(value = "HEAD")
-            })
-    private void refreshDimensionsHead(CallbackInfo ci){
-        this.revive_Me$grabOriginal = true;
-    }
-
-    @Inject(
-            method = "refreshDimensions",
-            at = {
-                    @At(value = "TAIL")
-            })
-    private void refreshDimensionsTail(CallbackInfo ci){
-        this.revive_Me$grabOriginal = false;
-    }
+//    @Inject(
+//            method = "refreshDimensions",
+//            at = {
+//                    @At(value = "HEAD")
+//            })
+//    private void refreshDimensionsHead(CallbackInfo ci){
+//        this.revive_Me$grabOriginal = true;
+//    }
+//
+//    @Inject(
+//            method = "refreshDimensions",
+//            at = {
+//                    @At(value = "TAIL")
+//            })
+//    private void refreshDimensionsTail(CallbackInfo ci){
+//        this.revive_Me$grabOriginal = false;
+//    }
 }

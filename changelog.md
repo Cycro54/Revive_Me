@@ -1,3 +1,7 @@
+# 1.16.5-1.16.0
+
+<div><pre><strong>Additions</strong><br>-(Config) Revive_Me_Enabled: Enables/disables Revive Me!<br>-(Config) Reset_Revive_On_Hit: Resets revive when reviver takes damage<br>-(Config) Reviver_Must_Look: If the reviver has to look at the revivee<br>-(Config) Fallen_Perspective: What camera perspective a player has whilst fallen<br><br><strong>Changes</strong><br>-Fallen effects are removed on DC<br>-Player fallen pose should properly render now<br>-Fallen glow and death timer visibilty is reduced for non-teammates<br>-Golden apple revive item now requires 2 golden apples by default<br>-Revive requirements no longer show whilst in the fallen state<br><br><strong>Fixes</strong><br>-Fallen effects should now be removed on revive<br>-Death timer should show the correct time<br>-Death timer should restart if reviver/revivee changes dimensions<br>-Call for help and change self-revive screen now checks if the player is holding shift key instead of crouching</pre></div>
+
 # 1.16.5-1.15.44
 
 <div><pre><strong>Changes</strong><br>-Die_When_Timer_Ends is now false by default<br><br><strong>Fixes</strong><br>-Revive Tool tips should work now<br>-Item_User config should now properly block/allow revive items</pre></div>

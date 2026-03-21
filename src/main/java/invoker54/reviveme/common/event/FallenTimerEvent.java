@@ -1,5 +1,6 @@
 package invoker54.reviveme.common.event;
 
+import invoker54.invocore.client.util.InvoText;
 import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
@@ -55,16 +56,24 @@ public class FallenTimerEvent {
 
     @SubscribeEvent
     public static void TickDownTimer(TickEvent.PlayerTickEvent event) {
-        //System.out.println("Game time is: " + event.player.level.getGameTime());
-        if (event.side == LogicalSide.CLIENT) return;
-
         if (event.phase == TickEvent.Phase.END) return;
 
+        //System.out.println("Game time is: " + event.player.level.getGameTime());
         if (event.player.isDeadOrDying()) return;
 
         FallenCapability cap = FallenCapability.get(event.player);
 
         if (!cap.isFallen() || cap.getOtherPlayer() != null) return;
+
+        event.player.setForcedPose(null); //Mixin will assign the correct pose (PlayerMixin)
+
+        if (event.player.level.isClientSide) return;
+//        LOGGER.warn("What's pose: " + event.player.getForcedPose());
+
+        if (!ReviveMeConfig.reviveMeEnabled){
+            event.player.displayClientMessage(InvoText.translate("revive_me.disabled").getText(), false);
+            cap.forceDeath();
+        }
 
         //Make sure they aren't sprinting.
         if (event.player.isSprinting()) event.player.setSprinting(false);
@@ -105,30 +114,28 @@ public class FallenTimerEvent {
         //make sure other player isn't null
         if (cap.getOtherPlayer() == null) return;
 
-        PlayerEntity reviver = event.player.getServer().getPlayerList().getPlayer(cap.getOtherPlayer());
+        PlayerEntity otherPlayer = event.player.getServer().getPlayerList().getPlayer(cap.getOtherPlayer());
 
-        if (reviver != null && cap.getReviveStack() != null) reviver.getCooldowns().addCooldown(cap.getReviveStack().getItem(), 30);
+        if (otherPlayer != null && cap.getReviveStack() != null) otherPlayer.getCooldowns().addCooldown(cap.getReviveStack().getItem(), 30);
 
-        //If tick progress finishes, revive the fallen player and take whatever you need to take from the reviver
+        //If tick progress finishes, revive the fallen player and take whatever you need to take from the otherPlayer
         if (cap.getProgress(true) < 1) return;
 
         //Make sure this person is fallen.
         if (!cap.isFallen()) return;
 
         PlayerEntity fellPlayer = event.player;
-
-        reviver = fellPlayer.getServer().getPlayerList().getPlayer(cap.getOtherPlayer());
-        if (reviver == null) return;
+        if (otherPlayer == null) return;
 
         ReviveItemData reviveData = ReviveItemData.getData(cap.getReviveStack(), ReviveItemData.USER.REVIVER);
         if (reviveData != null){
-            if (!reviver.isCreative()) reviveData.takeItemCount(reviver, cap.getReviveStack());
-            reviveData.revivePlayer(fellPlayer, false, reviver, "item");
+            if (!otherPlayer.isCreative()) reviveData.takeItemCount(otherPlayer, cap.getReviveStack());
+            reviveData.revivePlayer(fellPlayer, false, otherPlayer, "item");
         }
         else
         {
-            ReviveMeConfig.configReviveData.takeFromReviver(reviver, fellPlayer);
-            ReviveMeConfig.configReviveData.revivePlayer(fellPlayer, false, reviver, ReviveMeConfig.penaltyType);
+            ReviveMeConfig.configReviveData.takeFromReviver(otherPlayer, fellPlayer);
+            ReviveMeConfig.configReviveData.revivePlayer(fellPlayer, false, otherPlayer, ReviveMeConfig.penaltyType);
         }
     }
 }

@@ -107,6 +107,7 @@ public class ReviveConfigData {
             case EXPERIENCE: reviveString = "experience"; break;
             case FOOD: reviveString = "food"; break;
         }
+        if (reviver.isCreative()) reviveString = "creative";
         this.revivePlayer(fallen, isCommand, reviver, reviveString);
     }
     public void revivePlayer(PlayerEntity fallen, boolean isCommand, PlayerEntity reviver, FallenCapability.SELFREVIVETYPE selfrevivetype){
