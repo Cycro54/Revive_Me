@@ -4,7 +4,6 @@ import invoker54.invocore.client.util.ClientUtil;
 import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.client.event.FallenItemScreenEvent;
 import invoker54.reviveme.common.capability.FallenData;
-import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.init.NetworkInit;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -60,7 +59,7 @@ public record SyncClientCapMsg(String uuid, CompoundTag capDataTag, boolean rese
                             VanillaKeybindHandler.attackHeld = false;
                         }
 
-                        if (!ReviveMeConfig.refreshItems && (!wasFallen)) FallenItemScreenEvent.refreshItemData();
+                        FallenItemScreenEvent.refreshItemData();
                     });
                 }
         );

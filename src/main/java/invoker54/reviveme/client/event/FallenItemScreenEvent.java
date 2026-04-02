@@ -30,7 +30,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.awt.*;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -80,7 +79,7 @@ public class FallenItemScreenEvent {
     public static void renderItemPage(PoseStack stack, double switchPercentage, InvoZone workZone, InvoZone leftZone, InvoZone rightZone){
         passedTicks = (ClientUtil.getMinecraft().player.level().getGameTime() + FallScreenEvent.getPartialTicks()) - previousTick;
 
-        if (ReviveMeConfig.refreshItems && ClientUtil.getMinecraft().level.getGameTime() % 10 == 0) refreshItemData();
+        if (ClientUtil.getMinecraft().level.getGameTime() % 10 == 0) refreshItemData();
 
         leftZone.setRight(MathUtil.lerp(1 - switchPercentage, leftZone.right(), workZone.x()));
         rightZone.setX(MathUtil.lerp(1 - switchPercentage, rightZone.x(), workZone.right()));
@@ -153,38 +152,10 @@ public class FallenItemScreenEvent {
 
     public static void refreshItemData(){
         dataStackList.clear();
-
-        List<ItemStack> inventoryList = new ArrayList<>(ClientUtil.getPlayer().getInventory().items);
-        inventoryList.addAll(ClientUtil.getPlayer().getInventory().offhand);
-
-        //Go through the inventory and see if any of the items match
-        for (ItemStack invStack : inventoryList){
-
-            if (invStack.isEmpty()) continue;
-            ReviveItemData data = ReviveItemData.getData(invStack, ReviveItemData.USER.FALLEN);
-            if (data == null) continue;
-
-            boolean itemAlreadyFound = false;
-            for (Pair<ItemStack, ReviveItemData> dataPair : dataStackList){
-                if (!ItemStack.isSameItem(invStack, dataPair.getKey())) continue;
-                if (!FallenData.hasSimilarData(invStack, dataPair.getKey())) continue;
-                itemAlreadyFound = true;
-                break;
-            }
-
-            if (itemAlreadyFound) continue;
-
-            dataStackList.add(Pair.of(invStack.copy(), data));
-        }
-
-        //Sort it to the revive item data they have
-        dataStackList.sort(Comparator.comparing(pair -> pair.getRight().getIdName()));
-
+        dataStackList.addAll(FallenData.get(ClientUtil.getPlayer()).getReviveItemList(false));
         dataStackList.add(Pair.of(new ItemStack(Items.BARRIER), null));
-
         changeSelectedItem(0);
     }
-
     public static void changeSelectedItem(int scrollAmount) {
         scrollAmount = -scrollAmount;
         pageList.clear();
@@ -262,8 +233,9 @@ public class FallenItemScreenEvent {
         InvoZone countZone = itemZone.copy().splitHeight(5,2).splitWidth(5,2).setDown(itemZone.down());
         ReviveItemData data = pair.getRight();
         ItemStack chosenStack = pair.getKey();
-        int countNeeded = data == null ? 0 : data.getCountRequired() - data.getItemCount(ClientUtil.getPlayer(), chosenStack);
-        boolean hasEnough = data == null || data.getItemCount(ClientUtil.getPlayer(), chosenStack) >= data.getCountRequired();
+        int currentCount = data == null ? 0 : Math.min(pair.getKey().getCount(), data.getItemCount(ClientUtil.getPlayer(), chosenStack));
+        int countNeeded = data == null ? 0 : data.getCountRequired() - currentCount;
+        boolean hasEnough = data == null || currentCount >= data.getCountRequired();
 
         ClientUtil.blitColor(stack, itemZone, blackFadeColor);
         if (!hasEnough){
@@ -273,11 +245,10 @@ public class FallenItemScreenEvent {
         ClientUtil.blitItem(stack, itemZone.inflate(-1,-1), chosenStack);
 
         if (data != null) {
-            int startCount = data.getItemCount(ClientUtil.getMinecraft().player, pair.getKey());
-            int endCount = startCount - data.getCountRequired();
+            int endCount = currentCount - data.getCountRequired();
 
             ClientUtil.blitColor(stack, countZone, Color.black.getRGB());
-            TextUtil.renderText(stack, InvoText.literal(String.valueOf(startCount)).withStyle(false, ChatFormatting.GREEN).getText(), false, 1,
+            TextUtil.renderText(stack, InvoText.literal(String.valueOf(currentCount)).withStyle(false, ChatFormatting.GREEN).getText(), false, 1,
                     countZone.copy().inflate(-0.2f, -0.2f), TextUtil.txtAlignment.MIDDLE);
 
             ClientUtil.blitColor(stack, countZone.setRight(itemZone.right()), Color.black.getRGB());
@@ -507,7 +478,7 @@ public class FallenItemScreenEvent {
         VanillaKeybindHandler.attackHeld = false;
         VanillaKeybindHandler.useHeld = false;
 
-        if (ReviveMeConfig.refreshItems && isItemScreenActive) refreshItemData();
+        if (isItemScreenActive) refreshItemData();
     }
 
     public static double getSwitchPercentage() {

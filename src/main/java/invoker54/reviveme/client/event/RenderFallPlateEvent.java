@@ -101,7 +101,7 @@ public class RenderFallPlateEvent {
                 int chosenColor = 0;
                 boolean canRender = false;
 
-                if (!mC.player.isCrouching() && !player.isDeadOrDying()) {
+                if (!mC.player.isShiftKeyDown() && !player.isDeadOrDying()) {
                     canRender = true;
                     chosenColor = greenProgCircle;
 
@@ -112,7 +112,7 @@ public class RenderFallPlateEvent {
                     else chosenText = InvoText.literal("RIP");
                     chosenText.withStyle(true, InvoTextFormat.filter( ChatFormatting.BOLD))
                             .withStyle(false, InvoTextFormat.filter( cap.hasEnough(inst.player) ? ChatFormatting.GREEN : ChatFormatting.RED));
-                } else if (ClientUtil.getMinecraft().player.isCrouching() || player.isDeadOrDying()) {
+                } else if (ClientUtil.getMinecraft().player.isShiftKeyDown() || player.isDeadOrDying()) {
                     canRender = true;
                     chosenColor = redProgCircle;
 
@@ -122,7 +122,7 @@ public class RenderFallPlateEvent {
 
                 if (canRender && distance < ReviveMeConfig.deathTimerMaxDistance) {
                     float endAngle = 360;
-                    if (inst.player.isCrouching()) {
+                    if (inst.player.isShiftKeyDown()) {
                         endAngle = endAngle * (cap.getKillTime(true));
                     } else if (ReviveMeConfig.timeLeft != 0) endAngle *= Math.max(0, cap.getTimeLeft(true));
 
@@ -145,7 +145,7 @@ public class RenderFallPlateEvent {
 
                 InvoText message = null;
                 if (mC.crosshairPickEntity == player && !player.isDeadOrDying() && !iAmFallen) {
-                    if (mC.player.isCrouching()) {
+                    if (mC.player.isShiftKeyDown()) {
                         if (cap.getKillTime(false) > 0) {
                             message = InvoText.translate("revive_me.fall_plate.cant_kill");
                         } else {

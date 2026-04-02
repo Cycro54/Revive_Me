@@ -17,11 +17,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static com.mrcrayfish.controllable.client.binding.ButtonBindings.*;
+import static invoker54.reviveme.compatibility.controllable.client.events.ControllableModEvents.revive_Me_vanillaBindingList;
 
 @Mixin(ButtonBinding.class)
 public abstract class ControllableButtonBindingMixin {
@@ -37,8 +33,6 @@ public abstract class ControllableButtonBindingMixin {
 
     @Shadow
     private boolean pressed;
-    @Unique
-    private static List<ButtonBinding> revive_Me_vanillaBindingList = new ArrayList<>();
 
     @Unique
     private static boolean revive_Me_1_16_5$_isPlayerDown() {
@@ -48,11 +42,6 @@ public abstract class ControllableButtonBindingMixin {
         if (player == null) return false;
         FallenData cap = FallenData.get(player);
 
-        if (revive_Me_vanillaBindingList.isEmpty()){
-            revive_Me_vanillaBindingList.addAll(Arrays.asList(SCROLL_HOTBAR_LEFT, SCROLL_HOTBAR_RIGHT, PAUSE_GAME, NEXT_CREATIVE_TAB, PREVIOUS_CREATIVE_TAB, NEXT_RECIPE_TAB, PREVIOUS_RECIPE_TAB,
-                    NAVIGATE_UP, NAVIGATE_DOWN, NAVIGATE_LEFT, NAVIGATE_RIGHT, PICKUP_ITEM, QUICK_MOVE, SPLIT_STACK,
-                    DEBUG_INFO, RADIAL_MENU));
-        }
         return cap.isFallen();
     }
 

@@ -39,7 +39,7 @@ public class ReviveRequirementScreen {
             //if (true) return;
             if (!(ClientUtil.getMinecraft().crosshairPickEntity instanceof Player)) return;
             if (((Player) ClientUtil.getMinecraft().crosshairPickEntity).isDeadOrDying()) return;
-            if (ClientUtil.getPlayer().isCrouching()) return;
+            if (ClientUtil.getPlayer().isShiftKeyDown()) return;
             FallenData cap = FallenData.get((LivingEntity) ClientUtil.getMinecraft().crosshairPickEntity);
             if (!cap.isFallen()) return;
             if (cap.getOtherPlayer() != null) return;
