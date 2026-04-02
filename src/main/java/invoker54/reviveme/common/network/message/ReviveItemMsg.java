@@ -8,6 +8,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.function.Supplier;
 
@@ -35,13 +36,21 @@ public class ReviveItemMsg {
             if (player == null) return;
             if (!player.isAlive()) return;
 
-            ItemStack chosenStack = ItemStack.of(msg.itemNBT);
-            ReviveItemData reviveData = ReviveItemData.getData(chosenStack, ReviveItemData.USER.FALLEN);
-
-            //When doing items, only things that will stop death is canGiveUp and they use a null item,
-
-
             FallenCapability cap = FallenCapability.get(player);
+            ItemStack chosenStack = ItemStack.of(msg.itemNBT);
+            boolean isValid = ReviveMeConfig.refreshItems;
+            if (!isValid){
+                for (Pair<ItemStack, ReviveItemData> reviveItemPair : cap.getReviveItemList(false)){
+                    if (!chosenStack.sameItem(reviveItemPair.getKey())) continue;
+                    if (!ItemStack.tagMatches(chosenStack, reviveItemPair.getKey())) continue;
+                    if (reviveItemPair.getRight().getCountRequired() > reviveItemPair.getLeft().getCount()) continue;
+                    isValid = true;
+                    break;
+                }
+            }
+
+            ReviveItemData reviveData = isValid ? ReviveItemData.getData(chosenStack, ReviveItemData.USER.FALLEN) : null;
+
             if (!cap.isFallen()){
                 cap.syncClient(true);
                 return;

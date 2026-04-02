@@ -15,24 +15,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static com.mrcrayfish.controllable.client.ButtonBindings.*;
-import static com.mrcrayfish.controllable.client.ButtonBindings.DEBUG_INFO;
-import static com.mrcrayfish.controllable.client.ButtonBindings.NAVIGATE_DOWN;
-import static com.mrcrayfish.controllable.client.ButtonBindings.NAVIGATE_LEFT;
-import static com.mrcrayfish.controllable.client.ButtonBindings.NAVIGATE_RIGHT;
-import static com.mrcrayfish.controllable.client.ButtonBindings.NAVIGATE_UP;
-import static com.mrcrayfish.controllable.client.ButtonBindings.NEXT_CREATIVE_TAB;
-import static com.mrcrayfish.controllable.client.ButtonBindings.NEXT_RECIPE_TAB;
-import static com.mrcrayfish.controllable.client.ButtonBindings.PICKUP_ITEM;
-import static com.mrcrayfish.controllable.client.ButtonBindings.PREVIOUS_CREATIVE_TAB;
-import static com.mrcrayfish.controllable.client.ButtonBindings.PREVIOUS_RECIPE_TAB;
-import static com.mrcrayfish.controllable.client.ButtonBindings.QUICK_MOVE;
-import static com.mrcrayfish.controllable.client.ButtonBindings.RADIAL_MENU;
-import static com.mrcrayfish.controllable.client.ButtonBindings.SPLIT_STACK;
+import static invoker54.reviveme.compatibility.controllable.client.events.ControllableModEvents.revive_Me_vanillaBindingList;
 
 @Mixin(ButtonBinding.class)
 public abstract class ControllableButtonBindingMixin {
@@ -44,9 +27,6 @@ public abstract class ControllableButtonBindingMixin {
     public abstract String getLabelKey();
 
     @Unique
-    private static List<ButtonBinding> revive_Me_vanillaBindingList = new ArrayList<>();
-
-    @Unique
     private static boolean revive_Me_1_16_5$_isPlayerDown() {
         if (ClientUtil.mC.screen != null) return false;
         if (ClientUtil.getWorld() == null) return false;
@@ -55,11 +35,6 @@ public abstract class ControllableButtonBindingMixin {
         FallenCapability cap = FallenCapability.get(player);
         if (!cap.isFallen()) return false;
 
-        if (revive_Me_vanillaBindingList.isEmpty()){
-            revive_Me_vanillaBindingList.addAll(Arrays.asList(SCROLL_LEFT, SCROLL_RIGHT, PAUSE_GAME, NEXT_CREATIVE_TAB, PREVIOUS_CREATIVE_TAB, NEXT_RECIPE_TAB, PREVIOUS_RECIPE_TAB,
-                    NAVIGATE_UP, NAVIGATE_DOWN, NAVIGATE_LEFT, NAVIGATE_RIGHT, PICKUP_ITEM, QUICK_MOVE, SPLIT_STACK,
-                    DEBUG_INFO, RADIAL_MENU));
-        }
         return cap.isFallen();
     }
 

@@ -62,7 +62,7 @@ public class SyncClientCapMsg {
                 VanillaKeybindHandler.attackHeld = false;
             }
 
-            if (!ReviveMeConfig.refreshItems && (!wasFallen)) FallenItemScreenEvent.refreshItemData();
+            FallenItemScreenEvent.refreshItemData();
         });
         context.setPacketHandled(true);
     }

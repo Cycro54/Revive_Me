@@ -35,6 +35,7 @@
   "revive-me.fallenScreen.self_revive.kill_2": "%1$s mobs",
   "revive-me.fallenScreen.self_revive.kill_3": " WITHIN ",
   "revive-me.fallenScreen.self_revive.kill_4": "%1$s seconds",
+  "revive_me.fallenScreen.self_revive.kill_false": "Not enough time",
   "revive-me.fallenScreen.self_revive.status_effects_1": "Hold [%1$s] to gain harmful effects",
   "revive-me.fallenScreen.self_revive.experience.false_1": "Not enough XP (Need %1$s XP levels)",
   "revive-me.fallenScreen.self_revive.experience_1": "Hold [%1$s] to sacrifice XP levels",
@@ -120,5 +121,5 @@
   "reviveme.item.description.enchanted_golden_apple": "Now THAT's an apple!",
   "reviveme.item.description.totem_of_undying": "Heh, shiny...",
   "reviveme.item.description.nether_star": "UNLIMITED, POWAAAAAAH! WARNING: Will cause explosion",
-  "reviveme.item.description.ender_pearl": "This is safe to use, right? (Refreshes timer and self revive options)"
+  "reviveme.item.description.ender_pearl": "This is safe to use, right? \n(Refreshes timer and self revive options - including items)"
 }

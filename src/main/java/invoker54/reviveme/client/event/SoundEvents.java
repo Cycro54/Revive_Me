@@ -78,7 +78,10 @@ public class SoundEvents{
         FallenCapability cap = FallenCapability.get(ClientUtil.getPlayer());
         if (!cap.isFallen() || cap.getOtherPlayer() != null) return;
 
-        if (cap.getTimeLeft(false) > 5 || ReviveMeConfig.timeLeft == 0 || !ReviveMeConfig.dieWhenTimerEnds) fallen_state_random_sound.playWhenStopped();
+        if (!ClientUtil.getPlayer().isDeadOrDying() &&
+                (cap.getTimeLeft(false) > 5 ||
+                        ReviveMeConfig.timeLeft == 0 ||
+                        !ReviveMeConfig.dieWhenTimerEnds)) fallen_state_random_sound.playWhenStopped();
         if ((cap.getTimeLeft(false) % 1 == 0)) fallen_state_ticking_sound.play();
     }
 
