@@ -9,6 +9,7 @@ import invoker54.reviveme.init.DamageTypeInit;
 import invoker54.reviveme.init.MobEffectInit;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
@@ -24,7 +25,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.awt.*;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class KillRevivePotionEffect extends MobEffect {
@@ -94,12 +94,12 @@ public class KillRevivePotionEffect extends MobEffect {
 
         public static void removeEffect(LivingEntity entity, MobEffectInstance effect, boolean completed) {
             if (effect == null) return;
-            if (!(effect.getEffect() instanceof KillRevivePotionEffect)) return;
+            if (!(effect.getEffect().value() instanceof KillRevivePotionEffect)) return;
 
             DamageSource killSource = new DamageSource(entity.level().registryAccess()
                     .lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(DamageTypeInit.KILL_REVIVE));
             if (!(entity instanceof ServerPlayer)){
-                if (completed) entity.hurt(killSource, 20 * (effect.getAmplifier() + 1));
+                if (completed) entity.hurtServer((ServerLevel)entity.level(), killSource, 20 * (effect.getAmplifier() + 1));
                 return;
             }
 
@@ -109,7 +109,7 @@ public class KillRevivePotionEffect extends MobEffect {
             if (completed) return;
 
             entity.setHealth(0.00000001F);
-            entity.hurt(killSource, 1);
+            entity.hurtServer(((ServerPlayer) entity).level(), killSource, 20);
         }
     }
 }

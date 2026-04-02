@@ -400,6 +400,7 @@ public class ReviveItemData extends ReviveConfigData {
             cap.cycleReviveOptions(null);
             cap.cycleReviveOptions(null);
             cap.refreshSelfReviveTypes();
+            cap.refreshReviveItemList();
         }
         if (this.useReviveOnFail) cap.incrementSelfReviveCount();
 

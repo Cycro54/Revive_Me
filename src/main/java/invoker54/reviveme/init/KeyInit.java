@@ -16,7 +16,6 @@ import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.payload.BeginReviveMsg;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -28,7 +27,6 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.client.settings.IKeyConflictContext;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.neoforged.neoforge.client.settings.KeyModifier;
-import net.neoforged.neoforge.network.PacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 
@@ -67,7 +65,6 @@ public class KeyInit {
                 (action) -> {
                     if (leftOption.keyBind.getKey().getType() == InputConstants.Type.MOUSE && !KeyEvents.isPostMouse)
                         return;
-//                    LOGGER.warn("I am here: " + action);
                     if (action == GLFW.GLFW_REPEAT) return;
                     if (ClientUtil.getMinecraft().screen != null) return;
                     FallenData cap = FallenData.get(ClientUtil.getPlayer());

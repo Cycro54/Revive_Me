@@ -52,9 +52,6 @@ public record ReviveItemMsg(CompoundTag itemNBT) implements CustomPacketPayload 
                         }
                         ReviveItemData reviveData = isValid ? ReviveItemData.getData(chosenStack, ReviveItemData.USER.FALLEN) : null;
 
-                        //When doing items, only things that will stop death is canGiveUp and they use a null item,
-
-
                         if (!cap.isFallen()){
                             cap.syncClient(true);
                             return;

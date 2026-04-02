@@ -63,7 +63,7 @@ public class ControllableBindingRegistryMixin {
 
         bindingList = bindingList.stream().sorted(Comparator.comparing(bell ->
                 !bell.getLabelKey().contains("key.revive_me"))).toList();
-        bindingList.forEach(b -> LOGGERT.warn(b.getLabelKey()));
+//        bindingList.forEach(b -> LOGGERT.warn(b.getLabelKey()));
 
         cir.setReturnValue(bindingList);
     }

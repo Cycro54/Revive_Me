@@ -48,7 +48,6 @@ public abstract class KeyMappingMixin implements Comparable<KeyMapping>, IKeyMap
         if (ClientUtil.getPlayer() == null) return;
         if (!FallenData.get(ClientUtil.getPlayer()).isFallen()) return;
         if (VanillaKeybindHandler.isAllowedKeybind(((KeyMapping)(Object)this))) return;
-//        LOGGERT.warn("{matches} This failed: " + this.name);
         cir.setReturnValue(false);
     }
 
@@ -78,7 +77,6 @@ public abstract class KeyMappingMixin implements Comparable<KeyMapping>, IKeyMap
 
         if (!cap.isFallen()) return this.key;
         if (VanillaKeybindHandler.isAllowedKeybind((KeyMapping) (Object)this)) return this.key;
-//        LOGGERT.warn("{getKey} This failed: " + this.name);
 
         return InputConstants.Type.KEYSYM.getOrCreate(-1);
     }
@@ -93,7 +91,6 @@ public abstract class KeyMappingMixin implements Comparable<KeyMapping>, IKeyMap
         if (!this.isDown) return;
         KeyMapping keyBinding = ((KeyMapping) (Object) this);
         if (VanillaKeybindHandler.canBeDown(keyBinding)) return;
-//        LOGGERT.warn("{isDown} This failed: " + this.name);
 
         this.setDown(false);
     }

@@ -636,10 +636,6 @@ public class FallenData implements ValueIOSerializable {
         return Pair.of(stackList, count);
     }
 
-    public void removeSacrificeItems(int removeAmount){
-
-    }
-
     public int getPenaltyMultiplier(){
         return this.penaltyMultiplier;
     }
