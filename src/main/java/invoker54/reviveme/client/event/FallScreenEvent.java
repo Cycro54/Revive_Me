@@ -101,6 +101,7 @@ public class FallScreenEvent {
     private static final InvoText killTxt2 = InvoText.translate(fallenDirectory+"kill_2");
     private static final InvoText killTxt3 = InvoText.translate(fallenDirectory+"kill_3");
     private static final InvoText killTxt4 = InvoText.translate(fallenDirectory+"kill_4");
+    private static final InvoText killFalseTxt = InvoText.translate(fallenDirectory+"kill_false");
     private static final InvoText statusEffectTxt = InvoText.translate(fallenDirectory+"status_effects_1");
     private static final InvoText experienceFalseTxt = InvoText.translate(fallenDirectory+"experience.false_1");
     private static final InvoText experienceTxt = InvoText.translate(fallenDirectory+"experience_1");
@@ -392,7 +393,7 @@ public class FallScreenEvent {
                     ClientUtil.blitItem(stack, randomItemImageZone, sacrificeStack);
 
                     //Draw the amount they have, then the amount they will have after reduction
-                    int count = FallenCapability.countItem(inst.player.getInventory(), sacrificeStack);
+                    int count = FallenCapability.getSacrificeItems(inst.player.getInventory(), sacrificeStack).getRight();
                     TextUtil.renderText(stack, InvoText.literal("" + count).withStyle(true, InvoTextFormat.filter(ChatFormatting.BOLD, ChatFormatting.GREEN)).getText(),
                             true, 1, randomItemTxtZone, TextUtil.txtAlignment.MIDDLE);
                     randomItemTxtZone.shift(randomItemTxtZone.width(), 0);
@@ -468,24 +469,30 @@ public class FallScreenEvent {
             case KILL: {
                 chosenTxt = killTxt1;
                 int seconds = (int) ((ReviveMeConfig.reviveKillTime * 20 * (1 - cap.getSelfPenaltyPercentage()))/20);
-                mainZone.splitHeight(4, 1);
-                mainZone.setY(mainZone.middleY());
+                shouldPass = seconds > 0;
 
-                TextUtil.renderText(stack, killTxt2.withStyle(true, InvoTextFormat.filter(ChatFormatting.GOLD)).setArgs(
-                                InvoText.literal(""+ReviveMeConfig.reviveKillAmount)
-                                        .withStyle(true, InvoTextFormat.filter(ChatFormatting.RED)).getText()).getText(),
-                        true, 1, mainZone.copy()
-                                .inflate(-3,-3), TextUtil.txtAlignment.MIDDLE);
+                if (shouldPass) {
+                    mainZone.splitHeight(4, 1);
+                    mainZone.setY(mainZone.middleY());
+                    TextUtil.renderText(stack, killTxt2.withStyle(true, InvoTextFormat.filter(ChatFormatting.GOLD)).setArgs(
+                                    InvoText.literal("" + ReviveMeConfig.reviveKillAmount)
+                                            .withStyle(true, InvoTextFormat.filter(ChatFormatting.RED)).getText()).getText(),
+                            true, 1, mainZone.copy()
+                                    .inflate(-3, -3), TextUtil.txtAlignment.MIDDLE);
 
-                TextUtil.renderText(stack, killTxt3.withStyle(true, InvoTextFormat.filter(ChatFormatting.GOLD, ChatFormatting.BOLD)).getText(),
-                        true, 1, mainZone.shift(0, mainZone.height()).copy()
-                                .inflate(-3,-3), TextUtil.txtAlignment.MIDDLE);
+                    TextUtil.renderText(stack, killTxt3.withStyle(true, InvoTextFormat.filter(ChatFormatting.GOLD, ChatFormatting.BOLD)).getText(),
+                            true, 1, mainZone.shift(0, mainZone.height()).copy()
+                                    .inflate(-3, -3), TextUtil.txtAlignment.MIDDLE);
 
-                TextUtil.renderText(stack, killTxt4.withStyle(true, InvoTextFormat.filter(ChatFormatting.GOLD)).setArgs(InvoText.literal(""+seconds)
-                                .withStyle(true, InvoTextFormat.filter(ChatFormatting.RED)).getText()).getText(),
-                        true, 1, mainZone.shift(0, mainZone.height()).copy()
-                                .inflate(-3,-3), TextUtil.txtAlignment.MIDDLE);
-
+                    TextUtil.renderText(stack, killTxt4.withStyle(true, InvoTextFormat.filter(ChatFormatting.GOLD)).setArgs(InvoText.literal("" + seconds)
+                                    .withStyle(true, InvoTextFormat.filter(ChatFormatting.RED)).getText()).getText(),
+                            true, 1, mainZone.shift(0, mainZone.height()).copy()
+                                    .inflate(-3, -3), TextUtil.txtAlignment.MIDDLE);
+                }
+                else {
+                    TextUtil.renderText(stack, killFalseTxt.withStyle(true, InvoTextFormat.filter(ChatFormatting.RED)).getText(),
+                            true, 0, mainZone.inflate(-4,-4), TextUtil.txtAlignment.MIDDLE);
+                }
                 break;
             }
             case STATUS_EFFECTS: {
