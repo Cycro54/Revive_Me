@@ -42,7 +42,7 @@ public class PlayerControllerMixin {
 
         if (!canRevive) canRevive = ReviveItemData.getData(player.getMainHandItem(), ReviveItemData.USER.REVIVER) != null;
 
-        if (myCap.isFallen() || (lookingAtFallen && (canRevive && !player.isCrouching()))) cir.setReturnValue(InteractionResult.FAIL);
+        if (myCap.isFallen() || (lookingAtFallen && (canRevive && !player.isShiftKeyDown()))) cir.setReturnValue(InteractionResult.FAIL);
         if (myCap.getOtherPlayer() != null){
             player.stopUsingItem();
             cir.setReturnValue(InteractionResult.FAIL);

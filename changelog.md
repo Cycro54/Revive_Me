@@ -1,3 +1,7 @@
+# 1.18.2-2.12.1
+
+<div><pre><strong>Changes</strong><br>-Penalty Timer now warns people once if it can't be removed<br>-Split up Self Revive methods inside Fallen Capability<br><br><strong>Fixes</strong><br>-Controllable should now work properly again<br>-Refresh revive items config now works properly<br>-No longer can use self revive if it's disabled</pre></div>
+
 # 1.18.2-2.12.0
 
 <div><pre><strong>Additions</strong><br>-(Config) Revive_Me_Enabled: Enables/disables Revive Me!<br>-(Config) Reset_Revive_On_Hit: Resets revive when reviver takes damage<br>-(Config) Reviver_Must_Look: If the reviver has to look at the revivee<br>-(Config) Fallen_Perspective: What camera perspective a player has whilst fallen<br><br><strong>Changes</strong><br>-Fallen effects are removed on DC<br>-Player fallen pose should properly render now<br>-Fallen glow and death timer visibilty is reduced for non-teammates<br>-Golden apple revive item now requires 2 golden apples by default<br>-Revive requirements no longer show whilst in the fallen state<br><br><strong>Fixes</strong><br>-Fallen effects should now be removed on revive<br>-Death timer should show the correct time<br>-Death timer should restart if reviver/revivee changes dimensions<br>-Call for help and change self-revive screen now checks if the player is holding shift key instead of crouching</pre></div>

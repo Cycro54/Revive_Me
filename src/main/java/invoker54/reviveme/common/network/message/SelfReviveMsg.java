@@ -41,7 +41,7 @@ public class SelfReviveMsg {
             if (!cap.canSelfRevive() && ReviveMeConfig.canGiveUp){
                 cap.forceDeath();
             }
-            else {
+            else if (cap.canSelfRevive()){
                 cap.useReviveOption(cap.getSelfReviveOption(msg.selectedOption));
             }
         });

@@ -16,10 +16,14 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 public class FallenPotionEffect extends MobEffect {
+    public static List<UUID> warnedPlayers = new ArrayList<>();
+
     public static final int effectColor = new Color(35, 5, 5,255).getRGB();
 
     public FallenPotionEffect(MobEffectCategory category){
@@ -54,7 +58,10 @@ public class FallenPotionEffect extends MobEffect {
             if (cap.isFallen()) return false;
 
             if (!completed && !ReviveMeConfig.canRemovePenaltyTimer && !((Player) entity).isCreative()){
-                entity.sendMessage(InvoText.translate("effect.reviveme.fallen_effect.cant_remove").getText(),entity.getUUID());
+                if (!warnedPlayers.contains(entity.getUUID())){
+                    ((Player) entity).displayClientMessage(InvoText.translate("effect.reviveme.fallen_effect.cant_remove").getText(), false);
+                    warnedPlayers.add(entity.getUUID());
+                }
                 return true;
             }
 

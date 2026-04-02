@@ -31,7 +31,7 @@ public class ReviveRequirementScreen {
             //if (true) return;
             if (!(ClientUtil.mC.crosshairPickEntity instanceof Player)) return;
             if (((Player) ClientUtil.mC.crosshairPickEntity).isDeadOrDying()) return;
-            if (ClientUtil.getPlayer().isCrouching()) return;
+            if (ClientUtil.getPlayer().isShiftKeyDown()) return;
             FallenCapability cap = FallenCapability.get((LivingEntity) ClientUtil.mC.crosshairPickEntity);
             if (!cap.isFallen()) return;
             if (cap.getOtherPlayer() != null) return;
