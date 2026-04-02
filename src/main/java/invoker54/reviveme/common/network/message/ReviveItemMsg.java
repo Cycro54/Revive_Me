@@ -35,13 +35,21 @@ public class ReviveItemMsg {
             if (player == null) return;
             if (!player.isAlive()) return;
 
-            ItemStack chosenStack = ItemStack.of(msg.itemNBT);
-            ReviveItemData reviveData = ReviveItemData.getData(chosenStack, ReviveItemData.USER.FALLEN);
-
-            //When doing items, only things that will stop death is canGiveUp and they use a null item,
-
-
             FallenCapability cap = FallenCapability.get(player);
+            ItemStack chosenStack = ItemStack.of(msg.itemNBT);
+            boolean isValid = ReviveMeConfig.refreshItems;
+            if (!isValid){
+                for (var reviveItemPair : cap.getReviveItemList(false)){
+                    if (!chosenStack.sameItem(reviveItemPair.getKey())) continue;
+                    if (!ItemStack.tagMatches(chosenStack, reviveItemPair.getKey())) continue;
+                    if (reviveItemPair.getRight().getCountRequired() > reviveItemPair.getLeft().getCount()) continue;
+                    isValid = true;
+                    break;
+                }
+            }
+
+            ReviveItemData reviveData = isValid ? ReviveItemData.getData(chosenStack, ReviveItemData.USER.FALLEN) : null;
+
             if (!cap.isFallen()){
                 cap.syncClient(true);
                 return;

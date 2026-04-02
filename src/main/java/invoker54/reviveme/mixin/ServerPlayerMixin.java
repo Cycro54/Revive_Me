@@ -74,7 +74,7 @@ public abstract class ServerPlayerMixin extends Player {
         if (!revive_Me$getCap().isFallen()) return;
 
         boolean sourceIsPlayer = (damageSource.getEntity() instanceof Player);
-        boolean playerIsCrouching = (sourceIsPlayer && damageSource.getEntity().isCrouching());
+        boolean playerIsCrouching = (sourceIsPlayer && damageSource.getEntity().isShiftKeyDown());
         boolean killTimerIsExpired = revive_Me$getCap().getKillTime(false) == 0;
         boolean actualDamage = damage > 0;
 

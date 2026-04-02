@@ -46,6 +46,7 @@ public class ReviveMe {
         if (ModList.get().isLoaded("controllable")){
             ControllableModEvents.isControllableLoaded = true;
             MinecraftForge.EVENT_BUS.register(new ControllableModEvents());
+            ControllableModEvents.init();
         }
     }
 }
