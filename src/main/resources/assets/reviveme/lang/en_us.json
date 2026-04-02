@@ -48,6 +48,7 @@
 
   "__comment":"this is for damage sources",
   "death.attack.revive-me.damage_source.kill_revive": "[Kill Revive] %1$s wasn't fast enough.",
+  "death.attack.revive-me.damage_source.kill_revive.player": "[Kill Revive] %1$s wasn't fast enough.",
 
   "__comment":"This is for subtitles",
   "sounds.reviveme.fallen_state_heart_beat": "Heart Beat Ambience",
