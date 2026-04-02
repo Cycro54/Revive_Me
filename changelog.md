@@ -1,3 +1,7 @@
+# 1.21.1-5.7.14
+
+<div><pre><strong>Changes</strong><br>-Penalty Timer now warns people once if it can't be removed<br>-Split up Self Revive methods inside Fallen Capability<br><br><strong>Fixes</strong><br>-Controllable should now work properly again<br>-Refresh revive items config now works properly<br>-No longer can use self revive if it's disabled</pre></div>
+
 # 1.21.1-5.7.13
 
 <div><pre><strong>Fixes</strong><br>-Should no longer crash if Reviver DCs<br>-Fallen keybinds should display correctly now</pre></div>
