@@ -95,7 +95,7 @@ public class KillRevivePotionEffect extends MobEffect {
 
         public static void removeEffect(LivingEntity entity, MobEffectInstance effect, boolean completed) {
             if (effect == null) return;
-            if (!(effect.getEffect() instanceof KillRevivePotionEffect)) return;
+            if (!(effect.getEffect().value() instanceof KillRevivePotionEffect)) return;
 
             DamageSource killSource = new DamageSource(entity.level().registryAccess()
                     .lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(DamageTypeInit.KILL_REVIVE));
