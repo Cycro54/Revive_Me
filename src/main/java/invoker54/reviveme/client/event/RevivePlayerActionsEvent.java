@@ -14,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -22,42 +23,42 @@ import java.util.UUID;
 @EventBusSubscriber(value = Dist.CLIENT, modid = ReviveMe.MOD_ID)
 public class RevivePlayerActionsEvent {
     private static final ModLogger LOGGER = ModLogger.getLogger(RevivePlayerActionsEvent.class, ReviveMeConfig.debugMode);
-    private static final Minecraft inst = Minecraft.getInstance();
 
     @SubscribeEvent
     public static void reviveCheck(PlayerTickEvent.Pre event){
-        if (!event.getEntity().level().isClientSide) return;
-        if(event.getEntity() != inst.player) return;
+        if (!event.getEntity().level().isClientSide()) return;
+        Minecraft mc = ClientUtil.getMinecraft();
+        if(event.getEntity() != mc.player) return;
 
-        FallenData myCap = FallenData.get(inst.player);
-        UUID myUUID = inst.player.getUUID();
+        FallenData myCap = FallenData.get(mc.player);
+        UUID myUUID = mc.player.getUUID();
 
         if (myCap.getOtherPlayer() == null) return;
 
         if (myCap.isFallen()) return;
 
-        Player targPlayer = inst.level.getPlayerByUUID(myCap.getOtherPlayer());
+        Player targPlayer = mc.level.getPlayerByUUID(myCap.getOtherPlayer());
 
         boolean cancelEvent;
 
         //Check if it's a player
-        //System.out.println("Player entity instance? : " + (inst.crosshairPickEntity instanceof Player));
+        //System.out.println("Player entity instance? : " + (mc.crosshairPickEntity instanceof Player));
 
         cancelEvent = targPlayer == null;
 
         //Check if that player is being revived by them
         if (!cancelEvent) {
-//            //System.out.println("Someone I'm reviving? : " + (FallenData.get((Player)inst.crosshairPickEntity).
+//            //System.out.println("Someone I'm reviving? : " + (FallenData.get((Player)mc.crosshairPickEntity).
 //                    compareUUID(myUUID)));
-//            cancelEvent = !(FallenData.get((Player) inst.crosshairPickEntity).
+//            cancelEvent = !(FallenData.get((Player) mc.crosshairPickEntity).
 //                    isReviver(myUUID));
-            cancelEvent = (inst.crosshairPickEntity != targPlayer && (ReviveMeConfig.reviverMustLook ||
+            cancelEvent = (mc.crosshairPickEntity != targPlayer && (ReviveMeConfig.reviverMustLook ||
                     ClientUtil.getPlayer().distanceTo(targPlayer) > ClientUtil.getPlayer().getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE)));
         }
 
         //Check if I'm holding the use button down
         if(!cancelEvent) {
-            //System.out.println("Am I holding use down?: " + inst.options.keyUse.isDown());
+            //System.out.println("Am I holding use down?: " + mc.options.keyUse.isDown());
             cancelEvent = !VanillaKeybindHandler.useHeld;
         }
 
@@ -66,21 +67,22 @@ public class RevivePlayerActionsEvent {
         }
 
         if (cancelEvent){
-            PacketDistributor.sendToServer(new RestartDeathTimerMsg());
+            ClientPacketDistributor.sendToServer(new RestartDeathTimerMsg());
         }
     }
 
     @SubscribeEvent
     public static void reviveItemUse(PlayerTickEvent.Pre event) {
-        if (event.getEntity() != inst.player) return;
+        Minecraft mc = ClientUtil.getMinecraft();
+        if (event.getEntity() != mc.player) return;
 
-        if (!(inst.crosshairPickEntity instanceof Player)) return;
+        if (!(mc.crosshairPickEntity instanceof Player)) return;
 
-        FallenData cap = FallenData.get((Player) inst.crosshairPickEntity);
+        FallenData cap = FallenData.get((Player) mc.crosshairPickEntity);
         if (!cap.isFallen()) return;
         if (cap.getOtherPlayer() == null) return;
-        if (!inst.player.isUsingItem()) return;
+        if (!mc.player.isUsingItem()) return;
 
-        inst.gameMode.releaseUsingItem(event.getEntity());
+        mc.gameMode.releaseUsingItem(event.getEntity());
     }
 }

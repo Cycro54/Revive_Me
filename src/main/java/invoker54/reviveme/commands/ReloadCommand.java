@@ -8,13 +8,15 @@ import invoker54.reviveme.common.network.payload.SyncConfigMsg;
 import invoker54.reviveme.init.NetworkInit;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.server.permissions.Permissions;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 public class ReloadCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
                 Commands.literal("revivemereload")
-                        .requires((commandSource -> commandSource.hasPermission(2)))
+                        .requires((commandSource ->
+                                commandSource.permissions().hasPermission(Permissions.COMMANDS_ADMIN)))
                         .executes(ReloadCommand::reload)
         );
     }

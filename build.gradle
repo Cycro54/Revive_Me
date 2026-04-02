@@ -4,7 +4,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'idea'
-    id 'net.neoforged.moddev' version '2.0.61-beta'
+    id 'net.neoforged.moddev' version '2.0.140'
     id "com.hypherionmc.modutils.modpublisher" version "${PUBLICATION_GRADLE_VERSION}"
 }
 
@@ -58,7 +58,7 @@ neoForge {
         }
 
         data {
-            data()
+            clientData()
 
             // example of overriding the workingDirectory set in configureEach above, uncomment if you want to use it
             // gameDirectory = project.file('run-data')
@@ -125,7 +125,7 @@ dependencies {
     // Example mod dependency using a file as dependency
     // implementation files("libs/coolmod-${mc_version}-${coolmod_version}.jar")
 
-    implementation "invoker54:invocore-${minecraft_version}:5.2.4"
+    implementation "invoker54:invocore-${minecraft_version}:${invocore_version}"
 
     // Example project dependency using a sister or child project:
     // implementation project(":myproject")
@@ -137,8 +137,8 @@ dependencies {
 
     //Mod Compatibility
     //Controllable (MrCrayFish Mod)
-    compileOnly 'curse.maven:controllable-317269:7411284'
-    compileOnly "curse.maven:framework-549225:7421186"
+    compileOnly "curse.maven:controllable-317269:7411287"
+    compileOnly "curse.maven:framework-549225:7530356"
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

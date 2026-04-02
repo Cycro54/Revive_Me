@@ -11,23 +11,26 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.common.EffectCure;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 
 import java.awt.*;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 public class FallenPotionEffect extends MobEffect {
+    public static List<UUID> warnedPlayers = new ArrayList<>();
+
     public static final int effectColor = new Color(35, 5, 5, 255).getRGB();
 
     public FallenPotionEffect(MobEffectCategory category) {
         super(category, effectColor);
     }
 
-    @Override
-    public void fillEffectCures(Set<EffectCure> cures, MobEffectInstance effectInstance) {
-        super.fillEffectCures(cures, effectInstance);
-    }
+//    @Override
+//    public void fillEffectCures(Set<EffectCure> cures, MobEffectInstance effectInstance) {
+//        super.fillEffectCures(cures, effectInstance);
+//    }
 
     @EventBusSubscriber(modid = ReviveMe.MOD_ID)
     public static class PotionEvents{
@@ -52,7 +55,10 @@ public class FallenPotionEffect extends MobEffect {
             if (cap.isFallen()) return false;
 
             if (!completed && !ReviveMeConfig.canRemovePenaltyTimer && !((Player) entity).isCreative()){
-                ((Player) entity).displayClientMessage(InvoText.translate("effect.reviveme.fallen_effect.cant_remove").getText(), false);
+                if (!warnedPlayers.contains(entity.getUUID())){
+                    ((Player) entity).displayClientMessage(InvoText.translate("effect.reviveme.fallen_effect.cant_remove").getText(), false);
+                    warnedPlayers.add(entity.getUUID());
+                }
                 return true;
             }
 

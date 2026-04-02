@@ -7,6 +7,8 @@ import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.client.extensions.IKeyMappingExtension;
 import net.neoforged.neoforge.client.settings.KeyMappingLookup;
@@ -41,11 +43,12 @@ public abstract class KeyMappingMixin implements Comparable<KeyMapping>, IKeyMap
             },
             cancellable = true
     )
-    private void matches(int keysym, int scancode, CallbackInfoReturnable<Boolean> cir){
+    private void matches(KeyEvent event, CallbackInfoReturnable<Boolean> cir){
         if (ClientUtil.getWorld() == null) return;
         if (ClientUtil.getPlayer() == null) return;
         if (!FallenData.get(ClientUtil.getPlayer()).isFallen()) return;
         if (VanillaKeybindHandler.isAllowedKeybind(((KeyMapping)(Object)this))) return;
+//        LOGGERT.warn("{matches} This failed: " + this.name);
         cir.setReturnValue(false);
     }
 
@@ -56,7 +59,7 @@ public abstract class KeyMappingMixin implements Comparable<KeyMapping>, IKeyMap
             },
             cancellable = true
     )
-    private void matchesMouse(int key, CallbackInfoReturnable<Boolean> cir){
+    private void matchesMouse(MouseButtonEvent event, CallbackInfoReturnable<Boolean> cir){
         if (ClientUtil.getWorld() == null) return;
         if (ClientUtil.getPlayer() == null) return;
         if (!FallenData.get(ClientUtil.getPlayer()).isFallen()) return;
@@ -75,6 +78,7 @@ public abstract class KeyMappingMixin implements Comparable<KeyMapping>, IKeyMap
 
         if (!cap.isFallen()) return this.key;
         if (VanillaKeybindHandler.isAllowedKeybind((KeyMapping) (Object)this)) return this.key;
+//        LOGGERT.warn("{getKey} This failed: " + this.name);
 
         return InputConstants.Type.KEYSYM.getOrCreate(-1);
     }
@@ -89,6 +93,7 @@ public abstract class KeyMappingMixin implements Comparable<KeyMapping>, IKeyMap
         if (!this.isDown) return;
         KeyMapping keyBinding = ((KeyMapping) (Object) this);
         if (VanillaKeybindHandler.canBeDown(keyBinding)) return;
+//        LOGGERT.warn("{isDown} This failed: " + this.name);
 
         this.setDown(false);
     }

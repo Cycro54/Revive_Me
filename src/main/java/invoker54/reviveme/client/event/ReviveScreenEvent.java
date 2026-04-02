@@ -18,9 +18,8 @@ import java.awt.*;
 
 import static invoker54.reviveme.ReviveMe.makeResource;
 
-@EventBusSubscriber(modid = ReviveMe.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = ReviveMe.MOD_ID, value = Dist.CLIENT)
 public class ReviveScreenEvent {
-    private static final Minecraft inst = Minecraft.getInstance();
     public static InvoText beingRevivedText = InvoText.translate("reviveScreen.being_revived");
     public static InvoText useItemText = InvoText.translate("reviveScreen.use_item");
     public static InvoText revivingText = InvoText.translate("reviveScreen.reviving");
@@ -32,8 +31,8 @@ public class ReviveScreenEvent {
     @SubscribeEvent
     public static void registerReviveScreen(RegisterGuiLayersEvent event){
         event.registerBelow(VanillaGuiLayers.CHAT,makeResource("revive_screen"), (guiGraphics, tracker) -> {
-            FallenData cap = FallenData.get(inst.player);
-            PoseStack stack = guiGraphics.pose();
+            FallenData cap = FallenData.get(ClientUtil.getPlayer());
+//            PoseStack guiGraphics = guiGraphics.pose();
 
             //MAKE SURE this only happens if you are being revived, or reviving someone
             if (cap.getOtherPlayer() == null) return;
@@ -45,11 +44,11 @@ public class ReviveScreenEvent {
             boolean hasReviveItem = cap.getReviveStack() != null;
             //Only do the red if you are the fallen
             if (cap.isFallen()) {
-                ClientUtil.blitColor(stack, workZone, 1615855616);
+                ClientUtil.blit2DColor(guiGraphics, workZone, 1615855616);
                 titleText = beingRevivedText;
                 if (hasReviveItem) titleText = useItemText;
             } else {
-                ClientUtil.blitColor(stack, workZone, revColor);
+                ClientUtil.blit2DColor(guiGraphics, workZone, revColor);
                 titleText = revivingText;
                 if (hasReviveItem) titleText = useItemText;
             }
@@ -57,18 +56,18 @@ public class ReviveScreenEvent {
             InvoZone textZone = workZone.copy().splitHeight(5, 1);
             textZone.setY(textZone.down()).setHeight(16);
             //Being Revived text
-            TextUtil.renderText(stack, titleText.getText(), true, 1, textZone, TextUtil.txtAlignment.MIDDLE);
+            TextUtil.render2DText(guiGraphics, titleText.getText(), true, 1, textZone, TextUtil.txtAlignment.MIDDLE);
 
             InvoZone barZone = workZone.copy().setHeight(16).splitWidth(2, 1).center(workZone);
             //progress bar background
-            ClientUtil.blitColor(stack, barZone, bgColor);
+            ClientUtil.blit2DColor(guiGraphics, barZone, bgColor);
 
             float progress = cap.getProgress(true);
 
             //System.out.println(progress);
 
             //Actual progress bar
-            ClientUtil.blitColor(stack, barZone.copy().splitWidth(1, progress)
+            ClientUtil.blit2DColor(guiGraphics, barZone.copy().splitWidth(1, progress)
                     .inflate(0, -2).center(barZone), progressColor);
         });
     }

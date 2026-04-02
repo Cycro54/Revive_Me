@@ -12,6 +12,8 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionSet;
+import net.minecraft.server.permissions.Permissions;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -20,7 +22,8 @@ public class FixCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
                 Commands.literal("revivemefix")
-                        .requires((commandSource -> commandSource.hasPermission(2)))
+                        .requires((commandSource ->
+                                commandSource.permissions().hasPermission(Permissions.COMMANDS_ADMIN)))
                         .executes(FixCommand::fixPlayer)
                         .then(Commands.argument("player", EntityArgument.player())
                                 .executes(FixCommand::fixPlayer)

@@ -1,6 +1,5 @@
 package invoker54.reviveme.client.event;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import invoker54.invocore.client.util.ClientUtil;
 import invoker54.invocore.client.util.InvoText;
 import invoker54.invocore.client.util.InvoZone;
@@ -15,12 +14,16 @@ import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.data.ReviveItemData;
 import invoker54.reviveme.init.KeyInit;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.MobEffectTextureManager;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffectUtil;
 import net.minecraft.world.item.ItemStack;
@@ -74,13 +77,13 @@ public class FallenItemScreenEvent {
     //Right side item animation
     public static int selectedItem = 0;
     public static int selectedPage = 0;
-    public static List<BiConsumer<PoseStack, InvoZone>> pageList = new ArrayList<>();
+    public static List<BiConsumer<GuiGraphics, InvoZone>> pageList = new ArrayList<>();
     public static List<Pair<ItemStack, ReviveItemData>> dataStackList = new ArrayList<>();
 
-    public static void renderItemPage(PoseStack stack, double switchPercentage, InvoZone workZone, InvoZone leftZone, InvoZone rightZone){
+    public static void renderItemPage(GuiGraphics graphics, double switchPercentage, InvoZone workZone, InvoZone leftZone, InvoZone rightZone){
         passedTicks = (ClientUtil.getMinecraft().player.level().getGameTime() + FallScreenEvent.getPartialTicks()) - previousTick;
 
-        if (ReviveMeConfig.refreshItems && ClientUtil.getMinecraft().level.getGameTime() % 10 == 0) refreshItemData();
+        if (ClientUtil.getMinecraft().level.getGameTime() % 10 == 0) refreshItemData();
 
         leftZone.setRight(MathUtil.lerp(1 - switchPercentage, leftZone.right(), workZone.x()));
         rightZone.setX(MathUtil.lerp(1 - switchPercentage, rightZone.x(), workZone.right()));
@@ -92,36 +95,36 @@ public class FallenItemScreenEvent {
         if (pageList.isEmpty()) generatePages(dataStackList.get(selectedItem).getRight(), leftZone);
         if (ReviveMeConfig.showItemPage) {
             InvoZone topLeftZone = leftZone.copy().splitHeight(5, 1);
-            ClientUtil.blitColor(stack, leftZone, blackFadeColor);
-            ClientUtil.blitColor(stack, topLeftZone.copy().shift(0, topLeftZone.height()).splitHeight(1, 4), blackFadeColor);
+            ClientUtil.blit2DColor(graphics, leftZone, blackFadeColor);
+            ClientUtil.blit2DColor(graphics, topLeftZone.copy().shiftXY(0, topLeftZone.height()).splitHeight(1, 4), blackFadeColor);
             InvoText changeText = changePageText.deepCopy().setArgs(InvoText.component(VanillaKeybindHandler.getKey(KeyInit.leftOption.keyBind).getDisplayName().copy())
                     .withStyle(true, InvoTextFormat.filter(ChatFormatting.BOLD, ChatFormatting.YELLOW)).getText());
 
-            TextUtil.renderText(stack, changeText.getText(), true, 2,
+            TextUtil.render2DText(graphics, changeText.getText(), true, 2,
                     topLeftZone.inflate(-1, -1f), TextUtil.txtAlignment.MIDDLE);
 
             InvoZone numberZone = topLeftZone.copy().setHeight(topLeftZone.height() / 2).setY(topLeftZone.down() + 1);
             numberZone.setWidth(numberZone.height() * 2).centerX(leftZone.middleX());
-            ClientUtil.blitColor(stack, numberZone, blackFadeColor);
+            ClientUtil.blit2DColor(graphics, numberZone, blackFadeColor);
 
             InvoText pageText = InvoText.literal((selectedPage + 1) + "/" + pageList.size());
-            TextUtil.renderText(stack, pageText.getText(), true, 1,
+            TextUtil.render2DText(graphics, pageText.getText(), true, 1,
                     numberZone.inflate(-1, -1f), TextUtil.txtAlignment.MIDDLE);
 
 
             InvoZone bodyZone = leftZone.copy().setY(numberZone.down()).setHeight(leftZone.height() - (topLeftZone.height() + numberZone.height()));
 
-            pageList.get(selectedPage).accept(stack, bodyZone.copy().inflate(-1, -4));
+            pageList.get(selectedPage).accept(graphics, bodyZone.copy().inflate(-1, -4));
         }
 //        topLeftZone.setHeight(Math.min(topLeftZone.height(), 12));
 //        topLeftZone.mirrorY(leftZone.middleY());
-//        ClientUtil.blitColor(stack, topLeftZone, new Color(1,1,1, 190).getRGB());
-//        TextUtil.renderText(stack, InvoText.literal((selectedPage+1) + "/" + pageList.size()).getText(), false, 2,
+//        ClientUtil.blit2DColor(stack, topLeftZone, new Color(1,1,1, 190).getRGB());
+//        TextUtil.render2DText(stack, InvoText.literal((selectedPage+1) + "/" + pageList.size()).getText(), false, 2,
 //                topLeftZone.copy().inflate(-1, -0.5F), TextUtil.txtAlignment.MIDDLE);
 
         //region right side
         //Now with right
-        ClientUtil.blitColor(stack, rightZone, blackFadeColor);
+        ClientUtil.blit2DColor(graphics, rightZone, blackFadeColor);
         InvoZone textZone = rightZone.copy().splitHeight(5,1);
         InvoZone middleZone = textZone.copy().setY(textZone.down()).splitHeight(1, 4);
 
@@ -129,21 +132,23 @@ public class FallenItemScreenEvent {
 
         InvoText itemText = useItemText.deepCopy().setArgs(InvoText.component(VanillaKeybindHandler.getKey(KeyInit.rightOption.keyBind).getDisplayName().copy())
                 .withStyle(true, InvoTextFormat.filter(ChatFormatting.BOLD, ChatFormatting.YELLOW)).getText());
-        ClientUtil.blitColor(stack, middleZone, blackFadeColor);
-        TextUtil.renderText(stack, itemText.getText(), true, 2, textZone.copy()
+        ClientUtil.blit2DColor(graphics, middleZone, blackFadeColor);
+        TextUtil.render2DText(graphics, itemText.getText(), true, 2, textZone.copy()
                 .inflate(-1, -1F), TextUtil.txtAlignment.MIDDLE);
 
 
         //Middle
-        ClientUtil.beginCrop(middleZone.x(), middleZone.width(), middleZone.y(), middleZone.height(), true);
-//        ClientUtil.blitColor(stack, rightZone, Color.red.getRGB());
-        renderItems(stack, middleZone);
-        ClientUtil.endCrop();
+        graphics.enableScissor((int) middleZone.x(), (int) middleZone.y(),
+                (int) Math.ceil(middleZone.right()), (int) Math.ceil(middleZone.down()));
+//        ClientUtil.beginCrop(middleZone.x(), middleZone.width(), middleZone.y(), middleZone.height(), true);
+//        ClientUtil.blit2DColor(stack, rightZone, Color.red.getRGB());
+        renderItems(graphics, middleZone);
+        graphics.disableScissor();
 
         //Bottom
 //        textZone.mirrorY(rightZone.middleY());
-//        ClientUtil.blitColor(stack, textZone, blackFadeColor);
-//        TextUtil.renderText(stack, changeItemText.getText(), false, 2, textZone.copy()
+//        ClientUtil.blit2DColor(stack, textZone, blackFadeColor);
+//        TextUtil.render2DText(stack, changeItemText.getText(), false, 2, textZone.copy()
 //                .inflate(-1, -0.5F), TextUtil.txtAlignment.MIDDLE);
 
         //endregion
@@ -153,35 +158,8 @@ public class FallenItemScreenEvent {
 
     public static void refreshItemData(){
         dataStackList.clear();
-
-        List<ItemStack> inventoryList = new ArrayList<>(ClientUtil.getPlayer().getInventory().items);
-        inventoryList.addAll(ClientUtil.getPlayer().getInventory().offhand);
-
-        //Go through the inventory and see if any of the items match
-        for (ItemStack invStack : inventoryList){
-
-            if (invStack.isEmpty()) continue;
-            ReviveItemData data = ReviveItemData.getData(invStack, ReviveItemData.USER.FALLEN);
-            if (data == null) continue;
-
-            boolean itemAlreadyFound = false;
-            for (Pair<ItemStack, ReviveItemData> dataPair : dataStackList){
-                if (!ItemStack.isSameItem(invStack, dataPair.getKey())) continue;
-                if (!FallenData.hasSimilarData(invStack, dataPair.getKey())) continue;
-                itemAlreadyFound = true;
-                break;
-            }
-
-            if (itemAlreadyFound) continue;
-
-            dataStackList.add(Pair.of(invStack.copy(), data));
-        }
-
-        //Sort it to the revive item data they have
-        dataStackList.sort(Comparator.comparing(pair -> pair.getRight().getIdName()));
-
+        dataStackList.addAll(FallenData.get(ClientUtil.getPlayer()).getReviveItemList(false));
         dataStackList.add(Pair.of(new ItemStack(Items.BARRIER), null));
-
         changeSelectedItem(0);
     }
 
@@ -219,7 +197,7 @@ public class FallenItemScreenEvent {
         selectedPage = (int) ReviveMathUtil.clampLoop(selectedPage, 0, pageList.size()-1);
     }
 
-    public static void renderItems(PoseStack stack, InvoZone bodyZone){
+    public static void renderItems(GuiGraphics stack, InvoZone bodyZone){
         int maxCount = (int) Math.floor(bodyZone.height()/20);
         if (maxCount % 2 == 0) maxCount--;
         maxCount = Math.max(3, maxCount);
@@ -227,7 +205,7 @@ public class FallenItemScreenEvent {
 
         InvoZone itemZone = bodyZone.copy().splitHeight(maxCount,1);
         //Moves zone to middle
-        itemZone.shift(0, itemZone.height() * (middleCount - 1));
+        itemZone.shiftXY(0, itemZone.height() * (middleCount - 1));
 
         //Now I need to figure out which way to go
         int multiplier = 1;
@@ -238,12 +216,12 @@ public class FallenItemScreenEvent {
         //The starting index
         int index = (int) ReviveMathUtil.clampLoop(selectedItem - (multiplier * ( middleCount - 1)), 0, dataStackList.size()-1);
         //Now move starting zone to the first spot
-        itemZone.shift(0, (float) (itemZone.height() * moveAmount));
+        itemZone.shiftXY(0, (float) (itemZone.height() * moveAmount));
         //Move the opposite way of the multiplier
-        itemZone.shift(0, itemZone.height() * -multiplier * (middleCount-1));
+        itemZone.shiftXY(0, itemZone.height() * -multiplier * (middleCount-1));
         for (int a = 0; a < count; a++){
             renderItem(itemZone.copy(), dataStackList.get(index), stack, a == (middleCount-1));
-            itemZone.shift(0, itemZone.height() * multiplier);
+            itemZone.shiftXY(0, itemZone.height() * multiplier);
             index = (int) ReviveMathUtil.clampLoop(index + multiplier, 0, dataStackList.size()-1);
         }
 
@@ -254,7 +232,7 @@ public class FallenItemScreenEvent {
 
     }
 
-    public static void renderItem(InvoZone myZone, Pair<ItemStack, ReviveItemData> pair, PoseStack stack, boolean isMain){
+    public static void renderItem(InvoZone myZone, Pair<ItemStack, ReviveItemData> pair, GuiGraphics graphics, boolean isMain){
         myZone.inflate(-2,-2);
 
         InvoZone nameZone = myZone.copy().setWidth(myZone.width() - myZone.height());
@@ -262,36 +240,36 @@ public class FallenItemScreenEvent {
         InvoZone countZone = itemZone.copy().splitHeight(5,2).splitWidth(5,2).setDown(itemZone.down());
         ReviveItemData data = pair.getRight();
         ItemStack chosenStack = pair.getKey();
-        int countNeeded = data == null ? 0 : data.getCountRequired() - data.getItemCount(ClientUtil.getPlayer(), chosenStack);
-        boolean hasEnough = data == null || data.getItemCount(ClientUtil.getPlayer(), chosenStack) >= data.getCountRequired();
+        int currentCount = data == null ? 0 : Math.min(pair.getKey().getCount(), data.getItemCount(ClientUtil.getPlayer(), chosenStack));
+        int countNeeded = data == null ? 0 : data.getCountRequired() - currentCount;
+        boolean hasEnough = data == null || currentCount >= data.getCountRequired();
 
-        ClientUtil.blitColor(stack, itemZone, blackFadeColor);
+        ClientUtil.blit2DColor(graphics, itemZone, blackFadeColor);
         if (!hasEnough){
-            ClientUtil.blitColor(stack, itemZone.inflate(-1,-1),
+            ClientUtil.blit2DColor(graphics, itemZone.inflate(-1,-1),
                     new Color(223, 17, 17, 176).getRGB());
         }
-        ClientUtil.blitItem(stack, itemZone.inflate(-1,-1), chosenStack);
+        ClientUtil.blit2DItem(graphics, itemZone.inflate(-1,-1), chosenStack);
 
         if (data != null) {
-            int startCount = data.getItemCount(ClientUtil.getMinecraft().player, pair.getKey());
-            int endCount = startCount - data.getCountRequired();
+            int endCount = currentCount - data.getCountRequired();
 
-            ClientUtil.blitColor(stack, countZone, Color.black.getRGB());
-            TextUtil.renderText(stack, InvoText.literal(String.valueOf(startCount)).withStyle(false, ChatFormatting.GREEN).getText(), false, 1,
+            ClientUtil.blit2DColor(graphics, countZone, Color.black.getRGB());
+            TextUtil.render2DText(graphics, InvoText.literal(String.valueOf(currentCount)).withStyle(false, ChatFormatting.GREEN).getText(), false, 1,
                     countZone.copy().inflate(-0.2f, -0.2f), TextUtil.txtAlignment.MIDDLE);
 
-            ClientUtil.blitColor(stack, countZone.setRight(itemZone.right()), Color.black.getRGB());
-            TextUtil.renderText(stack, InvoText.literal(String.valueOf(endCount)).withStyle(false, ChatFormatting.RED).getText(), false, 1,
+            ClientUtil.blit2DColor(graphics, countZone.setRight(itemZone.right()), Color.black.getRGB());
+            TextUtil.render2DText(graphics, InvoText.literal(String.valueOf(endCount)).withStyle(false, ChatFormatting.RED).getText(), false, 1,
                     countZone.copy().inflate(-0.2f, -0.2f), TextUtil.txtAlignment.MIDDLE);
         }
 
         nameZone.inflate(-2, -((nameZone.height()/2)/2));
 
         if (isMain){
-            ClientUtil.blitColor(stack, nameZone.copy().inflate(1,1),
+            ClientUtil.blit2DColor(graphics, nameZone.copy().inflate(1,1),
                     new Color(74, 218, 64, 181).getRGB());
         }
-        ClientUtil.blitColor(stack, nameZone, blackFadeColor);
+        ClientUtil.blit2DColor(graphics, nameZone, blackFadeColor);
 
         if (isMain && VanillaKeybindHandler.useHeld) {
             double reviveSeconds = (data == null ? 2 : data.getReviveSeconds());
@@ -301,17 +279,17 @@ public class FallenItemScreenEvent {
             InvoText nameText;
 
             if (hasEnough) {
-                ClientUtil.blitColor(stack, nameZone.copy().setWidth((float) colorWidth)
+                ClientUtil.blit2DColor(graphics, nameZone.copy().setWidth((float) colorWidth)
                         .inflate(-1, -1), new Color(74, 218, 64, 181).getRGB());
                 nameText = InvoText.literal(df.format(reviveSeconds - (reviveSeconds * revivePercent)) + "");
             }
             else {
-                ClientUtil.blitColor(stack, nameZone.copy()
+                ClientUtil.blit2DColor(graphics, nameZone.copy()
                         .inflate(-1, -1), new Color(108, 1, 1, 181).getRGB());
                 nameText = notEnoughText.deepCopy().setArgs(InvoText.literal(""+countNeeded).withStyle(false, ChatFormatting.GOLD).getText());
             }
 
-            TextUtil.renderText(stack, nameText.getText(), false, 0,
+            TextUtil.render2DText(graphics, nameText.getText(), false, 0,
                     nameZone.copy().inflate(-1, -0.5f), TextUtil.txtAlignment.RIGHT);
 
         }
@@ -323,13 +301,13 @@ public class FallenItemScreenEvent {
                 else nameText = FallScreenEvent.cantGiveUp.deepCopy();
             }
 
-            TextUtil.renderText(stack, nameText.getText(), false, 0,
+            TextUtil.render2DText(graphics, nameText.getText(), false, 0,
                     nameZone.copy().inflate(-1, -0.5f), TextUtil.txtAlignment.RIGHT);
         }
     }
 
-    public static List<BiConsumer<PoseStack, InvoZone>> getDescriptionPages(ReviveItemData data, InvoZone textZone){
-        List<BiConsumer<PoseStack, InvoZone>> consumerList = new ArrayList<>();
+    public static List<BiConsumer<GuiGraphics, InvoZone>> getDescriptionPages(ReviveItemData data, InvoZone textZone){
+        List<BiConsumer<GuiGraphics, InvoZone>> consumerList = new ArrayList<>();
 
         int cutOffPoint = (int) (textZone.width() * (textZone.height()/8));
         InvoText description = ReviveMeConfig.canGiveUp ? giveUpDescriptionText : cantGiveUpDescriptionText;
@@ -359,8 +337,8 @@ public class FallenItemScreenEvent {
                 maxHeight = Math.min(maxHeight + (bodyZone.height()/4), bodyZone.height());
                 bodyZone.setHeight(maxHeight);
 
-//                ClientUtil.blitColor(stack, bodyZone, blackFadeColor);
-                TextUtil.renderText(stack, comp, true, 0,
+//                ClientUtil.blit2DColor(stack, bodyZone, blackFadeColor);
+                TextUtil.render2DText(stack, comp, true, 0,
                         bodyZone.copy().inflate(-1,-1f), TextUtil.txtAlignment.MIDDLE);
 
             });
@@ -369,8 +347,8 @@ public class FallenItemScreenEvent {
         return consumerList;
     }
 
-    public static List<BiConsumer<PoseStack, InvoZone>> getPropertyPages(ReviveItemData data){
-        List<BiConsumer<PoseStack, InvoZone>> consumerList = new ArrayList<>();
+    public static List<BiConsumer<GuiGraphics, InvoZone>> getPropertyPages(ReviveItemData data){
+        List<BiConsumer<GuiGraphics, InvoZone>> consumerList = new ArrayList<>();
 
         consumerList.add((stack, bodyZone) -> {
 
@@ -402,20 +380,21 @@ public class FallenItemScreenEvent {
                         .setArgs(formatBoolean(data.isRefreshOptions()).getText()));
             }
 
-            TextUtil.renderText(stack, textList.stream()
-                    .map(InvoText::getText).collect(Collectors.toList()), true,
-                    bodyZone.inflate(-2,-1), TextUtil.txtAlignment.LEFT);
+            bodyZone.inflate(-2,-1);
+            TextUtil.RenderInfo info = TextUtil.getRenderInfo(textList.stream()
+                    .map(InvoText::getText).collect(Collectors.toList()), true, bodyZone.width(), bodyZone.height());
+            TextUtil.render2DText(stack,  info, true, bodyZone, 0,TextUtil.txtAlignment.LEFT);
         });
 
         return consumerList;
     }
 
-    public static List<BiConsumer<PoseStack, InvoZone>> getEffectPages(ReviveItemData data, InvoZone initialZone){
-        List<BiConsumer<PoseStack, InvoZone>> consumerList = new ArrayList<>();
+    public static List<BiConsumer<GuiGraphics, InvoZone>> getEffectPages(ReviveItemData data, InvoZone initialZone){
+        List<BiConsumer<GuiGraphics, InvoZone>> consumerList = new ArrayList<>();
 
-        MobEffectTextureManager potionspriteuploader = ClientUtil.getMinecraft().getMobEffectTextures();
-        ClientUtil.Image backgroundImg = new ClientUtil.Image(EFFECT_BACKGROUND, 0, 120, 0, 32);
-        InvoZone backgroundZone = backgroundImg.getRenderZone();
+//        MobEffectTextureManager potionspriteuploader = ClientUtil.getMinecraft().getMobEffectTextures();
+//        ClientUtil.Image backgroundImg = new ClientUtil.Image(EFFECT_BACKGROUND, 0, 120, 0, 32);
+        InvoZone backgroundZone = new InvoZone(0, 120, 0, 32);
 
         List<MobEffectInstance> effectList = data.getReviveEffects();
         InvoZone subBodyZone = initialZone.copy().splitHeight(6,5).setDown(initialZone.down());
@@ -425,7 +404,7 @@ public class FallenItemScreenEvent {
 
         for (int a = 0; a < maxPages; a++) {
             int pageCount = a;
-            consumerList.add((stack, bodyZone) -> {
+            consumerList.add((graphics, bodyZone) -> {
                 InvoZone subZone = bodyZone.copy().splitHeight(maxCountPerPage, 1);
                 backgroundZone.setWidthConstraint(subZone.width()).setHeightConstraint
                         (Math.min(backgroundZone.height(),maxHeight)).center(subZone).setY(bodyZone.y());
@@ -434,21 +413,27 @@ public class FallenItemScreenEvent {
                     if (index == effectList.size()) break;
                     MobEffectInstance effectInstance = effectList.get(index);
 
-                    TextureAtlasSprite sprite = potionspriteuploader.get(effectInstance.getEffect());
+//                    TextureAtlasSprite sprite = potionspriteuploader.get(effectInstance.getEffect());
+//                    ClientUtil.Image effectIMG = new ClientUtil.Image(sprite.atlasLocation(), sprite.getU0(),
+//                            (sprite.getU1() - sprite.getU0()), sprite.getV0(),
+//                            (sprite.getV1() - sprite.getV0()), 1, 1);
+
+                    //private void renderEffects(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+                    Identifier effectId = Gui.getMobEffectSprite(effectInstance.getEffect());
+                    TextureAtlasSprite sprite = graphics.guiSprites.getSprite(effectId);
                     ClientUtil.Image effectIMG = new ClientUtil.Image(sprite.atlasLocation(), sprite.getU0(),
                             (sprite.getU1() - sprite.getU0()), sprite.getV0(),
                             (sprite.getV1() - sprite.getV0()), 1, 1);
                     InvoZone effectZone = effectIMG.getRenderZone();
 
-                    backgroundImg.render(stack);
+                    graphics.blitSprite(RenderPipelines.GUI_TEXTURED, EFFECT_BACKGROUND, (int) backgroundZone.x(), (int) backgroundZone.y(), (int) backgroundZone.width(), (int) backgroundZone.height());
                     effectZone.copy(backgroundZone);
-
                     //Divide the background zone width by 4 and that will be the effect img zone
                     effectZone.splitWidth(4,1).inflate(-4,-4);
-                    effectIMG.render(stack);
+                    effectIMG.render(graphics);
 
                     InvoZone textZone = backgroundZone.copy().splitWidth(4,1);
-                    textZone.setX(textZone.right()).setWidth(textZone.width()*3).inflate(-2,-4)
+                    textZone.setX(textZone.right()).setWidth(textZone.width()*3).inflate(-2,-6)
                             .splitHeight(2,1);
 
                     int amp = effectInstance.getAmplifier();
@@ -459,13 +444,13 @@ public class FallenItemScreenEvent {
                     }
                     String s1 = MobEffectUtil.formatDuration(effectInstance, 1.0F, 20).getString();
 
-                    TextUtil.renderText(stack, InvoText.literal(s).getText(), true, 1, textZone,
+                    TextUtil.render2DText(graphics, InvoText.literal(s).getText(), true, 1, textZone,
                             TextUtil.txtAlignment.LEFT);
                     textZone.setY(textZone.down()+2);
-                    TextUtil.renderText(stack, InvoText.literal(s1).withStyle(true, InvoTextFormat.filter(ChatFormatting.DARK_GRAY)).getText(),
+                    TextUtil.render2DText(graphics, InvoText.literal(s1).withStyle(true, InvoTextFormat.filter(ChatFormatting.DARK_GRAY)).getText(),
                             true, 1, textZone, TextUtil.txtAlignment.LEFT);
 
-                    backgroundZone.shift(0, backgroundZone.height() + 2);
+                    backgroundZone.shiftXY(0, backgroundZone.height() + 2);
                 }
             });
         }
@@ -507,7 +492,7 @@ public class FallenItemScreenEvent {
         VanillaKeybindHandler.attackHeld = false;
         VanillaKeybindHandler.useHeld = false;
 
-        if (ReviveMeConfig.refreshItems && isItemScreenActive) refreshItemData();
+        if (isItemScreenActive) refreshItemData();
     }
 
     public static double getSwitchPercentage() {

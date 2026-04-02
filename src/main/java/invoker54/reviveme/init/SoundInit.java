@@ -4,7 +4,7 @@ import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -16,11 +16,11 @@ import java.util.List;
 
 import static invoker54.reviveme.ReviveMe.makeResource;
 
-@EventBusSubscriber(modid = ReviveMe.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class SoundInit {
     private static final ModLogger LOGGER = ModLogger.getLogger(SoundInit.class, ReviveMeConfig.debugMode);
 
-    private static final List<Pair<ResourceLocation, SoundEvent>> sounds = new ArrayList<>();
+    private static final List<Pair<Identifier, SoundEvent>> sounds = new ArrayList<>();
 
     //FALLEN STATE SOUNDS
     public static SoundEvent FALLEN_STATE_HEART_BEAT = addSound("fallen_state_heart_beat");
@@ -35,9 +35,9 @@ public class SoundInit {
     public static SoundEvent CALL_FOR_HELP = addSound("call_for_help");
 
     public static SoundEvent addSound(String name){
-        ResourceLocation soundSource = makeResource(name);
+        Identifier soundSource = makeResource(name);
         SoundEvent event = SoundEvent.createVariableRangeEvent(soundSource);
-        sounds.add(Pair.of(event.getLocation(), event));
+        sounds.add(Pair.of(event.location(), event));
         return event;
     }
 

@@ -7,6 +7,7 @@ import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
+import invoker54.reviveme.compatibility.controllable.client.events.ControllableModEvents;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
@@ -22,6 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.mrcrayfish.controllable.client.binding.ButtonBindings.*;
+import static invoker54.reviveme.compatibility.controllable.client.events.ControllableModEvents.revive_Me_vanillaBindingList;
 
 @Mixin(ButtonBinding.class)
 public abstract class ControllableButtonBindingMixin {
@@ -37,8 +39,6 @@ public abstract class ControllableButtonBindingMixin {
 
     @Shadow
     private boolean pressed;
-    @Unique
-    private static List<ButtonBinding> revive_Me_vanillaBindingList = new ArrayList<>();
 
     @Unique
     private static boolean revive_Me_1_16_5$_isPlayerDown() {
@@ -48,11 +48,6 @@ public abstract class ControllableButtonBindingMixin {
         if (player == null) return false;
         FallenData cap = FallenData.get(player);
 
-        if (revive_Me_vanillaBindingList.isEmpty()){
-            revive_Me_vanillaBindingList.addAll(Arrays.asList(SCROLL_HOTBAR_LEFT, SCROLL_HOTBAR_RIGHT, PAUSE_GAME, NEXT_CREATIVE_TAB, PREVIOUS_CREATIVE_TAB, NEXT_RECIPE_TAB, PREVIOUS_RECIPE_TAB,
-                    NAVIGATE_UP, NAVIGATE_DOWN, NAVIGATE_LEFT, NAVIGATE_RIGHT, PICKUP_ITEM, QUICK_MOVE, SPLIT_STACK,
-                    DEBUG_INFO, RADIAL_MENU));
-        }
         return cap.isFallen();
     }
 
@@ -81,8 +76,13 @@ public abstract class ControllableButtonBindingMixin {
             cancellable = true)
     public void setPressed(boolean pressed, CallbackInfo ci) {
         if (!revive_Me_1_16_5$_isPlayerDown()) return;
+//        LOGGERT.warn("What's my stuff: " + this.getLabelKey());
         KeyMapping keyBinding = VanillaKeybindHandler.getOrCreateKey(this.getLabelKey());
-        if  (revive_Me_vanillaBindingList.contains(((ButtonBinding)(Object)this))) return;
+        ButtonBinding buttonBinding = ((ButtonBinding)(Object)this);
+//        LOGGERT.warn("What's my vanilla binding: " + keyBinding.getName());
+//        LOGGERT.warn("Am I in the button binding list? " + (revive_Me_vanillaBindingList.contains(buttonBinding)));
+//        LOGGERT.warn("Am I in the minecraft binding list? " + (VanillaKeybindHandler.isAllowedKeybind(keyBinding)));
+        if (revive_Me_vanillaBindingList.contains(buttonBinding)) return;
         if (VanillaKeybindHandler.isAllowedKeybind(keyBinding)) return;
         this.pressed = false;
         ci.cancel();

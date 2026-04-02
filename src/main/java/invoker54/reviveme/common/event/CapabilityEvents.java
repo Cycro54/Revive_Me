@@ -53,7 +53,7 @@ public class CapabilityEvents {
 
     @SubscribeEvent
     public static void onDimensionChange(PlayerEvent.PlayerChangedDimensionEvent event){
-        if (event.getEntity().level().isClientSide) return;
+        if (event.getEntity().level().isClientSide()) return;
 
         FallenData cap = FallenData.get(event.getEntity());
         cap.syncClient(false);
@@ -61,7 +61,7 @@ public class CapabilityEvents {
 
     @SubscribeEvent
     public static void onWorldJoin(EntityJoinLevelEvent event){
-        if (event.getLevel().isClientSide) return;
+        if (event.getLevel().isClientSide()) return;
         if (!(event.getEntity() instanceof Player player)) return;
 
         FallenData cap = FallenData.get(player);

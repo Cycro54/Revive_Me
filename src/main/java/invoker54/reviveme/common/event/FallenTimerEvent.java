@@ -18,7 +18,7 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 @EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class FallenTimerEvent {
-    private static final ModLogger LOGGER = ModLogger.getLogger(FallenTimerEvent.class, ReviveMeConfig.debugMode);
+    private static final ModLogger LOGGER = ModLogger.getLogger(ReviveMeConfig.debugMode);
 
     @SubscribeEvent
     public static void changeGamemode(PlayerEvent.PlayerChangeGameModeEvent event){
@@ -63,9 +63,11 @@ public class FallenTimerEvent {
 
         if (!cap.isFallen() || cap.getOtherPlayer() != null) return;
 
+//        LOGGER.warn("Whats my revive options? "+ cap.getSelfReviveOption(0) + ":"+cap.getSelfReviveOption(1));
+
         event.getEntity().setForcedPose(null); //Mixin will assign the correct pose (PlayerMixin)
 
-        if (event.getEntity().level().isClientSide) return;
+        if (event.getEntity().level().isClientSide()) return;
 //        LOGGER.warn("What's pose: " + event.getEntity().getForcedPose());
 
         if (!ReviveMeConfig.reviveMeEnabled){
@@ -104,16 +106,16 @@ public class FallenTimerEvent {
     //Make sure this only runs for the person being revived
     @SubscribeEvent
     public static void TickProgress(PlayerTickEvent.Post event) {
-        if (event.getEntity().level().isClientSide) return;
+        if (event.getEntity().level().isClientSide()) return;
 
         FallenData cap = FallenData.get(event.getEntity());
 
         //make sure other player isn't null
         if (cap.getOtherPlayer() == null) return;
 
-        Player otherPlayer = event.getEntity().getServer().getPlayerList().getPlayer(cap.getOtherPlayer());
+        Player otherPlayer = event.getEntity().level().getServer().getPlayerList().getPlayer(cap.getOtherPlayer());
 
-        if (otherPlayer != null && cap.getReviveStack() != null) otherPlayer.getCooldowns().addCooldown(cap.getReviveStack().getItem(), 30);
+        if (otherPlayer != null && cap.getReviveStack() != null) otherPlayer.getCooldowns().addCooldown(cap.getReviveStack(), 30);
 
         //If tick progress finishes, revive the fallen player and take whatever you need to take from the otherPlayer
         if (cap.getProgress(true) < 1) return;

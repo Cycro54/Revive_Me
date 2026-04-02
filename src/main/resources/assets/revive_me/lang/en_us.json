@@ -36,6 +36,7 @@
   "revive_me.fallenScreen.self_revive.kill_2": "%1$s mobs",
   "revive_me.fallenScreen.self_revive.kill_3": " WITHIN ",
   "revive_me.fallenScreen.self_revive.kill_4": "%1$s seconds",
+  "revive_me.fallenScreen.self_revive.kill_false": "Not enough time",
   "revive_me.fallenScreen.self_revive.status_effects_1": "Hold [%1$s] to gain harmful effects",
   "revive_me.fallenScreen.self_revive.experience.false_1": "Not enough XP (Need %1$s XP levels)",
   "revive_me.fallenScreen.self_revive.experience_1": "Hold [%1$s] to sacrifice XP levels",
@@ -58,7 +59,7 @@
   "sounds.revive_me.call_for_help": "Call For Help",
 
   "__comment": "This is for Keys",
-  "key.category.revive_me": "Revive Me!",
+  "key.category.revive_me.revive_me": "Revive Me!",
   "key.revive_me.callForHelpKey": "Call For Help",
   "key.revive_me.leftOption": "Left Option",
   "key.revive_me.rightOption": "Right Option",

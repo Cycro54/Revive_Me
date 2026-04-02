@@ -6,7 +6,7 @@ import invoker54.reviveme.init.AttachmentTypesInit;
 import invoker54.reviveme.init.CompatibilityInit;
 import invoker54.reviveme.init.DamageTypeInit;
 import invoker54.reviveme.init.MobEffectInit;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -36,7 +36,7 @@ public class ReviveMe
         CompatibilityInit.ControllableInit();
     }
 
-    public static ResourceLocation makeResource(String id){
-        return ResourceLocation.fromNamespaceAndPath(ReviveMe.MOD_ID, id);
+    public static Identifier makeResource(String id){
+        return Identifier.fromNamespaceAndPath(ReviveMe.MOD_ID, id);
     }
 }

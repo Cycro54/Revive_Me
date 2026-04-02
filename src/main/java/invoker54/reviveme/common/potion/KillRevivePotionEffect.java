@@ -18,7 +18,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.common.EffectCure;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import org.apache.commons.lang3.StringUtils;
@@ -37,10 +36,10 @@ public class KillRevivePotionEffect extends MobEffect {
         super(category, effectColor);
     }
 
-    @Override
-    public void fillEffectCures(Set<EffectCure> cures, MobEffectInstance effectInstance) {
-        cures.clear();
-    }
+//    @Override
+//    public void fillEffectCures(Set<EffectCure> cures, MobEffectInstance effectInstance) {
+//        cures.clear();
+//    }
 
     public static boolean isAllowedEntity(Entity entity){
         if (entity == null) return false;

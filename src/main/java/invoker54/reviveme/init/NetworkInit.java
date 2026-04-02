@@ -17,7 +17,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.List;
 import java.util.Locale;
 
-@EventBusSubscriber(modid = ReviveMe.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class NetworkInit {
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -51,10 +51,10 @@ public class NetworkInit {
         if (ReviveMeConfig.silenceRegularMessages && !isCommand) return;
 
         if (ReviveMeConfig.universalChatMessages) {
-            trackedEntity.getServer().getPlayerList().broadcastSystemMessage(component, false);
+            trackedEntity.level().getServer().getPlayerList().broadcastSystemMessage(component, false);
         }
         else {
-            ((ServerChunkCache) trackedEntity.level().getChunkSource()).broadcastAndSend(trackedEntity, new ClientboundSystemChatPacket(component, false));
+            ((ServerChunkCache) trackedEntity.level().getChunkSource()).sendToTrackingPlayersAndSelf(trackedEntity, new ClientboundSystemChatPacket(component, false));
         }
 
     }

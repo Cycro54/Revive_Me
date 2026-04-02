@@ -46,7 +46,7 @@ public record SelfReviveMsg(int selectedOption) implements CustomPacketPayload {
                         if (!cap.canSelfRevive() && ReviveMeConfig.canGiveUp){
                             cap.forceDeath();
                         }
-                        else {
+                        else if (cap.canSelfRevive()){
                             cap.useReviveOption(cap.getSelfReviveOption(msg.selectedOption));
                         }
                     });

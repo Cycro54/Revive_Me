@@ -5,6 +5,7 @@ import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.input.MouseButtonInfo;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -20,7 +21,7 @@ public class WidgetMixin {
                     @At(value = "HEAD")
             },
             cancellable = true)
-    private void isValidClickButtonMix(int buttonID, CallbackInfoReturnable<Boolean> cir) {
+    private void isValidClickButtonMix(MouseButtonInfo buttonInfo, CallbackInfoReturnable<Boolean> cir) {
         if (ClientUtil.getMinecraft().screen == null) return;
         if (!(ClientUtil.getMinecraft().screen instanceof InventoryScreen)) return;
         FallenData cap = FallenData.get(ClientUtil.getPlayer());

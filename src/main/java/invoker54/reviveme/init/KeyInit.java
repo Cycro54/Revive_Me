@@ -16,6 +16,7 @@ import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.payload.BeginReviveMsg;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -23,6 +24,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.client.settings.IKeyConflictContext;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.neoforged.neoforge.client.settings.KeyModifier;
@@ -30,7 +32,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 
-@EventBusSubscriber(modid = ReviveMe.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = ReviveMe.MOD_ID, value = Dist.CLIENT)
 public class KeyInit {
     public static final ModLogger LOGGER = ModLogger.getLogger(KeyInit.class, ReviveMeConfig.debugMode);
 
@@ -40,8 +42,11 @@ public class KeyInit {
     public static CustomKeybind rightOption;
     public static CustomKeybind tooltip;
 
+    public static KeyMapping.Category mainCategory;
+
     @SubscribeEvent
     public static void initializeKeys(FMLClientSetupEvent event) {
+        mainCategory = CustomKeybind.getCategory(ReviveMe.MOD_ID, ReviveMe.MOD_ID);
         callForHelpKey = KeybindsInit.addBind(new CustomKeybind("callForHelpKey", GLFW.GLFW_KEY_R, ReviveMe.MOD_ID,
                 (action) -> {
                     if (callForHelpKey.keyBind.getKey().getType() == InputConstants.Type.MOUSE && !KeyEvents.isPostMouse)
@@ -58,10 +63,11 @@ public class KeyInit {
         callForHelpKey.keyBind.setKeyConflictContext(new CustomContext());
 
         leftOption = KeybindsInit.addBind(new CustomKeybind(new KeyMapping("key." + ReviveMe.MOD_ID + "." + "leftOption",
-                new CustomContext(), InputConstants.Type.MOUSE, GLFW.GLFW_MOUSE_BUTTON_1, "key.category." + ReviveMe.MOD_ID),
+                new CustomContext(), InputConstants.Type.MOUSE, GLFW.GLFW_MOUSE_BUTTON_1, mainCategory),
                 (action) -> {
                     if (leftOption.keyBind.getKey().getType() == InputConstants.Type.MOUSE && !KeyEvents.isPostMouse)
                         return;
+//                    LOGGER.warn("I am here: " + action);
                     if (action == GLFW.GLFW_REPEAT) return;
                     if (ClientUtil.getMinecraft().screen != null) return;
                     FallenData cap = FallenData.get(ClientUtil.getPlayer());
@@ -84,7 +90,7 @@ public class KeyInit {
 //        ClientUtil.getMinecraft().options.keyMappings = ArrayUtils.add(options.keyMappings, key);
 
         rightOption = KeybindsInit.addBind(new CustomKeybind(new KeyMapping("key." + ReviveMe.MOD_ID + "." + "rightOption",
-                new CustomContext(), InputConstants.Type.MOUSE, GLFW.GLFW_MOUSE_BUTTON_2, "key.category." + ReviveMe.MOD_ID),
+                new CustomContext(), InputConstants.Type.MOUSE, GLFW.GLFW_MOUSE_BUTTON_2, mainCategory),
                 (action) -> {
                     if (rightOption.keyBind.getKey().getType() == InputConstants.Type.MOUSE && !KeyEvents.isPostMouse)
                         return;
@@ -98,12 +104,12 @@ public class KeyInit {
                     if (!(crossHairEntity instanceof Player)) return;
                     if (!FallenData.get((LivingEntity) crossHairEntity).isFallen()) ;
 
-                    PacketDistributor.sendToServer(new BeginReviveMsg(crossHairEntity.getStringUUID()));
+                    ClientPacketDistributor.sendToServer(new BeginReviveMsg(crossHairEntity.getStringUUID()));
                 }));
 //        ClientRegistry.registerKeyBinding(rightOption.keyBind);
 
         tooltip = KeybindsInit.addBind(new CustomKeybind(new KeyMapping("key." + ReviveMe.MOD_ID + "." + "tooltip",
-                KeyConflictContext.GUI, KeyModifier.SHIFT, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_R, "key.category." + ReviveMe.MOD_ID),
+                KeyConflictContext.GUI, KeyModifier.SHIFT, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_R, mainCategory),
                 (action) -> {
                     if (tooltip.keyBind.getKey().getType() == InputConstants.Type.MOUSE && !KeyEvents.isPostMouse)
                         return;

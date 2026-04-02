@@ -10,7 +10,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 @EventBusSubscriber(modid = ReviveMe.MOD_ID, value = Dist.CLIENT)
 public class CallForHelpEvent {
@@ -28,7 +28,7 @@ public class CallForHelpEvent {
     }
 
     public static void sendCallToServer(boolean isSneaking, boolean isCurrentlyCalling){
-        PacketDistributor.sendToServer(new CallForHelpMsg(isSneaking));
+        ClientPacketDistributor.sendToServer(new CallForHelpMsg(isSneaking));
         if (isCurrentlyCalling) return;
 
         FallenData.get(ClientUtil.getPlayer()).callForHelp(isSneaking);

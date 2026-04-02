@@ -11,6 +11,7 @@ import invoker54.reviveme.common.network.payload.SelfReviveMsg;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
@@ -19,6 +20,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ComputeFovModifierEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.apache.commons.lang3.tuple.Pair;
@@ -30,15 +32,14 @@ import java.util.List;
 @EventBusSubscriber(modid = ReviveMe.MOD_ID, value = net.neoforged.api.distmarker.Dist.CLIENT)
 public class FallenPlayerActionsEvent {
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final Minecraft inst = Minecraft.getInstance();
     public static int timeHeld = 0;
 
     @SubscribeEvent
     public static void doReviveAction(PlayerTickEvent.Pre event) {
-        if (!event.getEntity().level().isClientSide) return;
+        if (!event.getEntity().level().isClientSide()) return;
         if (event.getEntity() != ClientUtil.getPlayer()) return;
 
-        FallenData cap = FallenData.get(inst.player);
+        FallenData cap = FallenData.get(ClientUtil.getPlayer());
         boolean canSelfRevive = cap.canSelfRevive();
 
         if (!cap.isFallen()) return;
@@ -56,13 +57,13 @@ public class FallenPlayerActionsEvent {
         if (VanillaKeybindHandler.attackHeld) {
             timeHeld++;
             if (!ClientUtil.getPlayer().swinging) ClientUtil.getPlayer().swing(InteractionHand.MAIN_HAND);
-            if (timeHeld == 40) PacketDistributor.sendToServer(new SelfReviveMsg(0));
+            if (timeHeld == 40) ClientPacketDistributor.sendToServer(new SelfReviveMsg(0));
         }
         //This will use items
         else if (VanillaKeybindHandler.useHeld && canSelfRevive) {
             timeHeld++;
             ClientUtil.getPlayer().swing(InteractionHand.MAIN_HAND);
-            if (timeHeld == 40) PacketDistributor.sendToServer(new SelfReviveMsg(1));
+            if (timeHeld == 40) ClientPacketDistributor.sendToServer(new SelfReviveMsg(1));
         }
 
         timeHeld = Math.min(timeHeld, 41);
@@ -80,8 +81,8 @@ public class FallenPlayerActionsEvent {
             if (timeHeld == maxTicks){
                 ItemStack chosenStack = dataStackList.get(FallenItemScreenEvent.selectedItem).getKey();
                 CompoundTag tag = new CompoundTag();
-                if (!chosenStack.isEmpty()) tag = (CompoundTag) chosenStack.save(ClientUtil.getWorld().registryAccess());
-                PacketDistributor.sendToServer(new ReviveItemMsg(tag));
+                if (!chosenStack.isEmpty()) tag = (CompoundTag) ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, chosenStack).getOrThrow();
+                ClientPacketDistributor.sendToServer(new ReviveItemMsg(tag));
 
             }
             timeHeld = Math.min(timeHeld, maxTicks + 1);

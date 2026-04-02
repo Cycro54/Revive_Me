@@ -25,7 +25,7 @@ import static invoker54.reviveme.ReviveMe.makeResource;
 import static invoker54.reviveme.client.event.FallScreenEvent.*;
 import static invoker54.reviveme.client.event.RenderFallPlateEvent.blackBg;
 
-@EventBusSubscriber(modid = ReviveMe.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = ReviveMe.MOD_ID, value = Dist.CLIENT)
 public class ReviveRequirementScreen {
     private static final ModLogger LOGGER = ModLogger.getLogger(ReviveRequirementScreen.class, ReviveMeConfig.debugMode);
 
@@ -39,14 +39,14 @@ public class ReviveRequirementScreen {
             //if (true) return;
             if (!(ClientUtil.getMinecraft().crosshairPickEntity instanceof Player)) return;
             if (((Player) ClientUtil.getMinecraft().crosshairPickEntity).isDeadOrDying()) return;
-            if (ClientUtil.getPlayer().isCrouching()) return;
+            if (ClientUtil.getPlayer().isShiftKeyDown()) return;
             FallenData cap = FallenData.get((LivingEntity) ClientUtil.getMinecraft().crosshairPickEntity);
             if (!cap.isFallen()) return;
             if (cap.getOtherPlayer() != null) return;
             if (ReviveMeConfig.penaltyType == FallenData.PENALTYPE.NONE) return;
 
             InvoZone workZone = new InvoZone(0, guiGraphics.guiWidth(), 0, guiGraphics.guiHeight());
-            PoseStack stack = guiGraphics.pose();
+//            PoseStack guiGraphics = guiGraphics.pose();
 
             float penaltyTypeSize = 16;
             int padding = 2;
@@ -91,14 +91,14 @@ public class ReviveRequirementScreen {
                 }
             }
             //This is the background of the requirements
-            ClientUtil.blitColor(stack, requirementZone, blackBg);
+            ClientUtil.blit2DColor(guiGraphics, requirementZone, blackBg);
 
             chosenZone.setWidth(penaltyTypeSize).setHeight(penaltyTypeSize).center(requirementZone.copy().splitWidth(2, 1));
 
             if (itemData != null) {
-                ClientUtil.blitItem(stack, chosenZone, ClientUtil.getPlayer().getMainHandItem());
+                ClientUtil.blit2DItem(guiGraphics, chosenZone, ClientUtil.getPlayer().getMainHandItem());
             }
-            if (chosenImg != null) {chosenImg.render(stack);}
+            if (chosenImg != null) {chosenImg.render(guiGraphics);}
 
             //This is penalty amount txt
             //Penalty txt
@@ -116,7 +116,7 @@ public class ReviveRequirementScreen {
             penaltyText.withStyle(true, InvoTextFormat.filter(ChatFormatting.BOLD))
                     .withStyle(false, InvoTextFormat.filter(cap.hasEnough(ClientUtil.getMinecraft().player) ? ChatFormatting.GREEN : ChatFormatting.RED));
 
-            TextUtil.renderText(stack, penaltyText.getText(), false, 1,
+            TextUtil.render2DText(guiGraphics, penaltyText.getText(), false, 1,
                     requirementZone.copy().setX(requirementZone.middleX()).splitWidth(2,1)
                             .inflate(-4,-4), TextUtil.txtAlignment.MIDDLE);
 
@@ -147,19 +147,19 @@ public class ReviveRequirementScreen {
             InvoText endTxt = InvoText.literal(df.format(endAmount))
                     .withStyle(true, InvoTextFormat.filter(ChatFormatting.BOLD,ChatFormatting.RED));
 
-            requirementZone.splitHeight(2,1).shift(0, (requirementZone.height() * 2) + 10);
-            ClientUtil.blitColor(stack, requirementZone, blackBg);
+            requirementZone.splitHeight(2,1).shiftXY(0, (requirementZone.height() * 2) + 10);
+            ClientUtil.blit2DColor(guiGraphics, requirementZone, blackBg);
 
             requirementZone.splitWidth(3,1);
 
-            TextUtil.renderText(stack, startTxt.getText(), true, 1,
+            TextUtil.render2DText(guiGraphics, startTxt.getText(), true, 1,
                     requirementZone.copy().inflate(-2,-2), TextUtil.txtAlignment.MIDDLE);
 
-            TextUtil.renderText(stack, arrowTxt.getText(), true, 1,
-                    requirementZone.shift(requirementZone.width(),0).copy().inflate(-2,-2), TextUtil.txtAlignment.MIDDLE);
+            TextUtil.render2DText(guiGraphics, arrowTxt.getText(), true, 1,
+                    requirementZone.shiftXY(requirementZone.width(),0).copy().inflate(-2,-2), TextUtil.txtAlignment.MIDDLE);
 
-            TextUtil.renderText(stack, endTxt.getText(), true, 1,
-                    requirementZone.shift(requirementZone.width(),0).copy().inflate(-2,-2), TextUtil.txtAlignment.MIDDLE);
+            TextUtil.render2DText(guiGraphics, endTxt.getText(), true, 1,
+                    requirementZone.shiftXY(requirementZone.width(),0).copy().inflate(-2,-2), TextUtil.txtAlignment.MIDDLE);
         });
     }
 

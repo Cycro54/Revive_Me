@@ -60,7 +60,7 @@ public record SyncClientCapMsg(String uuid, CompoundTag capDataTag, boolean rese
                             VanillaKeybindHandler.attackHeld = false;
                         }
 
-                        if (!ReviveMeConfig.refreshItems && (!wasFallen)) FallenItemScreenEvent.refreshItemData();
+                        FallenItemScreenEvent.refreshItemData();
                     });
                 }
         );

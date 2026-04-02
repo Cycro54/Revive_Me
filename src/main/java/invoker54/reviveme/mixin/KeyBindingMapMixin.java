@@ -19,7 +19,7 @@ import java.util.*;
 @Mixin(KeyMappingLookup.class)
 public class KeyBindingMapMixin {
 
-    @Shadow @Final private static EnumMap<KeyModifier, Map<InputConstants.Key, Collection<KeyMapping>>> map;
+    @Shadow @Final private EnumMap<KeyModifier, Map<InputConstants.Key, Collection<KeyMapping>>> map;
 
     @Inject(
             method = "findKeybinds(Lcom/mojang/blaze3d/platform/InputConstants$Key;Lnet/neoforged/neoforge/client/settings/KeyModifier;)Ljava/util/List;",

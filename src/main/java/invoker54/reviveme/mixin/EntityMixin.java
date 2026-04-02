@@ -92,7 +92,7 @@ public abstract class EntityMixin {
     private void isInvulnerable(CallbackInfoReturnable<Boolean> cir){
         if (revive_Me$getCap() == null) return;
         if (!revive_Me$getCap().isFallen()) return;
-        if (this.level.isClientSide) return;
+        if (this.level.isClientSide()) return;
         if (!ReviveMeConfig.dieWhenTimerEnds && revive_Me$getCap().timeRanOut()) return;
 
         cir.setReturnValue(true);

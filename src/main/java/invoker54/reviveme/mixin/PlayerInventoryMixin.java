@@ -23,28 +23,32 @@ public class PlayerInventoryMixin {
     @Shadow
     @Final
     public net.minecraft.world.entity.player.Player player;
+    @Shadow
+    private int selected;
     @Unique
     private static final ModLogger LOGGERT = ModLogger.getLogger(PlayerInventoryMixin.class, ReviveMeConfig.debugMode);
 
     @Inject(
-            method = "swapPaint",
+            method = "setSelectedSlot",
             at = {
                     @At(value = "HEAD")
             }, cancellable = true)
-    private void swapPaint(double moveAmount, CallbackInfo ci){
+    private void swapPaint(int slot, CallbackInfo ci){
         if (ClientUtil.getPlayer() == null) return;
+        if (slot == this.selected) return;
         FallenData cap = FallenData.get(ClientUtil.getPlayer());
         if (cap == null) return;
         if (!cap.isFallen()) return;
         if (!FallenItemScreenEvent.isItemScreenActive) return;
         if (!cap.canSelfRevive()) return;
-        int multiplier = (int) (Math.abs(moveAmount)/moveAmount);
-        FallenItemScreenEvent.changeSelectedItem(multiplier);
+        int moveAmount = (int) -Math.signum(slot - this.selected);
+        if (Math.abs(slot - this.selected) > 1) moveAmount *= -1;
+        FallenItemScreenEvent.changeSelectedItem(moveAmount);
         ci.cancel();
     }
 
     @Inject(
-            method = "getSelected",
+            method = "getSelectedItem",
             at = {
                     @At(value = "HEAD")
             }, cancellable = true)

@@ -78,7 +78,10 @@ public class SoundEvents {
         FallenData cap = FallenData.get(ClientUtil.getPlayer());
         if (!cap.isFallen() || cap.getOtherPlayer() != null) return;
 
-        if (cap.getTimeLeft(false) > 5 || ReviveMeConfig.timeLeft == 0 || !ReviveMeConfig.dieWhenTimerEnds) fallen_state_random_sound.playWhenStopped();
+        if (!ClientUtil.getPlayer().isDeadOrDying() &&
+                (cap.getTimeLeft(false) > 5 ||
+                        ReviveMeConfig.timeLeft == 0 ||
+                        !ReviveMeConfig.dieWhenTimerEnds)) fallen_state_random_sound.playWhenStopped();
         if ((cap.getTimeLeft(false) % 1 == 0)) fallen_state_ticking_sound.play();
     }
 
@@ -100,7 +103,7 @@ public class SoundEvents {
     @SubscribeEvent
     public static void onReviveEvent(PlaySoundEvent event) {
         if (event.getSound() instanceof InvoSound) return;
-        if (!SoundInit.REVIVED.getLocation().getPath().equals(event.getName())) return;
+        if (!SoundInit.REVIVED.location().getPath().equals(event.getName())) return;
         SoundInstance prevSound = event.getSound();
         event.setSound(new InvoSound(SoundInit.REVIVED, SoundSource.PLAYERS)
                 .setVolume(MathUtil.randomFloat(0.7F, 0.9F)).setPitch(MathUtil.randomFloat(0.8F, 1.0F))

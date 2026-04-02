@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@EventBusSubscriber(modid = ReviveMe.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public final class ReviveMeConfig {
     public static final CommonConfig COMMON;
     public static final ModConfigSpec COMMON_SPEC;
@@ -186,7 +186,7 @@ public final class ReviveMeConfig {
                             .anyMatch(listString -> {
                                 boolean isEmpty = listString.isEmpty();
                                 if (isEmpty) return false;
-                                String entryString = entry.getKey().location().toString();
+                                String entryString = entry.getKey().identifier().toString();
                                 return entryString.contains(listString);
                             })).map(Map.Entry::getValue).collect(Collectors.toList());
         }
@@ -196,7 +196,7 @@ public final class ReviveMeConfig {
                             .noneMatch(listString -> {
                                 boolean isEmpty = listString.isEmpty();
                                 if (isEmpty) return false;
-                                String entryString = entry.getKey().location().toString();
+                                String entryString = entry.getKey().identifier().toString();
                                 return entryString.contains(listString);
                             })).map(Map.Entry::getValue).collect(Collectors.toList());
         }
@@ -334,77 +334,77 @@ public final class ReviveMeConfig {
 
     public static void deserialize(CompoundTag mainTag) {
         //Item User
-        itemUser = ReviveItemData.USER.valueOf(mainTag.getString("itemUser"));
+        itemUser = ReviveItemData.USER.valueOf(mainTag.getString("itemUser").get());
         //Time Left
-        timeLeft = mainTag.getInt("timeLeft");
+        timeLeft = mainTag.getInt("timeLeft").get();
         //Reviver Must Look
-        reviverMustLook = mainTag.getBoolean("reviverMustLook");
+        reviverMustLook = mainTag.getBoolean("reviverMustLook").get();
         //Penalty Type
-        penaltyType = FallenData.PENALTYPE.valueOf(mainTag.getString("penaltyType"));
+        penaltyType = FallenData.PENALTYPE.valueOf(mainTag.getString("penaltyType").get());
         //Penalty Amount
-        penaltyAmount = mainTag.getDouble("penaltyAmount");
+        penaltyAmount = mainTag.getDouble("penaltyAmount").get();
         //Self Revive options
         if (!mainTag.getString("selfReviveOptions").isEmpty()) {
-            String[] allSelfReviveOptions = mainTag.getString("selfReviveOptions").split(",");
+            String[] allSelfReviveOptions = mainTag.getString("selfReviveOptions").get().split(",");
             selfReviveOptions.clear();
             for (String reviveType : allSelfReviveOptions) selfReviveOptions.add(FallenData.SELFREVIVETYPE.valueOf(reviveType));
         }
         //Max Self Revives
-        maxSelfRevives = mainTag.getInt("maxSelfRevives");
+        maxSelfRevives = mainTag.getInt("maxSelfRevives").get();
         //Disable Self Revive If Player Downed
-        disableSelfReviveIfPlayerDowned = mainTag.getBoolean("disableSelfReviveIfPlayerDowned");
+        disableSelfReviveIfPlayerDowned = mainTag.getBoolean("disableSelfReviveIfPlayerDowned").get();
         //Randomize Self Revive Options
-        randomizeSelfReviveOptions = mainTag.getBoolean("randomizeSelfReviveOptions");
+        randomizeSelfReviveOptions = mainTag.getBoolean("randomizeSelfReviveOptions").get();
         //Self Revive Penalty Percentage
-        selfPenaltyPercentage = mainTag.getDouble("selfPenaltyPercentage");
+        selfPenaltyPercentage = mainTag.getDouble("selfPenaltyPercentage").get();
         //Refresh Items
-        refreshItems = mainTag.getBoolean("refreshItems");
+        refreshItems = mainTag.getBoolean("refreshItems").get();
         //Revive Chance
-        reviveChance = mainTag.getDouble("reviveChance");
+        reviveChance = mainTag.getDouble("reviveChance").get();
         //Sacrificial Item Percentage
-        sacrificialItemPercent = mainTag.getDouble("sacrificialItemPercent");
+        sacrificialItemPercent = mainTag.getDouble("sacrificialItemPercent").get();
         //Revive Kill Amount
-        reviveKillAmount = mainTag.getInt("reviveKillAmount");
+        reviveKillAmount = mainTag.getInt("reviveKillAmount").get();
         //Revive Kill Time
-        reviveKillTime = mainTag.getInt("reviveKillTime");
+        reviveKillTime = mainTag.getInt("reviveKillTime").get();
         //Negative Effects duration
-        negativeEffectsTime = mainTag.getInt("negativeEffectsTime");
+        negativeEffectsTime = mainTag.getInt("negativeEffectsTime").get();
         //Revive XP Loss Percentage
-        reviveXPLossPercentage = mainTag.getDouble("reviveXPLossPercentage");
+        reviveXPLossPercentage = mainTag.getDouble("reviveXPLossPercentage").get();
         //Minimum Revive XP Level
-        minReviveXPLevel = mainTag.getInt("minReviveXPLevel");
+        minReviveXPLevel = mainTag.getInt("minReviveXPLevel").get();
         //Run Living Death Event first
-        runDeathEventFirst = mainTag.getBoolean("runDeathEventFirst");
+        runDeathEventFirst = mainTag.getBoolean("runDeathEventFirst").get();
         //Can Give Up
-        canGiveUp = mainTag.getBoolean("canGiveUp");
+        canGiveUp = mainTag.getBoolean("canGiveUp").get();
 //        //Overheal Amount
 //        overhealAmount = mainTag.getDouble("overhealAmount");
 //        //Overheal Penalty Percentage
 //        overhealPenaltyPercentage = mainTag.getDouble("overhealPenaltyPercentage");
         //How long the help effects last for
-        reviveHelpDuration = mainTag.getDouble("reviveHelpDuration");
+        reviveHelpDuration = mainTag.getDouble("reviveHelpDuration").get();
         //How far a glowing fallen player can be seen
-        reviveGlowMaxDistance = mainTag.getDouble("reviveGlowMaxDistance");
+        reviveGlowMaxDistance = mainTag.getDouble("reviveGlowMaxDistance").get();
         //How far a fallen player's timer can be seen
-        deathTimerMaxDistance = mainTag.getDouble("deathTimerMaxDistance");
+        deathTimerMaxDistance = mainTag.getDouble("deathTimerMaxDistance").get();
         //Fallen Pose
-        fallenPose = FALLEN_POSE.valueOf(mainTag.getString("fallenPose"));
+        fallenPose = FALLEN_POSE.valueOf(mainTag.getString("fallenPose").get());
         //Fallen Perspective
-        fallenPerspective = FALLEN_PERSPECTIVE.valueOf(mainTag.getString("fallenPerspective"));
+        fallenPerspective = FALLEN_PERSPECTIVE.valueOf(mainTag.getString("fallenPerspective").get());
         //Can Jump
-        canJump = JUMP.valueOf(mainTag.getString("canJump"));
+        canJump = JUMP.valueOf(mainTag.getString("canJump").get());
         //can Move
-        canMove = mainTag.getBoolean("canMove");
+        canMove = mainTag.getBoolean("canMove").get();
         //open Inventory While Downed
-        interactWithInventory = INTERACT_WITH_INVENTORY.valueOf(mainTag.getString("interactWithInventory"));
+        interactWithInventory = INTERACT_WITH_INVENTORY.valueOf(mainTag.getString("interactWithInventory").get());
         //time Reduction Penalty
-        timeReductionPenalty = mainTag.getDouble("timeReductionPenalty");
+        timeReductionPenalty = mainTag.getDouble("timeReductionPenalty").get();
         //pvp Timer
-        pvpTimer = mainTag.getInt("pvpTimer");
+        pvpTimer = mainTag.getInt("pvpTimer").get();
         //Blocked Commands
-        blockedCommands = Arrays.asList(mainTag.getString("blockedCommands").split(","));
+        blockedCommands = Arrays.asList(mainTag.getString("blockedCommands").get().split(","));
         //Allowed Keybinds
-        allowedKeybinds = Arrays.asList(mainTag.getString("allowedKeybinds").split(","));
+        allowedKeybinds = Arrays.asList(mainTag.getString("allowedKeybinds").get().split(","));
 
         ReviveItemData.deserializeNBT((CompoundTag) mainTag.get(ReviveItemData.MAIN_REVIVE_ITEM_NBT));
     }

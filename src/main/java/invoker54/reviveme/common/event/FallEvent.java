@@ -8,7 +8,7 @@ import invoker54.reviveme.init.MobEffectInit;
 import invoker54.reviveme.init.NetworkInit;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
@@ -26,7 +26,7 @@ public class FallEvent {
     public static boolean cancelEvent(Player player, DamageSource source) {
         FallenData instance = FallenData.get(player);
 
-        instance.refreshSelfReviveTypes(player);
+        instance.refreshSelfReviveTypes();
 
 //        if (!instance.canSelfRevive() && ((!player.getServer().isDedicatedServer() &&
 //                player.getServer().getPlayerCount() == 1))) return false;
@@ -84,6 +84,9 @@ public class FallEvent {
             //Set the maxOverheal thingy
             instance.setMaxOverheal();
 
+            //Also refresh revive item list
+            instance.refreshReviveItemList();
+
 //            //Finally send capability code to all players
 //            CompoundTag nbt = new CompoundTag();
 
@@ -107,7 +110,7 @@ public class FallEvent {
                 if (mob.getTarget() == null) continue;
                 if (mob.getTarget().getId() != player.getId()) continue;
                 if (mob instanceof NeutralMob){
-                    ((NeutralMob)mob).playerDied(player);
+                    ((NeutralMob)mob).playerDied((ServerLevel) player.level(), player);
                 }
                 mob.aiStep();
             }
@@ -124,10 +127,10 @@ public class FallEvent {
             try {
                 String[] array = string.split(":");
 //                LOGGER.info("The effect split into pieces: " + Arrays.toString(array));
-                ResourceLocation effectLocation = ResourceLocation.fromNamespaceAndPath(array[0],array[1]);
+                Identifier effectLocation = Identifier.fromNamespaceAndPath(array[0],array[1]);
                 int tier = Integer.parseInt(array[2]);
 //                LOGGER.info("The tier: " + tier);
-                Optional<Holder.Reference<MobEffect>> effect = BuiltInRegistries.MOB_EFFECT.getHolder(effectLocation);
+                Optional<Holder.Reference<MobEffect>> effect = BuiltInRegistries.MOB_EFFECT.get(effectLocation);
                 if (effect.isEmpty()){
                     LOGGER.error("Incorrect MOD ID or Potion Effect: " + string);
                     continue;

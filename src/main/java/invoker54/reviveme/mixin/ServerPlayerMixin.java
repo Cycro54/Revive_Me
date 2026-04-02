@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerPlayerGameMode;
 import net.minecraft.tags.DamageTypeTags;
@@ -29,6 +30,11 @@ public abstract class ServerPlayerMixin extends Player {
 
     @Unique
     private FallenData revive_Me$cap;
+
+    public ServerPlayerMixin(Level level, GameProfile gameProfile) {
+        super(level, gameProfile);
+    }
+
     @Unique
     private FallenData revive_Me$getCap(){
         if (this.revive_Me$cap != null) return this.revive_Me$cap;
@@ -40,40 +46,41 @@ public abstract class ServerPlayerMixin extends Player {
         return this.revive_Me$cap;
     }
 
-    public ServerPlayerMixin(Level p_219727_, BlockPos p_219728_, float p_219729_, GameProfile p_219730_) {
-        super(p_219727_, p_219728_, p_219729_, p_219730_);
-    }
+//    @Inject(
+//
+//            method = "isCreative",
+//            at = {
+//                    @At(value = "HEAD")
+//            },
+//            cancellable = true)
+//    private void isCreative(CallbackInfoReturnable<Boolean> cir) {
+//
+//    }
 
-    @Inject(
-
-            method = "isCreative",
-            at = {
-                    @At(value = "HEAD")
-            },
-            cancellable = true)
-    private void isCreative(CallbackInfoReturnable<Boolean> cir) {
-        if (this.gameMode.getGameModeForPlayer() == GameType.CREATIVE) return;
+    @Override
+    public boolean isCreative() {
+        if (this.gameMode.getGameModeForPlayer() == GameType.CREATIVE) return super.isCreative();
         FallenData cap = FallenData.get(this);
-        if (!cap.isFallen()) return;
-        if (!ReviveMeConfig.dieWhenTimerEnds && cap.timeRanOut()) return;
+        if (!cap.isFallen()) return super.isCreative();
+        if (!ReviveMeConfig.dieWhenTimerEnds && cap.timeRanOut()) return super.isCreative();
 
-        cir.setReturnValue(FallenData.FALLEN_HAS_CREATIVE);
+        return FallenData.FALLEN_HAS_CREATIVE;
     }
 
     @Inject(
 
-            method = "hurt",
+            method = "hurtServer",
             at = {
                     @At(value = "HEAD")
             },
             cancellable = true)
-    private synchronized void hurtStart(DamageSource damageSource, float damage, CallbackInfoReturnable<Boolean> cir) throws InterruptedException {
+    private synchronized void hurtStart(ServerLevel serverLevel, DamageSource damageSource, float damage, CallbackInfoReturnable<Boolean> cir) throws InterruptedException {
         if (damageSource.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) return;
         if (revive_Me$getCap() == null) return;
         if (!revive_Me$getCap().isFallen()) return;
 
         boolean sourceIsPlayer = (damageSource.getEntity() instanceof Player);
-        boolean playerIsCrouching = (sourceIsPlayer && damageSource.getEntity().isCrouching());
+        boolean playerIsCrouching = (sourceIsPlayer && damageSource.getEntity().isShiftKeyDown());
         boolean killTimerIsExpired = revive_Me$getCap().getKillTime(false) == 0;
         boolean actualDamage = damage > 0;
 

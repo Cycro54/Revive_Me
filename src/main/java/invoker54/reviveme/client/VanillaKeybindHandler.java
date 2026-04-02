@@ -73,7 +73,7 @@ public class VanillaKeybindHandler {
 
 //        LOGGER.warn("Making fake MATCH: " + name);
 
-        KeyMapping fakeBinding = new KeyMapping(name, GLFW.GLFW_KEY_A, "fake");
+        KeyMapping fakeBinding = new KeyMapping(name, GLFW.GLFW_KEY_A, KeyMapping.Category.MISC);
         foundBindings.put(name, fakeBinding);
         return fakeBinding;
     }

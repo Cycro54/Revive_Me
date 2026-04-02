@@ -11,7 +11,7 @@ import invoker54.reviveme.init.SoundInit;
 import invoker54.reviveme.mixin.FoodMixin;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.protocol.game.ClientboundSetHealthPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffect;
@@ -72,10 +72,10 @@ public class ReviveConfigData {
     public static MobEffectInstance EffectFromString(String effectString) {
         try {
             List<String> pieces = Arrays.asList(effectString.split(":"));
-            ResourceLocation effectLocation = ResourceLocation.fromNamespaceAndPath(pieces.get(0), pieces.get(1));
+            Identifier effectLocation = Identifier.fromNamespaceAndPath(pieces.get(0), pieces.get(1));
             int tier = Integer.parseInt(pieces.get(2));
             int ticks = Integer.parseInt(pieces.get(3));
-            MobEffect effect = BuiltInRegistries.MOB_EFFECT.get(effectLocation);
+            MobEffect effect = BuiltInRegistries.MOB_EFFECT.get(effectLocation).get().value();
             if (effect == null){
                 LOGGER.error("Incorrect MOD ID or Potion MobEffect: " + effectString);
                 return null;
@@ -186,7 +186,7 @@ public class ReviveConfigData {
         fallen.level().playSound(null, fallen.getX(), fallen.getY(), fallen.getZ(),
                 SoundInit.REVIVED, SoundSource.PLAYERS, 1.0F, MathUtil.randomFloat(0.7F, 1.0F));
 
-        if (!fallen.level().isClientSide) {
+        if (!fallen.level().isClientSide()) {
             NetworkInit.sendMessage(reviveText.getText(), isCommand, fallen);
 
             cap.syncClient(true);

@@ -4,7 +4,7 @@
 
 # 1.21.1-5.7.12
 
-<div><pre><strong>Fixes</strong><br>-Removed LOGGER spam from FallenTimerEvent class<br>-Crouch pose should work properly now<br>-Call for help and change self-revive screen now checks if the player is holding shift key instead of crouching</pre></div>
+<div><pre><strong>Fixes</strong><br>-Removed LOGGER spam from FallenTimerEvent class<br>-Crouch pose should work properly now<br>-Call for help and change self-revive screen now checks if the player is holding shiftXY key instead of crouching</pre></div>
 
 # 1.21.1-5.7.11
 

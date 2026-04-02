@@ -26,14 +26,17 @@ public class MixinPlugin implements IMixinConfigPlugin {
         if (mixinClassName.contains("invoker54.reviveme.mixin.compatibility.ControllableButtonBindingMixin")){
             return targetClassName.contains("com.mrcrayfish.controllable.client.binding.ButtonBinding");
         }
-        if (mixinClassName.contains("invoker54.reviveme.mixin.compatibility.ControllableInputHandlerMixin")){
-            return targetClassName.contains("com.mrcrayfish.controllable.client.InputHandler");
+//        if (mixinClassName.contains("invoker54.reviveme.mixin.compatibility.ControllableInputHandlerMixin")){
+//            return targetClassName.contains("com.mrcrayfish.controllable.client.InputHandler");
+//        }
+        if (mixinClassName.contains("invoker54.reviveme.mixin.compatibility.ControllableBindingRegistryMixin")){
+            return targetClassName.contains("com.mrcrayfish.controllable.client.binding.BindingRegistry");
         }
         return true;
     }
 
     public static boolean isLoaded(String modid) {
-        boolean isLoaded = FMLLoader.getLoadingModList().getModFileById(modid) != null;
+        boolean isLoaded = FMLLoader.getCurrent().getLoadingModList().getModFileById(modid) != null;
         //System.out.println(modid+" : "+isLoaded);
         return isLoaded;
     }

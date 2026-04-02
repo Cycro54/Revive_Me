@@ -12,7 +12,9 @@ import invoker54.reviveme.common.network.payload.RefreshOptionsMsg;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.*;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionSet;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.GsonHelper;
@@ -20,7 +22,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -68,7 +70,7 @@ public class ReviveItemData extends ReviveConfigData {
 
     private String idName = "";
     private ReviveItemData parentItem = null;
-    private String itemResourceLocation = "";
+    private String itemIdentifier = "";
     private String itemTag = "";
     private CompoundTag nbtData = new CompoundTag();
     private String displayName = "";
@@ -95,26 +97,26 @@ public class ReviveItemData extends ReviveConfigData {
         AtomicBoolean hasRequiredEntry = new AtomicBoolean(false);
 
         this.runIfTagPresent(PARENT_ID_NAME_STRING, inbt -> {
-            this.parentItem = reviveItemMap.get(inbt.getAsString());
+            this.parentItem = reviveItemMap.get(inbt.asString());
             this.inherit(this.parentItem);
         });
-        this.runIfTagPresent(REVIVE_HEALTH_DOUBLE, inbt -> this.setRevivedHealth(((NumericTag)inbt).getAsDouble()));
-        this.runIfTagPresent(REVIVE_FOOD_DOUBLE, inbt -> this.setRevivedFood(((NumericTag)inbt).getAsDouble()));
-        this.runIfTagPresent(PENALTY_TIMER_DOUBLE, inbt -> this.setFallenPenaltyTimer(((NumericTag)inbt).getAsDouble()));
+        this.runIfTagPresent(REVIVE_HEALTH_DOUBLE, inbt -> this.setRevivedHealth(inbt.asDouble().orElse(1d)));
+        this.runIfTagPresent(REVIVE_FOOD_DOUBLE, inbt -> this.setRevivedFood(inbt.asDouble().orElse(1d)));
+        this.runIfTagPresent(PENALTY_TIMER_DOUBLE, inbt -> this.setFallenPenaltyTimer(inbt.asDouble().orElse(1d)));
 
         this.idName = idName;
         this.runIfTagPresent(ITEM_RESOURCE_LOCATION_STRING, (inbt)-> {
-            this.itemResourceLocation = inbt.getAsString();
+            this.itemIdentifier = inbt.asString().orElse("");
             hasRequiredEntry.set(true);
         });
         this.runIfTagPresent(ITEM_TAG_STRING, (inbt)-> {
-            this.itemTag = inbt.getAsString();
+            this.itemTag = inbt.asString().orElse("");
             hasRequiredEntry.set(true);
         });
         this.runIfTagPresent(NBT_DATA_STRING, (inbt ->{
             try {
                 hasRequiredEntry.set(true);
-                this.nbtData = TagParser.parseTag(inbt.getAsString());
+                this.nbtData = TagParser.parseCompoundFully(inbt.asString().orElse(""));
             }
             catch (CommandSyntaxException e) {
                 if (!dataTag.getString(NBT_DATA_STRING).isEmpty()) {
@@ -124,30 +126,30 @@ public class ReviveItemData extends ReviveConfigData {
                 this.nbtData = new CompoundTag();
             }
         }));
-        this.runIfTagPresent(DISPLAY_NAME_STRING, (inbt -> this.displayName = inbt.getAsString()));
-        this.runIfTagPresent(DESCRIPTION_STRING, (inbt -> this.description = inbt.getAsString()));
+        this.runIfTagPresent(DISPLAY_NAME_STRING, (inbt -> this.displayName = inbt.asString().orElse("")));
+        this.runIfTagPresent(DESCRIPTION_STRING, (inbt -> this.description = inbt.asString().orElse("")));
         this.runIfTagPresent(ITEM_USER_ENUM, (inbt -> {
             try {
-                this.itemUser = USER.valueOf(dataTag.getString(ITEM_USER_ENUM));
+                this.itemUser = USER.valueOf(dataTag.getString(ITEM_USER_ENUM).orElse(""));
             }
             catch (Exception e){
                 LOGGER.error("[Revive Me!] Incorrect User value ("+this.idName+"): " + dataTag.getString(ITEM_USER_ENUM));
                 this.itemUser = USER.BOTH;
             }
         }));
-        this.runIfTagPresent(REVIVE_SECONDS_DOUBLE, (inbt -> this.reviveSeconds = ((NumericTag)inbt).getAsDouble()));
-        this.runIfTagPresent(COUNT_REQUIRED_INT, (inbt -> this.countRequired = ((NumericTag)inbt).getAsInt()));
-//        this.runIfTagPresent(MAX_USES_INT, (inbt -> this.maxUses = ((NumericTag)inbt).getAsInt()));
-        this.runIfTagPresent(REVIVE_CHANCE_DOUBLE, (inbt -> this.reviveChance = ((NumericTag)inbt).getAsDouble()));
-        this.runIfTagPresent(FALLEN_TIMER_CHANGE_INT, (inbt -> this.fallenTimerChange = ((NumericTag)inbt).getAsInt()));
-        this.runIfTagPresent(REFRESH_OPTIONS_BOOL, (inbt -> this.refreshOptions = ((ByteTag)inbt).getAsByte() != 0));
-        this.runIfTagPresent(USE_REVIVE_ON_FAIL_BOOL, (inbt -> this.useReviveOnFail = ((ByteTag)inbt).getAsByte() != 0));
+        this.runIfTagPresent(REVIVE_SECONDS_DOUBLE, (inbt -> this.reviveSeconds = inbt.asDouble().orElse(0d)));
+        this.runIfTagPresent(COUNT_REQUIRED_INT, (inbt -> this.countRequired = inbt.asInt().orElse(0)));
+//        this.runIfTagPresent(MAX_USES_INT, (inbt -> this.maxUses = inbt.asInt().orElse(0)));
+        this.runIfTagPresent(REVIVE_CHANCE_DOUBLE, (inbt -> this.reviveChance = inbt.asDouble().orElse(0d)));
+        this.runIfTagPresent(FALLEN_TIMER_CHANGE_INT, (inbt -> this.fallenTimerChange = inbt.asInt().orElse(0)));
+        this.runIfTagPresent(REFRESH_OPTIONS_BOOL, (inbt -> this.refreshOptions = inbt.asByte().orElse((byte) 0) != 0));
+        this.runIfTagPresent(USE_REVIVE_ON_FAIL_BOOL, (inbt -> this.useReviveOnFail = inbt.asByte().orElse((byte) 0) != 0));
 
         this.runIfTagPresent(REVIVE_EFFECTS_LIST_STRING, this::grabEffectsFromList);
         this.runIfTagPresent(REVIVE_COMMANDS_LIST_STRING, this::grabCommandsFromList);
 
         if (!hasRequiredEntry.get()){
-            throw new NullPointerException("[Revive Me!] "+this.idName+" is missing one of the main entries!: 'itemResourceLocation' or 'itemTag', or 'nbtData'");
+            throw new NullPointerException("[Revive Me!] "+this.idName+" is missing one of the main entries!: 'itemIdentifier' or 'itemTag', or 'nbtData'");
         }
     }
 
@@ -168,7 +170,7 @@ public class ReviveItemData extends ReviveConfigData {
         if (reviveItemMap.containsKey(idName)) return reviveItemMap.get(idName);
 
 
-        String parentID = itemTag.getString(PARENT_ID_NAME_STRING);
+        String parentID = itemTag.getString(PARENT_ID_NAME_STRING).orElse("");
         ReviveItemData parentData = reviveItemMap.get(parentID);
 
         if (!parentID.isEmpty() && parentData == null){
@@ -196,7 +198,7 @@ public class ReviveItemData extends ReviveConfigData {
     public void grabEffectsFromList(Tag inbt) {
         ListTag listNBT = ((ListTag) inbt);
         List<String> stringList = new ArrayList<>();
-        listNBT.forEach(s -> stringList.add(s.getAsString()));
+        listNBT.forEach(s -> stringList.add(s.asString().orElse("")));
         List<MobEffectInstance> instances = new ArrayList<>();
         for (String s : stringList) {
             if (s.equals("PARENT")) {
@@ -213,13 +215,13 @@ public class ReviveItemData extends ReviveConfigData {
         ListTag listNBT = ((ListTag) inbt);
         List<String> stringList = new ArrayList<>();
         listNBT.forEach(s -> {
-            if (s.getAsString().equals("PARENT")){
+            if (s.asString().orElse("").equals("PARENT")){
                 if (this.parentItem == null) LOGGER.error("[Revive Me!] There is no parent! (" + this.getIdName() +")");
                 else stringList.addAll(this.parentItem.getReviveCommands());
 
                 return;
             }
-            stringList.add(s.getAsString());
+            stringList.add(s.asString().orElse(""));
         });
         this.reviveCommands = stringList;
     }
@@ -250,8 +252,8 @@ public class ReviveItemData extends ReviveConfigData {
 
         for (ReviveItemData data : itemDataList){
             //resource location
-            if (!data.itemResourceLocation.isEmpty() &&
-                    !BuiltInRegistries.ITEM.getKey(stack.getItem()).toString().contains(data.itemResourceLocation)) continue;
+            if (!data.itemIdentifier.isEmpty() &&
+                    !BuiltInRegistries.ITEM.getKey(stack.getItem()).toString().contains(data.itemIdentifier)) continue;
             //item tag
             if (!data.itemTag.isEmpty()){
                 try {
@@ -298,8 +300,8 @@ public class ReviveItemData extends ReviveConfigData {
         return descriptionText;
     }
 
-    public String getItemResourceLocation() {
-        return itemResourceLocation;
+    public String getItemIdentifier() {
+        return itemIdentifier;
     }
 
     public String getItemTag() {
@@ -392,12 +394,12 @@ public class ReviveItemData extends ReviveConfigData {
         }
 
         //Play the break sound
-        fallen.level().playSound(null, fallen.blockPosition(), SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, MathUtil.randomFloat(0.7F,1.0F), MathUtil.randomFloat(0.8F,1.0F));
+        fallen.level().playSound(null, fallen.blockPosition(), SoundEvents.ITEM_BREAK.value(), SoundSource.PLAYERS, MathUtil.randomFloat(0.7F,1.0F), MathUtil.randomFloat(0.8F,1.0F));
 
         if (this.refreshOptions){
             cap.cycleReviveOptions(null);
             cap.cycleReviveOptions(null);
-            cap.refreshSelfReviveTypes(fallen);
+            cap.refreshSelfReviveTypes();
         }
         if (this.useReviveOnFail) cap.incrementSelfReviveCount();
 
@@ -423,17 +425,20 @@ public class ReviveItemData extends ReviveConfigData {
     }
 
     public void runCommands(Player fallen, Player reviver){
-        GameRules.BooleanValue commandFeedback = fallen.getServer().getGameRules().getRule(GameRules.RULE_SENDCOMMANDFEEDBACK);
-        boolean isAlreadySilenced = commandFeedback.get();
+        ServerLevel level = (ServerLevel)fallen.level();
+        GameRules gameRules = level.getGameRules();
+//        Boolean sendCommandFeedback = level.getGameRules().get(GameRules.SEND_COMMAND_FEEDBACK);
+//        s.BooleanValue commandFeedback = fallen.getServer().getGameRules().getRule(GameRules.RULE_SENDCOMMANDFEEDBACK);
+        boolean isAlreadySilenced = gameRules.get(GameRules.SEND_COMMAND_FEEDBACK);
 
-        if (ReviveMeConfig.silenceCommandMessages) commandFeedback.set(false, fallen.getServer());
+        if (ReviveMeConfig.silenceCommandMessages) gameRules.set(GameRules.SEND_COMMAND_FEEDBACK, false, level.getServer());
         for (String s : this.getReviveCommands()){
             String properString = s.replace("@s", reviver.getName().getString())
                     .replace("@p", fallen.getName().getString());
-            fallen.getServer().getCommands().performPrefixedCommand(
-                    fallen.createCommandSourceStack().withPermission(5), properString);
+            level.getServer().getCommands().performPrefixedCommand(
+                    fallen.createCommandSourceStackForNameResolution(level).withPermission(PermissionSet.ALL_PERMISSIONS), properString);
         }
-        commandFeedback.set(isAlreadySilenced, fallen.getServer());
+        gameRules.set(GameRules.SEND_COMMAND_FEEDBACK, isAlreadySilenced, level.getServer());
     }
 
     @Override
@@ -492,7 +497,7 @@ public class ReviveItemData extends ReviveConfigData {
         try {
 
             Map<String, CompoundTag> itemMap = new HashMap<>();
-            reviveItemNBT.getAllKeys().forEach(key ->{
+            reviveItemNBT.keySet().forEach(key ->{
                 if (key.equals("EXAMPLE")){
                     LOGGER.warn("[Revive Me!] This is only an example, don't make into a revive item");
                     return;

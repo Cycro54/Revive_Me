@@ -5,6 +5,7 @@ import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.data.ReviveItemData;
 import invoker54.reviveme.init.NetworkInit;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -37,13 +38,23 @@ public record ReviveItemMsg(CompoundTag itemNBT) implements CustomPacketPayload 
                         if (player == null) return;
                         if (!player.isAlive()) return;
 
-                        ItemStack chosenStack = ItemStack.parseOptional(player.level().registryAccess(), msg.itemNBT);
-                        ReviveItemData reviveData = ReviveItemData.getData(chosenStack, ReviveItemData.USER.FALLEN);
+                        FallenData cap = FallenData.get(player);
+                        ItemStack chosenStack = ItemStack.CODEC.parse(NbtOps.INSTANCE, msg.itemNBT).getOrThrow();
+                        boolean isValid = ReviveMeConfig.refreshItems;
+                        if (!isValid){
+                            for (var reviveItemPair : cap.getReviveItemList(false)){
+                                if (!ItemStack.isSameItem(chosenStack, reviveItemPair.getKey())) continue;
+                                if (!FallenData.hasSimilarData(chosenStack, reviveItemPair.getKey())) continue;
+                                if (reviveItemPair.getRight().getCountRequired() > reviveItemPair.getLeft().getCount()) continue;
+                                isValid = true;
+                                break;
+                            }
+                        }
+                        ReviveItemData reviveData = isValid ? ReviveItemData.getData(chosenStack, ReviveItemData.USER.FALLEN) : null;
 
                         //When doing items, only things that will stop death is canGiveUp and they use a null item,
 
 
-                        FallenData cap = FallenData.get(player);
                         if (!cap.isFallen()){
                             cap.syncClient(true);
                             return;
