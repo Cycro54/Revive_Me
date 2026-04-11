@@ -31,7 +31,7 @@ public class CommonHooksMixin {
         if (!(entity instanceof ServerPlayer)) return;
         if ((((ServerPlayer) entity).gameMode.getGameModeForPlayer() == GameType.CREATIVE)) return;
         if (!ReviveMeConfig.reviveMeEnabled){
-            ((ServerPlayer) entity).displayClientMessage(InvoText.translate("revive_me.disabled").getText(), false);
+            ((ServerPlayer) entity).sendSystemMessage(InvoText.translate("revive_me.disabled").getText());
             return;
         }
 

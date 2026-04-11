@@ -56,7 +56,7 @@ public class FallenPotionEffect extends MobEffect {
 
             if (!completed && !ReviveMeConfig.canRemovePenaltyTimer && !((Player) entity).isCreative()){
                 if (!warnedPlayers.contains(entity.getUUID())){
-                    ((Player) entity).displayClientMessage(InvoText.translate("effect.reviveme.fallen_effect.cant_remove").getText(), false);
+                    ((Player) entity).sendSystemMessage(InvoText.translate("effect.reviveme.fallen_effect.cant_remove").getText());
                     warnedPlayers.add(entity.getUUID());
                 }
                 return true;

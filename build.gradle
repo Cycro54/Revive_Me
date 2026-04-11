@@ -4,7 +4,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'idea'
-    id 'net.neoforged.moddev' version '2.0.140'
+    id 'net.neoforged.moddev' version '2.0.141'
     id "com.hypherionmc.modutils.modpublisher" version "${PUBLICATION_GRADLE_VERSION}"
 }
 
@@ -16,10 +16,10 @@ repositories {
 }
 
 base {
-    archivesName = mod_id+"-1.21.1"
+    archivesName = mod_id+"-26.1"
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 neoForge {
     // Specify the version of NeoForge to use.
@@ -137,8 +137,8 @@ dependencies {
 
     //Mod Compatibility
     //Controllable (MrCrayFish Mod)
-    compileOnly "curse.maven:controllable-317269:7411287"
-    compileOnly "curse.maven:framework-549225:7530356"
+    compileOnly "curse.maven:controllable-317269:7820685"
+    compileOnly "curse.maven:framework-549225:7848607"
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
@@ -154,7 +154,8 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
                              mod_license            : mod_license,
                              mod_version            : mod_version,
                              mod_authors            : mod_authors,
-                             mod_description        : mod_description]
+                             mod_description        : mod_description,
+                             invocore_version       : invocore_version]
     inputs.properties replaceProperties
     expand replaceProperties
     from "src/main/templates"

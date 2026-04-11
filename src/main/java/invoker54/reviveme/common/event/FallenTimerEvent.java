@@ -71,7 +71,7 @@ public class FallenTimerEvent {
 //        LOGGER.warn("What's pose: " + event.getEntity().getForcedPose());
 
         if (!ReviveMeConfig.reviveMeEnabled){
-            event.getEntity().displayClientMessage(InvoText.translate("revive_me.disabled").getText(), false);
+            event.getEntity().sendSystemMessage(InvoText.translate("revive_me.disabled").getText());
             cap.forceDeath();
         }
 

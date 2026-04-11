@@ -1,19 +1,18 @@
 package invoker54.reviveme.client.gui.render;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.platform.DepthTestFunction;
 import com.mojang.blaze3d.vertex.*;
 import invoker54.invocore.client.util.ClientUtil;
 import invoker54.invocore.client.util.InvoZone;
 import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.common.config.ReviveMeConfig;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.TextureSetup;
-import net.minecraft.client.gui.render.state.GuiElementRenderState;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.state.gui.GuiElementRenderState;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3x2f;
 import org.joml.Matrix4f;
@@ -31,7 +30,7 @@ public class CircleRender {
      * @param endAngle (degreesO
      */
     public record CircleRenderState(RenderPipeline pipeline, TextureSetup textureSetup, Matrix3x2f pose, float origX, float origY, double radius,
-                                    double startAngle, double endAngle, int colorCode,  @Nullable ScreenRectangle scissorArea, @Nullable ScreenRectangle bounds) implements GuiElementRenderState{
+                                    double startAngle, double endAngle, int colorCode,  @Nullable ScreenRectangle scissorArea, @Nullable ScreenRectangle bounds) implements GuiElementRenderState {
         public CircleRenderState(RenderPipeline pipeline, TextureSetup textureSetup, Matrix3x2f pose, float origX, float origY, double radius, double startAngle, double endAngle, int colorCode, @Nullable ScreenRectangle scissorArea){
             this(pipeline, textureSetup, pose, origX, origY, radius, startAngle, endAngle, colorCode, scissorArea, getBound(origX, origY, radius, pose,scissorArea));
         }
@@ -115,18 +114,18 @@ public class CircleRender {
         }
     }
 
-    public static void draw2DArc(GuiGraphics graphics, float origX, float origY, double radius,
+    public static void draw2DArc(GuiGraphicsExtractor graphics, float origX, float origY, double radius,
                                  double startAngle, double endAngle, int colorCode) {
 //        LOGGER.warn("Hey, how's it going");
         graphics.submitGuiElementRenderState(
-                new CircleRenderState(RenderPipelines.GUI.toBuilder().withCull(false).withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+                new CircleRenderState(RenderPipelines.GUI.toBuilder().withCull(false).withoutStencilTest()
                         .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLE_FAN).build(),
                         TextureSetup.noTexture(), new Matrix3x2f(graphics.pose()), origX, origY, radius/2f, startAngle, endAngle, colorCode, graphics.peekScissorStack()));
     }
 
     public static void draw3DArc(PoseStack poseStack, float origX, float origY, double radius,
                                  double startAngle, double endAngle, int colorCode) {
-        draw3DArc(poseStack, RenderType.create("InvoArc", RenderSetup.builder(RenderPipelines.GUI.toBuilder().withCull(false).withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+        draw3DArc(poseStack, RenderType.create("InvoArc", RenderSetup.builder(RenderPipelines.GUI.toBuilder().withCull(false).withoutStencilTest()
                         .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLE_FAN).build()).createRenderSetup()),
                 origX, origY, radius, startAngle, endAngle, colorCode);
     }

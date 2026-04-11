@@ -434,7 +434,7 @@ public class FallenData implements ValueIOSerializable {
 
     public void useChance(double penaltyPercentage, ReviveConfigData reviveData, boolean canDie){
         double chance = (ReviveMeConfig.reviveChance * (1 - penaltyPercentage));
-        boolean shouldRevive = (player.level().random.nextFloat() <= chance);
+        boolean shouldRevive = (player.level().getRandom().nextFloat() <= chance);
 
         if (chance > 0 || canDie) {
             incrementSelfReviveCount();
@@ -603,11 +603,11 @@ public class FallenData implements ValueIOSerializable {
             if (playerItems.stream().anyMatch(listStack ->
                     ItemStack.isSameItem(listStack, newStack) && hasSimilarData(newStack, listStack))) continue;
             if (newStack.isEmpty()) continue;
-            playerItems.add(this.level.random.nextInt(Math.max(1, playerItems.size())), newStack.copy());
+            playerItems.add(this.level.getRandom().nextInt(Math.max(1, playerItems.size())), newStack.copy());
         }
         //Remove all except 4
         while (playerItems.size() > 4) {
-            playerItems.remove(this.level.random.nextInt(playerItems.size()));
+            playerItems.remove(this.level.getRandom().nextInt(playerItems.size()));
         }
 
         this.sacrificialItems = playerItems;

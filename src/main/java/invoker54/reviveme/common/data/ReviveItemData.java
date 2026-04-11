@@ -257,7 +257,7 @@ public class ReviveItemData extends ReviveConfigData {
             //item tag
             if (!data.itemTag.isEmpty()){
                 try {
-                    boolean hasTag = stack.getTags().anyMatch(tag -> tag.toString().contains(data.itemTag));
+                    boolean hasTag = stack.tags().anyMatch(tag -> tag.toString().contains(data.itemTag));
                     if (!hasTag) continue;
                 }
                 catch (Exception e){
@@ -380,7 +380,7 @@ public class ReviveItemData extends ReviveConfigData {
     @Override
     public void revivePlayer(Player fallen, boolean isCommand, Player reviver, InvoText reviveText) {
         FallenData cap = FallenData.get(fallen);
-        if (fallen.level().random.nextFloat() <= this.reviveChance || isCommand) {
+        if (fallen.level().getRandom().nextFloat() <= this.reviveChance || isCommand) {
             if (!this.getDisplayName().getString().isEmpty()){
                 reviveText.append(InvoText.literal(" (").append(this.getDisplayName()).append(InvoText.literal(")")));
             }

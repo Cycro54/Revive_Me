@@ -19,7 +19,7 @@ import invoker54.reviveme.init.KeyInit;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -108,13 +108,13 @@ public class FallScreenEvent {
     public static void registerFallenScreen(RegisterGuiLayersEvent event) {
         Minecraft mC = ClientUtil.getMinecraft();
 
-        event.registerAbove(VanillaGuiLayers.CHAT, makeResource("revive_button"), ((guiGraphics, tracker) ->
+        event.registerAbove(VanillaGuiLayers.CHAT, makeResource("revive_button"), ((GuiGraphicsExtractor, tracker) ->
         {
             FallenData cap = getCap();
             if (cap == null) return;
             if ((ClientUtil.getMinecraft().screen instanceof ChatScreen)) return;
 
-            InvoZone workZone = new InvoZone(0, guiGraphics.guiWidth(), 0, guiGraphics.guiHeight());
+            InvoZone workZone = new InvoZone(0, GuiGraphicsExtractor.guiWidth(), 0, GuiGraphicsExtractor.guiHeight());
 
             InvoText callForHelpMsg = InvoText.literal("[" + KeyInit.callForHelpKey.keyBind.getKey().getDisplayName().getString()
                     + "]").withStyle(true, InvoTextFormat.filter(ChatFormatting.BOLD));
@@ -137,9 +137,9 @@ public class FallScreenEvent {
             if (cap.isCallToggled()) toggleBGColor = new Color(58, 243, 74, 200);
             Color toggleFGColor = new Color(0,0,0,200);
 
-            ClientUtil.blit2DColor(guiGraphics, toggleZone, toggleBGColor.getRGB());
-            ClientUtil.blit2DColor(guiGraphics, toggleZone.inflate(-1,-1), toggleFGColor.getRGB());
-            TextUtil.render2DText(guiGraphics, toggleText.getText(), false, 2,
+            ClientUtil.blit2DColor(GuiGraphicsExtractor, toggleZone, toggleBGColor.getRGB());
+            ClientUtil.blit2DColor(GuiGraphicsExtractor, toggleZone.inflate(-1,-1), toggleFGColor.getRGB());
+            TextUtil.render2DText(GuiGraphicsExtractor, toggleText.getText(), false, 2,
                     toggleZone.copy().inflate(-1,-0.5f), TextUtil.txtAlignment.MIDDLE);
             //endregion
 
@@ -158,9 +158,9 @@ public class FallScreenEvent {
 
                 toggleBGColor = new Color(0, 0, 0, 200);
 
-                ClientUtil.blit2DColor(guiGraphics, toggleZone, toggleBGColor.getRGB());
-                ClientUtil.blit2DColor(guiGraphics, toggleZone.inflate(-1, -1), toggleFGColor.getRGB());
-                TextUtil.render2DText(guiGraphics, toggleText.getText(), false, 2,
+                ClientUtil.blit2DColor(GuiGraphicsExtractor, toggleZone, toggleBGColor.getRGB());
+                ClientUtil.blit2DColor(GuiGraphicsExtractor, toggleZone.inflate(-1, -1), toggleFGColor.getRGB());
+                TextUtil.render2DText(GuiGraphicsExtractor, toggleText.getText(), false, 2,
                         toggleZone.copy().inflate(-1, -0.5f), TextUtil.txtAlignment.MIDDLE);
                 //endregion
             }
@@ -175,24 +175,24 @@ public class FallScreenEvent {
                 tickCount = Math.min(maxTicks, tickCount);
                 double progress = MathUtil.EaseType.EASEOUTBOUNCE.getEase ((double) (tickCount + getPartialTicks()) /maxTicks);
                 progress = Math.min(1, progress);
-                ClientUtil.blit2DColor(guiGraphics, reviveButtonZone.copy().
+                ClientUtil.blit2DColor(GuiGraphicsExtractor, reviveButtonZone.copy().
                         inflate((float) (maxInflate * progress), (float) (maxInflate * progress)), new Color(58, 243, 74, (int) (255 - (255 * progress))).getRGB());
             }
 
-            ClientUtil.blit2DColor(guiGraphics, reviveButtonZone.copy().setY(reviveButtonZone.down()).
+            ClientUtil.blit2DColor(GuiGraphicsExtractor, reviveButtonZone.copy().setY(reviveButtonZone.down()).
                     setHeight((int) (reviveButtonZone.height() * cap.callForHelpCooldown())).setBound(reviveButtonZone,true), whiteColor);
 
-            revive_help_button_IMG.render(guiGraphics);
+            revive_help_button_IMG.render(GuiGraphicsExtractor);
             InvoZone txtZone = reviveButtonZone.copy().splitHeight(4,1);
             txtZone.centerY(reviveButtonZone.y() + ((reviveButtonZone.height()/4)*3));
-            TextUtil.render2DText(guiGraphics, callForHelpMsg.getText(), false, 1, txtZone, TextUtil.txtAlignment.MIDDLE);
+            TextUtil.render2DText(GuiGraphicsExtractor, callForHelpMsg.getText(), false, 1, txtZone, TextUtil.txtAlignment.MIDDLE);
 
             if (cap.callForHelpCooldown() != 1){
-                ClientUtil.blit2DColor(guiGraphics, reviveButtonZone, blackFadeColor);
+                ClientUtil.blit2DColor(GuiGraphicsExtractor, reviveButtonZone, blackFadeColor);
             }}));
 
         //if (true) return;
-        event.registerAbove(VanillaGuiLayers.CHAT, makeResource("fallen_screen"), (guiGraphics, tracker) -> {
+        event.registerAbove(VanillaGuiLayers.CHAT, makeResource("fallen_screen"), (GuiGraphicsExtractor, tracker) -> {
             //region initial checks
             FallenData cap = getCap();
             if (cap == null) return;
@@ -200,18 +200,18 @@ public class FallScreenEvent {
             if (cap.canSelfRevive()) return;
             //endregion
 
-            InvoZone workZone = new InvoZone(0, guiGraphics.guiWidth(), 0, guiGraphics.guiHeight());
-            ClientUtil.blit2DColor(guiGraphics, workZone, redFadeColor);
+            InvoZone workZone = new InvoZone(0, GuiGraphicsExtractor.guiWidth(), 0, GuiGraphicsExtractor.guiHeight());
+            ClientUtil.blit2DColor(GuiGraphicsExtractor, workZone, redFadeColor);
 
             //Title text
             InvoZone titleTextZone = workZone.copy().setWidth(workZone.width() / 3).setHeight(workZone.height() / 5).inflate(0, 2)
                     .centerX(workZone.middleX());
-            TextUtil.render2DText(guiGraphics, titleText.getText(), true, 1, titleTextZone, TextUtil.txtAlignment.MIDDLE);
+            TextUtil.render2DText(GuiGraphicsExtractor, titleText.getText(), true, 1, titleTextZone, TextUtil.txtAlignment.MIDDLE);
 
             //Wait For text
             InvoZone waitTextZone = workZone.copy().setWidth(workZone.width() / 3).setHeight(8).setY((workZone.height() / 4) + 12)
                     .centerX(workZone.middleX());
-            TextUtil.render2DText(guiGraphics, waitText.getText(), true, 1, waitTextZone, TextUtil.txtAlignment.MIDDLE);
+            TextUtil.render2DText(GuiGraphicsExtractor, waitText.getText(), true, 1, waitTextZone, TextUtil.txtAlignment.MIDDLE);
 
             //Force death text
             InvoText forceDeathTextResult = ReviveMeConfig.canGiveUp ? forceDeathText : cantForceDeathText;
@@ -220,12 +220,12 @@ public class FallScreenEvent {
                     InvoText.literal(VanillaKeybindHandler.getKey(KeyInit.leftOption.keyBind).getDisplayName().getString()).getText(),
                     RenderFallPlateEvent.df.format(2 - (FallenPlayerActionsEvent.timeHeld / 20f)));
             InvoZone forceDeathTextZone = waitTextZone.copy().setY(waitTextZone.down() + 17).setWidth(workZone.width()).centerX(waitTextZone.middleX());
-            TextUtil.render2DText(guiGraphics, forceDeathTextResult.getText(), true, 1, forceDeathTextZone, TextUtil.txtAlignment.MIDDLE);
+            TextUtil.render2DText(GuiGraphicsExtractor, forceDeathTextResult.getText(), true, 1, forceDeathTextZone, TextUtil.txtAlignment.MIDDLE);
 
-            renderTimer(guiGraphics, cap, workZone, workZone.down() - (workZone.down() / 3), 36, 64);
+            renderTimer(GuiGraphicsExtractor, cap, workZone, workZone.down() - (workZone.down() / 3), 36, 64);
         });
 
-        event.registerAbove(VanillaGuiLayers.CHAT, makeResource("fallen_self_revive_screen"), (guiGraphics, tracker) -> {
+        event.registerAbove(VanillaGuiLayers.CHAT, makeResource("fallen_self_revive_screen"), (GuiGraphicsExtractor, tracker) -> {
             FallenData cap = getCap();
             if (cap == null) return;
             if ((ClientUtil.getMinecraft().screen instanceof ChatScreen)) return;
@@ -234,11 +234,11 @@ public class FallScreenEvent {
                 FallenItemScreenEvent.switchReviveScreens();
             }
 
-            InvoZone workZone = new InvoZone(0, guiGraphics.guiWidth(), 0, guiGraphics.guiHeight());
+            InvoZone workZone = new InvoZone(0, GuiGraphicsExtractor.guiWidth(), 0, GuiGraphicsExtractor.guiHeight());
 
-            ClientUtil.blit2DColor(guiGraphics, workZone, redFadeColor);
+            ClientUtil.blit2DColor(GuiGraphicsExtractor, workZone, redFadeColor);
 
-            renderHeaderAndReviveCount(guiGraphics, cap, workZone);
+            renderHeaderAndReviveCount(GuiGraphicsExtractor, cap, workZone);
 
             InvoZone leftZone;
             InvoZone rightZone;
@@ -248,14 +248,14 @@ public class FallScreenEvent {
                 leftZone = workZone.copy().splitWidth(4, 1);
                 leftZone.splitHeight(5, 3);
                 leftZone.center(workZone.copy().setWidth(workZone.width() / 2));
-                renderTimer(guiGraphics, cap, workZone, timerMiddleY, 36, 64);
+                renderTimer(GuiGraphicsExtractor, cap, workZone, timerMiddleY, 36, 64);
             } else {
                 float timerMiddleY = workZone.down() - (workZone.down() / 4);
                 leftZone = workZone.copy().splitWidth(5, 1);
                 leftZone.splitHeight(3, 1);
                 leftZone.centerX(workZone.copy().splitWidth(2, 1).middleX());
                 leftZone.setDown(timerMiddleY + 18);
-                renderTimer(guiGraphics, cap, workZone, timerMiddleY, 18, 32);
+                renderTimer(GuiGraphicsExtractor, cap, workZone, timerMiddleY, 18, 32);
             }
             rightZone = leftZone.copy().mirrorX(workZone.middleX());
 
@@ -264,7 +264,7 @@ public class FallScreenEvent {
             if (!FallenItemScreenEvent.isItemScreenActive) switchPercentage = 1 - switchPercentage;
 
             if (FallenItemScreenEvent.isItemScreenActive || !isSwitchDone) {
-                FallenItemScreenEvent.renderItemPage(guiGraphics, switchPercentage, workZone, leftZone.copy(), rightZone.copy());
+                FallenItemScreenEvent.renderItemPage(GuiGraphicsExtractor, switchPercentage, workZone, leftZone.copy(), rightZone.copy());
             }
 
             if (!FallenItemScreenEvent.isItemScreenActive || !isSwitchDone) {
@@ -287,23 +287,23 @@ public class FallScreenEvent {
                 leftZone.setY(MathUtil.lerp(switchPercentage, leftZone.y(), workZone.down()));
                 rightZone.setY(MathUtil.lerp(switchPercentage, rightZone.y(), workZone.down()));
 
-                renderReviveOption(GLFW.GLFW_MOUSE_BUTTON_1, guiGraphics, leftZone, cap, VanillaKeybindHandler.attackHeld);
-                renderReviveOption(GLFW.GLFW_MOUSE_BUTTON_2, guiGraphics, rightZone, cap, VanillaKeybindHandler.useHeld);
+                renderReviveOption(GLFW.GLFW_MOUSE_BUTTON_1, GuiGraphicsExtractor, leftZone, cap, VanillaKeybindHandler.attackHeld);
+                renderReviveOption(GLFW.GLFW_MOUSE_BUTTON_2, GuiGraphicsExtractor, rightZone, cap, VanillaKeybindHandler.useHeld);
                 //endregion
             }
         });
 
-        event.registerBelowAll(makeResource("chat_fallen_timer_screen"), (guiGraphics, tracker) -> {
+        event.registerBelowAll(makeResource("chat_fallen_timer_screen"), (GuiGraphicsExtractor, tracker) -> {
             FallenData cap = getCap();
             if (cap == null) return;
             if (!(ClientUtil.getMinecraft().screen instanceof ChatScreen)) return;
 
-            InvoZone workZone = new InvoZone(0, guiGraphics.guiWidth(), 0, guiGraphics.guiHeight());
+            InvoZone workZone = new InvoZone(0, GuiGraphicsExtractor.guiWidth(), 0, GuiGraphicsExtractor.guiHeight());
 
-            renderTimer(guiGraphics, cap, workZone, workZone.down() - (workZone.down() / 3), 36, 64);
+            renderTimer(GuiGraphicsExtractor, cap, workZone, workZone.down() - (workZone.down() / 3), 36, 64);
         });
     }
-    public static void renderHeaderAndReviveCount(GuiGraphics graphics, FallenData cap, InvoZone workZone){
+    public static void renderHeaderAndReviveCount(GuiGraphicsExtractor graphics, FallenData cap, InvoZone workZone){
         //Title text
         InvoZone titleTextZone = workZone.copy().setWidth(workZone.width() / 3).setHeight(workZone.height() / 5).inflate(0, -12)
                 .centerX(workZone.middleX());
@@ -322,7 +322,7 @@ public class FallScreenEvent {
         }
     }
 
-    public static void renderReviveOption(int mouseButton, GuiGraphics graphics, InvoZone workZone, FallenData cap, boolean beingHeld) {
+    public static void renderReviveOption(int mouseButton, GuiGraphicsExtractor graphics, InvoZone workZone, FallenData cap, boolean beingHeld) {
         FallenData.SELFREVIVETYPE selfReviveType = cap.getSelfReviveOption(mouseButton);
         if (selfReviveType == FallenData.SELFREVIVETYPE.NONE) return;
         Minecraft inst = ClientUtil.getMinecraft();
@@ -503,7 +503,7 @@ public class FallScreenEvent {
 //                            (sprite.getU1() - sprite.getU0()), sprite.getV0(),
 //                            (sprite.getV1() - sprite.getV0()), 1, 1);
 
-                    //private void renderEffects(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+                    //private void renderEffects(GuiGraphicsExtractor GuiGraphicsExtractor, DeltaTracker deltaTracker) {
                     Identifier effectId = Gui.getMobEffectSprite(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect));
 //                    LOGGER.warn("What's the id? " + effectId);
                     TextureAtlasSprite sprite = graphics.guiSprites.getSprite(effectId);
@@ -513,7 +513,7 @@ public class FallScreenEvent {
                     InvoZone effectZone = effectIMG.getRenderZone();
 
                     backgroundZone.center(mainZone);
-//                    guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, ambient ? EFFECT_BACKGROUND_AMBIENT_SPRITE : EFFECT_BACKGROUND_SPRITE, x, y, k, 32);
+//                    GuiGraphicsExtractor.blitSprite(RenderPipelines.GUI_TEXTURED, ambient ? EFFECT_BACKGROUND_AMBIENT_SPRITE : EFFECT_BACKGROUND_SPRITE, x, y, k, 32);
                     graphics.blitSprite(RenderPipelines.GUI_TEXTURED, EFFECT_BACKGROUND, (int) backgroundZone.x(), (int) backgroundZone.y(), (int) backgroundZone.width(), (int) backgroundZone.height());
 //                    backgroundImg.render(graphics);
                     effectZone.copy(backgroundZone);
@@ -613,7 +613,7 @@ public class FallScreenEvent {
         }
     }
 
-    public static void renderTimer(GuiGraphics graphics, FallenData cap, InvoZone workZone, float y, int progressCircleRadius, int imageSize) {
+    public static void renderTimer(GuiGraphicsExtractor graphics, FallenData cap, InvoZone workZone, float y, int progressCircleRadius, int imageSize) {
         //Where the timer will be placed.
         InvoZone timerZone = timerIMG.getRenderZone().setWidth(imageSize).setHeight(imageSize).setY(y).centerX(workZone.middleX());
 

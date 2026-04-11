@@ -15,7 +15,7 @@ import invoker54.reviveme.common.data.ReviveItemData;
 import invoker54.reviveme.init.KeyInit;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.language.I18n;
@@ -77,10 +77,10 @@ public class FallenItemScreenEvent {
     //Right side item animation
     public static int selectedItem = 0;
     public static int selectedPage = 0;
-    public static List<BiConsumer<GuiGraphics, InvoZone>> pageList = new ArrayList<>();
+    public static List<BiConsumer<GuiGraphicsExtractor, InvoZone>> pageList = new ArrayList<>();
     public static List<Pair<ItemStack, ReviveItemData>> dataStackList = new ArrayList<>();
 
-    public static void renderItemPage(GuiGraphics graphics, double switchPercentage, InvoZone workZone, InvoZone leftZone, InvoZone rightZone){
+    public static void renderItemPage(GuiGraphicsExtractor graphics, double switchPercentage, InvoZone workZone, InvoZone leftZone, InvoZone rightZone){
         passedTicks = (ClientUtil.getMinecraft().player.level().getGameTime() + FallScreenEvent.getPartialTicks()) - previousTick;
 
         if (ClientUtil.getMinecraft().level.getGameTime() % 10 == 0) refreshItemData();
@@ -197,7 +197,7 @@ public class FallenItemScreenEvent {
         selectedPage = (int) ReviveMathUtil.clampLoop(selectedPage, 0, pageList.size()-1);
     }
 
-    public static void renderItems(GuiGraphics stack, InvoZone bodyZone){
+    public static void renderItems(GuiGraphicsExtractor stack, InvoZone bodyZone){
         int maxCount = (int) Math.floor(bodyZone.height()/20);
         if (maxCount % 2 == 0) maxCount--;
         maxCount = Math.max(3, maxCount);
@@ -232,7 +232,7 @@ public class FallenItemScreenEvent {
 
     }
 
-    public static void renderItem(InvoZone myZone, Pair<ItemStack, ReviveItemData> pair, GuiGraphics graphics, boolean isMain){
+    public static void renderItem(InvoZone myZone, Pair<ItemStack, ReviveItemData> pair, GuiGraphicsExtractor graphics, boolean isMain){
         myZone.inflate(-2,-2);
 
         InvoZone nameZone = myZone.copy().setWidth(myZone.width() - myZone.height());
@@ -306,8 +306,8 @@ public class FallenItemScreenEvent {
         }
     }
 
-    public static List<BiConsumer<GuiGraphics, InvoZone>> getDescriptionPages(ReviveItemData data, InvoZone textZone){
-        List<BiConsumer<GuiGraphics, InvoZone>> consumerList = new ArrayList<>();
+    public static List<BiConsumer<GuiGraphicsExtractor, InvoZone>> getDescriptionPages(ReviveItemData data, InvoZone textZone){
+        List<BiConsumer<GuiGraphicsExtractor, InvoZone>> consumerList = new ArrayList<>();
 
         int cutOffPoint = (int) (textZone.width() * (textZone.height()/8));
         InvoText description = ReviveMeConfig.canGiveUp ? giveUpDescriptionText : cantGiveUpDescriptionText;
@@ -347,8 +347,8 @@ public class FallenItemScreenEvent {
         return consumerList;
     }
 
-    public static List<BiConsumer<GuiGraphics, InvoZone>> getPropertyPages(ReviveItemData data){
-        List<BiConsumer<GuiGraphics, InvoZone>> consumerList = new ArrayList<>();
+    public static List<BiConsumer<GuiGraphicsExtractor, InvoZone>> getPropertyPages(ReviveItemData data){
+        List<BiConsumer<GuiGraphicsExtractor, InvoZone>> consumerList = new ArrayList<>();
 
         consumerList.add((stack, bodyZone) -> {
 
@@ -389,8 +389,8 @@ public class FallenItemScreenEvent {
         return consumerList;
     }
 
-    public static List<BiConsumer<GuiGraphics, InvoZone>> getEffectPages(ReviveItemData data, InvoZone initialZone){
-        List<BiConsumer<GuiGraphics, InvoZone>> consumerList = new ArrayList<>();
+    public static List<BiConsumer<GuiGraphicsExtractor, InvoZone>> getEffectPages(ReviveItemData data, InvoZone initialZone){
+        List<BiConsumer<GuiGraphicsExtractor, InvoZone>> consumerList = new ArrayList<>();
 
 //        MobEffectTextureManager potionspriteuploader = ClientUtil.getMinecraft().getMobEffectTextures();
 //        ClientUtil.Image backgroundImg = new ClientUtil.Image(EFFECT_BACKGROUND, 0, 120, 0, 32);
@@ -418,7 +418,7 @@ public class FallenItemScreenEvent {
 //                            (sprite.getU1() - sprite.getU0()), sprite.getV0(),
 //                            (sprite.getV1() - sprite.getV0()), 1, 1);
 
-                    //private void renderEffects(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+                    //private void renderEffects(GuiGraphicsExtractor GuiGraphicsExtractor, DeltaTracker deltaTracker) {
                     Identifier effectId = Gui.getMobEffectSprite(effectInstance.getEffect());
                     TextureAtlasSprite sprite = graphics.guiSprites.getSprite(effectId);
                     ClientUtil.Image effectIMG = new ClientUtil.Image(sprite.atlasLocation(), sprite.getU0(),

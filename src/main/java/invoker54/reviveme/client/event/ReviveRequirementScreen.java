@@ -33,7 +33,7 @@ public class ReviveRequirementScreen {
     public static void registerRequirementScreen(RegisterGuiLayersEvent event){
         Minecraft mC = ClientUtil.getMinecraft();
         //if (true) return;
-        event.registerAboveAll(makeResource("requirement_screen"), (guiGraphics, tracker) -> {
+        event.registerAboveAll(makeResource("requirement_screen"), (GuiGraphicsExtractor, tracker) -> {
             if (ClientUtil.getPlayer().isCreative() || ClientUtil.getPlayer().isSpectator()) return;
             if (FallenData.get(ClientUtil.getPlayer()).isFallen()) return;
             //if (true) return;
@@ -45,8 +45,8 @@ public class ReviveRequirementScreen {
             if (cap.getOtherPlayer() != null) return;
             if (ReviveMeConfig.penaltyType == FallenData.PENALTYPE.NONE) return;
 
-            InvoZone workZone = new InvoZone(0, guiGraphics.guiWidth(), 0, guiGraphics.guiHeight());
-//            PoseStack guiGraphics = guiGraphics.pose();
+            InvoZone workZone = new InvoZone(0, GuiGraphicsExtractor.guiWidth(), 0, GuiGraphicsExtractor.guiHeight());
+//            PoseStack GuiGraphicsExtractor = GuiGraphicsExtractor.pose();
 
             float penaltyTypeSize = 16;
             int padding = 2;
@@ -91,14 +91,14 @@ public class ReviveRequirementScreen {
                 }
             }
             //This is the background of the requirements
-            ClientUtil.blit2DColor(guiGraphics, requirementZone, blackBg);
+            ClientUtil.blit2DColor(GuiGraphicsExtractor, requirementZone, blackBg);
 
             chosenZone.setWidth(penaltyTypeSize).setHeight(penaltyTypeSize).center(requirementZone.copy().splitWidth(2, 1));
 
             if (itemData != null) {
-                ClientUtil.blit2DItem(guiGraphics, chosenZone, ClientUtil.getPlayer().getMainHandItem());
+                ClientUtil.blit2DItem(GuiGraphicsExtractor, chosenZone, ClientUtil.getPlayer().getMainHandItem());
             }
-            if (chosenImg != null) {chosenImg.render(guiGraphics);}
+            if (chosenImg != null) {chosenImg.render(GuiGraphicsExtractor);}
 
             //This is penalty amount txt
             //Penalty txt
@@ -116,7 +116,7 @@ public class ReviveRequirementScreen {
             penaltyText.withStyle(true, InvoTextFormat.filter(ChatFormatting.BOLD))
                     .withStyle(false, InvoTextFormat.filter(cap.hasEnough(ClientUtil.getMinecraft().player) ? ChatFormatting.GREEN : ChatFormatting.RED));
 
-            TextUtil.render2DText(guiGraphics, penaltyText.getText(), false, 1,
+            TextUtil.render2DText(GuiGraphicsExtractor, penaltyText.getText(), false, 1,
                     requirementZone.copy().setX(requirementZone.middleX()).splitWidth(2,1)
                             .inflate(-4,-4), TextUtil.txtAlignment.MIDDLE);
 
@@ -148,17 +148,17 @@ public class ReviveRequirementScreen {
                     .withStyle(true, InvoTextFormat.filter(ChatFormatting.BOLD,ChatFormatting.RED));
 
             requirementZone.splitHeight(2,1).shiftXY(0, (requirementZone.height() * 2) + 10);
-            ClientUtil.blit2DColor(guiGraphics, requirementZone, blackBg);
+            ClientUtil.blit2DColor(GuiGraphicsExtractor, requirementZone, blackBg);
 
             requirementZone.splitWidth(3,1);
 
-            TextUtil.render2DText(guiGraphics, startTxt.getText(), true, 1,
+            TextUtil.render2DText(GuiGraphicsExtractor, startTxt.getText(), true, 1,
                     requirementZone.copy().inflate(-2,-2), TextUtil.txtAlignment.MIDDLE);
 
-            TextUtil.render2DText(guiGraphics, arrowTxt.getText(), true, 1,
+            TextUtil.render2DText(GuiGraphicsExtractor, arrowTxt.getText(), true, 1,
                     requirementZone.shiftXY(requirementZone.width(),0).copy().inflate(-2,-2), TextUtil.txtAlignment.MIDDLE);
 
-            TextUtil.render2DText(guiGraphics, endTxt.getText(), true, 1,
+            TextUtil.render2DText(GuiGraphicsExtractor, endTxt.getText(), true, 1,
                     requirementZone.shiftXY(requirementZone.width(),0).copy().inflate(-2,-2), TextUtil.txtAlignment.MIDDLE);
         });
     }

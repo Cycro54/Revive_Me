@@ -75,7 +75,7 @@ side = "BOTH"
 modId = "invocore"
 type = "required"
 # This version range declares a minimum of the current minecraft version up to but not including the next major version
-versionRange = "[6.0.0,6.0.100)"
+versionRange = "${invocore_version}"
 ordering = "BEFORE"
 side = "BOTH"
 
