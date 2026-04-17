@@ -37,3 +37,8 @@ Shtuff to maybe do later
 * (Config) Add a way for certain types of damage sources to bypass my mod besides invulnerability
 * (Config) Add option to kill player even when they are revived, but to respawn them exactly where they die
 * (Config) Maybe add a config that makes it so if the regular death event runs first, all of the listeners will at least know if the Death event is canceled with my mod
+* Max revives config (max amount of times you can be revived, 0 disables revive me, -1 disables the max), max player revives config (how many times another player can revive you, setting to 0 disables player revive, -1 disables the max)
+* Revive radius config (If can't self revive, the max distance a teammate can be before instant death (0 disables this)
+* Disable/Enable Revive Me for hard-core mode?
+* Hide potion effects?
+* Stop fallen players from picking up items?
