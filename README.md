@@ -42,3 +42,4 @@ Shtuff to maybe do later
 * Disable/Enable Revive Me for hard-core mode?
 * Hide potion effects?
 * Stop fallen players from picking up items?
+* Make the Time_Left config be able to go to -1 to disable it. 0 will either instakill or make you targetable
