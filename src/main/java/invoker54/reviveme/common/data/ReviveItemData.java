@@ -377,7 +377,7 @@ public class ReviveItemData extends ReviveConfigData {
             else{
                 reviveText.append(InvoText.literal(" ("+this.idName+")"));
             }
-            cap.incrementSelfReviveCount();
+            cap.incrementReviveCount(reviver);
             super.revivePlayer(fallen, isCommand, reviver, reviveText);
             this.runCommands(fallen, reviver);
             return;
@@ -392,11 +392,11 @@ public class ReviveItemData extends ReviveConfigData {
             cap.refreshSelfReviveTypes();
             cap.refreshReviveItemList();
         }
-        if (this.useReviveOnFail) cap.incrementSelfReviveCount();
+        if (this.useReviveOnFail) cap.incrementReviveCount(reviver);
 
         if (reviver != null && reviver != fallen) cap.resumeFallTimer();
 
-        if (ReviveMeConfig.timeLeft != 0) {
+        if (ReviveMeConfig.timeLeft != -1) {
             double timeLeft = cap.getTimeLeft(false);
             timeLeft = Math.max(timeLeft, 0);
             timeLeft += this.fallenTimerChange;

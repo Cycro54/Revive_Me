@@ -35,7 +35,7 @@ public class FallenTimerEvent {
         FallenCapability cap = FallenCapability.get(player);
         if (!cap.isFallen()) return;
 
-        boolean canRevive = cap.addOverheal(event.getAmount());
+        boolean canRevive = cap.canPlayerRevive() && cap.addOverheal(event.getAmount());
         if (canRevive){
             ReviveMeConfig.configReviveData.revivePlayer(player, false, null, "overheal");
             return;
@@ -91,7 +91,7 @@ public class FallenTimerEvent {
         event.player.getFoodData().setFoodLevel(1);
 
         //Check if the original effects were removed
-        cap.removeOriginalEffects(event.player);
+        cap.removeOriginalEffects(false);
 
         //Finally make sure they have all the required effects.
         FallEvent.modifyPotionEffects(event.player);
@@ -126,6 +126,7 @@ public class FallenTimerEvent {
 
         PlayerEntity fellPlayer = event.player;
         if (otherPlayer == null) return;
+        cap.incrementReviveCount(otherPlayer);
 
         ReviveItemData reviveData = ReviveItemData.getData(cap.getReviveStack(), ReviveItemData.USER.REVIVER);
         if (reviveData != null){

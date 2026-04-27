@@ -52,7 +52,6 @@ public class SyncClientCapMsg {
 
             if (player == null) return;
             FallenCapability data = FallenCapability.get(player);
-            boolean wasFallen = data.isFallen();
             data.readNBT(msg.capDataTag);
 
             if (player != ClientUtil.getPlayer()) return;

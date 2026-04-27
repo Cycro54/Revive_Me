@@ -86,7 +86,9 @@ public class KeyInit {
                     if (!VanillaKeybindHandler.useHeld) return;
                     Entity crossHairEntity = ClientUtil.mC.crosshairPickEntity;
                     if (!(crossHairEntity instanceof PlayerEntity)) return;
-                    if (!FallenCapability.get((LivingEntity) crossHairEntity).isFallen());
+                    FallenCapability otherPlayerCap = FallenCapability.get((LivingEntity) crossHairEntity);
+                    if (!otherPlayerCap.isFallen()) return;
+                    if (!otherPlayerCap.canPlayerRevive()) return;
 
                     NetworkHandler.INSTANCE.sendToServer(new BeginReviveMsg(crossHairEntity.getStringUUID()));
                 }));

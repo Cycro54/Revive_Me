@@ -12,6 +12,7 @@ import net.minecraft.potion.Effect;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.potion.EffectType;
 import net.minecraftforge.event.entity.living.PotionEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -65,9 +66,14 @@ public class FallenPotionEffect extends Effect {
                 return true;
             }
 
-            cap.resetSelfReviveCount();
+            cap.resetReviveCount();
             cap.setPenaltyMultiplier(0);
             return false;
+        }
+
+        @SubscribeEvent
+        public static void removeWarnedPlayer(PlayerEvent.PlayerLoggedOutEvent event){
+            warnedPlayers.remove(event.getEntity().getUUID());
         }
     }
 }
