@@ -12,6 +12,7 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -62,9 +63,14 @@ public class FallenPotionEffect extends MobEffect {
                 return true;
             }
 
-            cap.resetSelfReviveCount();
+            cap.resetReviveCount();
             cap.setPenaltyMultiplier(0);
             return false;
+        }
+
+        @SubscribeEvent
+        public static void removeWarnedPlayer(PlayerEvent.PlayerLoggedOutEvent event){
+            warnedPlayers.remove(event.getEntity().getUUID());
         }
     }
 }

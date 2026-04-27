@@ -78,7 +78,7 @@ public abstract class ClientEntityMixin {
         }
 
         Color postColor = new Color(preColor);
-        if (ReviveMeConfig.timeLeft != 0 && preColor != 16777215) {
+        if (ReviveMeConfig.timeLeft > 0 && preColor != 16777215) {
             float percentLeft = Math.max(0, Math.min(cap.getTimeLeft(true), 1));
             postColor = new Color(
                     Math.round(postColor.getRed() * percentLeft),
