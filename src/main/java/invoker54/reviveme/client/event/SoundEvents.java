@@ -43,7 +43,7 @@ public class SoundEvents {
                 if (player == null) return;
                 FallenCapability cap = FallenCapability.get(player);
                 float percentage = cap.getTimeLeft(true);
-                if (ReviveMeConfig.timeLeft == 0 || cap.getTimeLeft(false) < 0){
+                if (ReviveMeConfig.timeLeft == -1 || cap.getTimeLeft(false) < 0){
                     invoSound.setPitch(MathUtil.randomFloat(0.5F, 0.75F));
                     invoSound.setVolume((float) (MathUtil.randomFloat(0.1F, 0.2F) * ReviveMeConfig.soundLevel));
                     invoSound.setRepeatDelay(5*20,false);
@@ -80,7 +80,7 @@ public class SoundEvents {
 
         if (!ClientUtil.getPlayer().isDeadOrDying() &&
                 (cap.getTimeLeft(false) > 5 ||
-                        ReviveMeConfig.timeLeft == 0 ||
+                        ReviveMeConfig.timeLeft == -1 ||
                         !ReviveMeConfig.dieWhenTimerEnds)) fallen_state_random_sound.playWhenStopped();
         if ((cap.getTimeLeft(false) % 1 == 0)) fallen_state_ticking_sound.play();
     }

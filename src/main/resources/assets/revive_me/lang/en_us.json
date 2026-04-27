@@ -1,8 +1,12 @@
 
 {
   "fallenScreen.fallen_text": "You have fallen",
-  "fallenScreen.revive_count_multiple": "You have %1$s revives left",
-  "fallenScreen.revive_count_single": "You have %1$s revive left",
+  "fallenScreen.revive_count.self": " self",
+  "fallenScreen.revive_count.player": " player",
+  "fallenScreen.revive_count.single": "revive",
+  "fallenScreen.revive_count.multiple": "revives",
+  "fallenScreen.revive_count.full": "%1$s%2$s %3$s left",
+  "fallenScreen.revive_count.short": "%1$s%2$s",
   "fallenScreen.wait_text": "Wait to be revived OR",
   "fallenScreen.force_death_text": "Hold %1$s for %2$s seconds to end life.",
   "fallenScreen.cant_force_death_text": "wait to die. Your choice.",
@@ -14,6 +18,8 @@
   "revive_me.fall_plate.kill": "%1$s to KILL",
   "revive_me.fall_plate.cant_kill": "Can't kill yet...",
   "revive_me.fall_plate.revive": "%1$s to revive",
+  "revive_me.fall_plate.cant_revive": "Can't be revived",
+  "revive_me.fall_plate.revive_count": "%1$s %2$s left",
   "revive_me.commands.revive_fail": "%1$s is either dead or already revived",
   "revive_me.commands.revive_pass": "%2$s revived %1$s -> %3$s",
   "revive_me.commands.fix": "%1$s should be fixed",

@@ -51,7 +51,6 @@ public class SyncClientCapMsg {
 
             if (player == null) return;
             FallenCapability data = FallenCapability.get(player);
-            boolean wasFallen = data.isFallen();
             data.readNBT(msg.capDataTag);
 
             if (player != ClientUtil.getPlayer()) return;
@@ -59,6 +58,7 @@ public class SyncClientCapMsg {
             if (msg.resetBinds) {
                 VanillaKeybindHandler.useHeld = false;
                 VanillaKeybindHandler.attackHeld = false;
+                VanillaKeybindHandler.releaseDisabledBinds();
             }
 
             FallenItemScreenEvent.refreshItemData();

@@ -40,6 +40,7 @@ import org.lwjgl.glfw.GLFW;
 import java.awt.*;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Objects;
 
 import static invoker54.invocore.client.util.ClientUtil.getPlayer;
 
@@ -73,8 +74,13 @@ public class FallScreenEvent {
     public static ClientUtil.Image revive_help_button_IMG = new ClientUtil.Image(REVIVE_HELP_BUTTON_TEXTURE, 0, 31, 0, 31,32);
 
     private static final InvoText titleText = InvoText.translate("fallenScreen.fallen_text");
-    private static final InvoText reviveCountMultipleText = InvoText.translate("fallenScreen.revive_count_multiple");
-    private static final InvoText reviveCountSingleText = InvoText.translate("fallenScreen.revive_count_single");
+    private static final InvoText reviveCountSelfText = InvoText.translate("fallenScreen.revive_count.self");
+    private static final InvoText reviveCountPlayerText = InvoText.translate("fallenScreen.revive_count.player");
+//    private static final InvoText reviveCountTotalText = InvoText.translate("fallenScreen.revive_count.total");
+    public static final InvoText reviveCountSingleText = InvoText.translate("fallenScreen.revive_count.single");
+    public static final InvoText reviveCountMultipleText = InvoText.translate("fallenScreen.revive_count.multiple");
+    private static final InvoText reviveCountFullText = InvoText.translate("fallenScreen.revive_count.full");
+    private static final InvoText reviveCountShortText = InvoText.translate("fallenScreen.revive_count.short");
     private static final InvoText waitText = InvoText.translate("fallenScreen.wait_text");
     private static final InvoText forceDeathText = InvoText.translate("fallenScreen.force_death_text");
     private static final InvoText cantForceDeathText = InvoText.translate("fallenScreen.cant_force_death_text");
@@ -151,7 +157,7 @@ public class FallScreenEvent {
 
             boolean isOptionsDisabled = ReviveMeConfig.selfReviveOptions.isEmpty();
             boolean isItemsDisabled = ReviveItemData.reviveItemMap.isEmpty();
-            boolean canSwitchScreens = !isOptionsDisabled && !isItemsDisabled;
+            boolean canSwitchScreens = cap.canSelfRevive() && !isOptionsDisabled && !isItemsDisabled;
             if (canSwitchScreens) {
                 //region This is for switching self revive modes (GENERAL or ITEMS)
                 toggleText = screenToggleTip.setArgs(InvoText.literal(ClientUtil.getMinecraft().options.keyShift.getKey().getDisplayName().getString())
@@ -212,9 +218,10 @@ public class FallScreenEvent {
             ClientUtil.blitColor(stack, workZone, redFadeColor);
 
             //Title text
-            InvoZone titleTextZone = workZone.copy().setWidth(workZone.width() / 3).setHeight(workZone.height() / 5).inflate(0, 2)
-                    .centerX(workZone.middleX());
-            TextUtil.renderText(stack, titleText.getText(), true, 1, titleTextZone, TextUtil.txtAlignment.MIDDLE);
+//            InvoZone titleTextZone = workZone.copy().setWidth(workZone.width() / 3).setHeight(workZone.height() / 5).inflate(0, 2)
+//                    .centerX(workZone.middleX());
+//            TextUtil.renderText(stack, titleText.getText(), true, 1, titleTextZone, TextUtil.txtAlignment.MIDDLE);
+            renderHeaderAndReviveCount(stack, cap, workZone);
 
             //Wait For text
             InvoZone waitTextZone = workZone.copy().setWidth(workZone.width() / 3).setHeight(8).setY((workZone.height() / 4) + 12)
@@ -314,23 +321,82 @@ public class FallScreenEvent {
             renderTimer(stack, cap, workZone, workZone.down() - (workZone.down() / 3), 36, 64);
         });
     }
-    public static void renderHeaderAndReviveCount(PoseStack stack, FallenCapability cap, InvoZone workZone){
+    public static void renderHeaderAndReviveCount(PoseStack stack, FallenCapability cap, InvoZone workZone) {
         //Title text
         InvoZone titleTextZone = workZone.copy().setWidth(workZone.width() / 3).setHeight(workZone.height() / 5).inflate(0, -12)
                 .centerX(workZone.middleX());
         TextUtil.renderText(stack, titleText.getText(), true, 1, titleTextZone, TextUtil.txtAlignment.MIDDLE);
 
-        int revivesLeft = ReviveMeConfig.maxSelfRevives - cap.getSelfReviveCount();
-        if (revivesLeft > 0) {
-            InvoZone reviveTextZone = titleTextZone.copy().setWidthConstraint(titleTextZone.width() * 0.7F).centerX(titleTextZone.middleX())
-                    .setY(titleTextZone.down()).splitHeight(3, 2);
-            InvoText chosenText = revivesLeft == 1 ? reviveCountSingleText : reviveCountMultipleText;
-            chosenText = chosenText.setArgs(InvoText.literal(revivesLeft + "")
-                    .withStyle(true, InvoTextFormat.filter((revivesLeft == 1 ? ChatFormatting.RED : ChatFormatting.YELLOW), ChatFormatting.BOLD)).getText());
-            ClientUtil.blitColor(stack, reviveTextZone, new Color(0, 0, 0, 150).getRGB());
-            TextUtil.renderText(stack, chosenText.getText(), true, 1,
-                    reviveTextZone.inflate(-2, -2), TextUtil.txtAlignment.MIDDLE);
+        //All different renders
+        /*
+        You have 3 Player Revives
+        You have 3 Total Revives
+        You have 5 Self Revives
+
+        You have 3 revives left
+        2 self         1 player
+
+          max is 6
+          5 and 6
+
+          max is now 4
+          3 and 4
+          Then nothing...
+         */
+        int totalRevives = cap.getTotalReviveCount(true);
+        int selfRevives = cap.getSelfReviveCount(true);
+        int playerRevives = cap.getPlayerReviveCount(true);
+        boolean allTheSame = (Objects.equals(ReviveMeConfig.maxTotalRevives, ReviveMeConfig.maxSelfRevives)) &&
+                (Objects.equals(ReviveMeConfig.maxTotalRevives, ReviveMeConfig.maxPlayerRevives));
+        if (allTheSame && ReviveMeConfig.maxTotalRevives == -1) return;
+
+        int mainCount;
+        InvoText mainTypeText;
+
+        //Main one happens if
+        //They are all the same
+        //Self and Player aren't infinite
+        if ((selfRevives > 0 && playerRevives > 0)){
+            mainCount = totalRevives;
+            mainTypeText = InvoText.literal("");
         }
+        else if (selfRevives > 0){
+            mainCount = selfRevives;
+            mainTypeText = reviveCountSelfText;
+        }
+        //In this case, player revives can't be infinite
+        else if (playerRevives > 0){
+            mainCount = playerRevives;
+            mainTypeText = reviveCountPlayerText;
+        }
+        else return;
+
+        InvoZone reviveTextZone = titleTextZone.copy().setWidthConstraint(titleTextZone.width() * 0.7F).centerX(titleTextZone.middleX())
+                .setY(titleTextZone.down()).splitHeight(3, 2);
+        renderReviveCount(stack, reviveTextZone, mainCount, mainTypeText, reviveCountFullText);
+
+        if ((selfRevives <= 0 || playerRevives <= 0) || (totalRevives == selfRevives && totalRevives == playerRevives)) return;
+
+        InvoZone reviveLeftZone = reviveTextZone.copy().splitWidth(5, 2).shift(0, reviveTextZone.height());
+        renderReviveCount(stack, reviveLeftZone, selfRevives, reviveCountSelfText, reviveCountShortText);
+
+        InvoZone reviveRightZone = reviveLeftZone.copy().mirrorX(reviveTextZone.middleX());
+        renderReviveCount(stack, reviveRightZone, playerRevives, reviveCountPlayerText, reviveCountShortText);
+    }
+
+    public static void  renderReviveCount(PoseStack stack, InvoZone renderZone, int reviveCount, InvoText typeText, InvoText mainText) {
+        boolean turnRed = reviveCount <= 1;
+        boolean isSingle = reviveCount == 1;
+
+        InvoText countText = InvoText.literal(reviveCount + "")
+                .withStyle(true, InvoTextFormat.filter((turnRed ? ChatFormatting.RED : ChatFormatting.YELLOW), ChatFormatting.BOLD));
+        InvoText pluralText = isSingle ? reviveCountSingleText : reviveCountMultipleText;
+
+        mainText = mainText.setArgs(countText.getText(), typeText.getText(), pluralText.getText());
+
+        ClientUtil.blitColor(stack, renderZone, new Color(0, 0, 0, 150).getRGB());
+        TextUtil.renderText(stack, mainText.getText(), true, 1,
+                renderZone.copy().inflate(-2, -2), TextUtil.txtAlignment.MIDDLE);
     }
 
     public static void renderReviveOption(int mouseButton, PoseStack stack, InvoZone workZone, FallenCapability cap, boolean beingHeld) {
@@ -363,14 +429,16 @@ public class FallScreenEvent {
                 chosenTxt = randomItemTxt;
                 if (!ReviveMeConfig.sacrificialItemTakesHotbar){
                     chosenTxt = randomItemTxt.deepCopy().append(InvoText.literal("\n"))
-                            .append(randomItemHotbarTxt.deepCopy().withStyle(true, InvoTextFormat.filter( ChatFormatting.RED)));
+                            .append(randomItemHotbarTxt.deepCopy().withStyle(true, InvoTextFormat.filter(ChatFormatting.RED)));
                 }
                 float randomItemPadding = 2;
 
                 ArrayList<ItemStack> itemArrayList = cap.getItemList();
                 if (itemArrayList.isEmpty()){
                     shouldPass = false;
-                    TextUtil.renderText(stack, randomItemFalseTxt.withStyle(true, InvoTextFormat.filter(ChatFormatting.RED)).getText(),
+                    TextUtil.renderText(stack, randomItemFalseTxt.deepCopy().withStyle(true,
+                                    InvoTextFormat.filter(ChatFormatting.RED)).append(InvoText.literal("\n\n"))
+                                    .append(randomItemHotbarTxt.deepCopy().withStyle(true, InvoTextFormat.filter(ChatFormatting.RED))).getText(),
                             true, 0, mainZone.inflate(-4,-4), TextUtil.txtAlignment.MIDDLE);
                     break;
                 }
@@ -620,7 +688,7 @@ public class FallScreenEvent {
         float seconds = cap.getTimeLeft(false);
         seconds += (seconds <= 0 ? 0 : 1);
         InvoText timeLeftTxt = InvoText.literal(Integer.toString((int) seconds));
-        if (ReviveMeConfig.timeLeft == 0) timeLeftTxt = InvoText.literal("INF");
+        if (ReviveMeConfig.timeLeft == -1) timeLeftTxt = InvoText.literal("INF");
         else if (seconds <= 0) timeLeftTxt = InvoText.literal("RIP");
 
         timeLeftTxt.withStyle(true, InvoTextFormat.filter(ChatFormatting.RED, ChatFormatting.BOLD));

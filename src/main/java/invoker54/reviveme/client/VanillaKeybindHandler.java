@@ -136,4 +136,11 @@ public class VanillaKeybindHandler {
 
         return true;
     }
+
+    public static void releaseDisabledBinds() {
+        if (!FallenCapability.get(ClientUtil.getPlayer()).isFallen()) return;
+        for (var keybind : ClientUtil.getMinecraft().options.keyMappings){
+            keybind.isDown();
+        }
+    }
 }
