@@ -58,7 +58,6 @@ public class SyncClientCapMsg {
             if (msg.resetBinds) {
                 VanillaKeybindHandler.useHeld = false;
                 VanillaKeybindHandler.attackHeld = false;
-                VanillaKeybindHandler.releaseDisabledBinds();
             }
 
             FallenItemScreenEvent.refreshItemData();

@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class FallenPotionEffect extends MobEffect {
-    public static List<UUID> warnedPlayers = new ArrayList<>();
+        public static List<UUID> warnedPlayers = new ArrayList<>();
 
     public static final int effectColor = new Color(35, 5, 5, 255).getRGB();
 
