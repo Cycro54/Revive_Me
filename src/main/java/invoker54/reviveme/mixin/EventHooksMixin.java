@@ -14,24 +14,22 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(LivingEntity.class)
 public abstract class EventHooksMixin {
 
-    @Shadow
-    public abstract boolean removeAllEffects();
-
+    //TODO: REMOVE LATER...
     //Possible fix for effects not being removed when being revived (false means the effect is removed btw)
-    @Redirect(
-            method = "removeAllEffects()Z",
-            at = @At(
-                            value = "INVOKE",
-                            target = "Lnet/minecraftforge/eventbus/api/IEventBus;post(Lnet/minecraftforge/eventbus/api/Event;)Z")
-    )
-    private boolean onEffectRemoved(IEventBus instance, Event event){
-        boolean originalValue = MinecraftForge.EVENT_BUS.post(event);
-        LivingEntity entity = (LivingEntity)(Object)this;
-
-        if (!(entity instanceof Player)) return originalValue;
-        FallenCapability data = FallenCapability.get(entity);
-        if (!data.isFallen()) return originalValue;
-        return false;
-    }
+//    @Redirect(
+//            method = "removeAllEffects()Z",
+//            at = @At(
+//                            value = "INVOKE",
+//                            target = "Lnet/minecraftforge/eventbus/api/IEventBus;post(Lnet/minecraftforge/eventbus/api/Event;)Z")
+//    )
+//    private boolean onEffectRemoved(IEventBus instance, Event event){
+//        boolean originalValue = MinecraftForge.EVENT_BUS.post(event);
+//        LivingEntity entity = (LivingEntity)(Object)this;
+//
+//        if (!(entity instanceof Player)) return originalValue;
+//        FallenCapability data = FallenCapability.get(entity);
+//        if (!data.isFallen()) return originalValue;
+//        return false;
+//    }
 
 }

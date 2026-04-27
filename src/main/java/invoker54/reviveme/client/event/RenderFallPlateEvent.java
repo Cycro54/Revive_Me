@@ -107,7 +107,7 @@ public class RenderFallPlateEvent {
 
                     float seconds = cap.getTimeLeft(false);
                     seconds += (seconds <= 0 ? 0 : 1);
-                    if (ReviveMeConfig.timeLeft == 0) chosenText = InvoText.literal("INF");
+                    if (ReviveMeConfig.timeLeft == -1) chosenText = InvoText.literal("INF");
                     else if (seconds > 0) chosenText = InvoText.literal(Integer.toString((int) seconds));
                     else chosenText = InvoText.literal("RIP");
                     chosenText.withStyle(true, InvoTextFormat.filter( ChatFormatting.BOLD))
@@ -160,6 +160,10 @@ public class RenderFallPlateEvent {
                                         .withStyle(true, InvoTextFormat.filter( ChatFormatting.YELLOW, ChatFormatting.BOLD)).getText()
                         );
 
+                    }
+                    else {
+                        message = InvoText.translate("revive_me.fall_plate.cant_revive").withStyle(true,
+                                InvoTextFormat.filter( ChatFormatting.RED, ChatFormatting.BOLD));
                     }
                 }
                 if (message == null && cap.isCallingForHelp()) {

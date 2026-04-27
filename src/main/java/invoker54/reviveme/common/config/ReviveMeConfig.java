@@ -45,10 +45,11 @@ public final class ReviveMeConfig {
     public static Double revivedFood;
     public static FallenCapability.PENALTYPE penaltyType;
     public static Double penaltyAmount;
-    public static boolean cancelReviveOnDamage;
     public static List<MobEffectInstance> reviveEffects = new ArrayList<>();
     //region self-revive shtuff
     public static List<FallenCapability.SELFREVIVETYPE> selfReviveOptions = new ArrayList<>();
+    public static Integer maxTotalRevives;
+    public static Integer maxPlayerRevives;
     public static Integer maxSelfRevives;
     public static boolean disableSelfReviveIfPlayerDowned;
     public static boolean randomizeSelfReviveOptions;
@@ -62,14 +63,18 @@ public final class ReviveMeConfig {
     public static Integer reviveKillAmount;
     public static Integer reviveKillTime;
     public static List<? extends String> reviveKillBlackList = new ArrayList<>();
+    public static boolean hideReviveKillEffect;
     public static List<MobEffect> harmfulEffects = new ArrayList<>();
     public static Integer negativeEffectsTime;
     public static boolean disableReviveEffects;
+    public static boolean hideNegativeEffects;
     public static double reviveXPLossPercentage;
     public static Integer minReviveXPLevel;
     //endregion
     public static Double fallenPenaltyTimer;
     public static boolean canRemovePenaltyTimer;
+    public static boolean hidePenaltyTimerEffect;
+    public static Integer reviveRadius;
     public static boolean runDeathEventFirst;
     public static double fallenHealth;
     public static boolean canGiveUp;
@@ -151,7 +156,6 @@ public final class ReviveMeConfig {
         revivedFood = COMMON.revivedFood.get();
         penaltyType = COMMON.penaltyType.get();
         penaltyAmount = COMMON.penaltyAmount.get();
-        cancelReviveOnDamage = COMMON.cancelReviveOnDamage.get();
         reviveEffects.clear();
         for (String s : COMMON.reviveEffects.get()){
             reviveEffects.add(ReviveConfigData.EffectFromString(s));
@@ -161,7 +165,8 @@ public final class ReviveMeConfig {
 //        if (selfReviveOptions.isEmpty()) selfReviveOptions.add(SELFREVIVETYPE.CHANCE);
         if (selfReviveOptions.size() == 1) selfReviveOptions.add(selfReviveOptions.get(0));
 
-        maxSelfRevives = COMMON.maxSelfRevives.get();
+        bakeMaxReviveStuff();
+
         disableSelfReviveIfPlayerDowned = COMMON.disableSelfReviveIfPlayerDowned.get();
         randomizeSelfReviveOptions = COMMON.randomizeSelfReviveOptions.get();
         onlyUseAvailableOptions = COMMON.onlyUseAvailableOptions.get();
@@ -188,12 +193,17 @@ public final class ReviveMeConfig {
                             bannedString -> effect.getRegistryName().toString().contains(bannedString))).collect(Collectors.toList());
         }
 
+        hideReviveKillEffect = COMMON.hideReviveKillEffect.get();
+
         negativeEffectsTime = COMMON.negativeEffectsTime.get();
         disableReviveEffects = COMMON.disableReviveEffects.get();
+        hideNegativeEffects = COMMON.hideNegativeEffects.get();
         reviveXPLossPercentage = COMMON.reviveXPLossPercentage.get();
         minReviveXPLevel = COMMON.minReviveXPLevel.get();
         fallenPenaltyTimer = COMMON.fallenPenaltyTimer.get();
         canRemovePenaltyTimer = COMMON.canRemovePenaltyTimer.get();
+        hidePenaltyTimerEffect = COMMON.hidePenaltyTimerEffect.get();
+        reviveRadius = COMMON.reviveRadius.get();
         runDeathEventFirst = COMMON.runDeathEventFirst.get();
         fallenHealth = COMMON.fallenHealth.get();
         canGiveUp = COMMON.canGiveUp.get();
@@ -231,6 +241,24 @@ public final class ReviveMeConfig {
         ReviveItemData.deserializeNBT(ReviveItemData.getNBTFromFile());
     }
 
+    public static void bakeMaxReviveStuff() {
+        maxTotalRevives = COMMON.maxTotalRevives.get();
+        maxPlayerRevives = COMMON.maxPlayerRevives.get();
+        maxSelfRevives = COMMON.maxSelfRevives.get();
+        boolean oneIsUnlimited = maxSelfRevives == -1 || maxPlayerRevives == -1;
+        if (maxTotalRevives != -1 && !oneIsUnlimited) {
+            maxTotalRevives = Math.min(maxTotalRevives, (maxSelfRevives + maxPlayerRevives));
+        } else if (maxTotalRevives == -1 && !oneIsUnlimited)
+            maxTotalRevives = (maxPlayerRevives + maxSelfRevives);
+        if (maxTotalRevives != -1) {
+            maxPlayerRevives = maxPlayerRevives == -1 ? maxTotalRevives : Math.min(maxPlayerRevives, maxTotalRevives);
+            maxSelfRevives = maxSelfRevives == -1 ? maxTotalRevives : Math.min(maxSelfRevives, maxTotalRevives);
+//            LOGGER.error("Player Revive: " + maxPlayerRevives);
+//            LOGGER.error("Self Revive: " + maxSelfRevives);
+        }
+//        LOGGER.error("Luckily this is running btw...");
+    }
+
     public static CompoundTag serialize() {
         CompoundTag mainTag = new CompoundTag();
         //Item User
@@ -250,6 +278,10 @@ public final class ReviveMeConfig {
             allSelfReviveOptions = allSelfReviveOptions.concat(reviveType.name() + ",");
         }
         mainTag.putString("selfReviveOptions", allSelfReviveOptions);
+        //Max Total Revives
+        mainTag.putInt("maxTotalRevives", maxTotalRevives);
+        //Max Player Revives
+        mainTag.putInt("maxPlayerRevives", maxPlayerRevives);
         //Max Self Revives
         mainTag.putInt("maxSelfRevives", maxSelfRevives);
         //Disable Self Revive If Player Downed
@@ -336,6 +368,10 @@ public final class ReviveMeConfig {
             selfReviveOptions.clear();
             for (String reviveType : allSelfReviveOptions) selfReviveOptions.add(SELFREVIVETYPE.valueOf(reviveType));
         }
+        //Max Total Revives
+        maxTotalRevives = mainTag.getInt("maxTotalRevives");
+        //Max Player Revives
+        maxPlayerRevives = mainTag.getInt("maxPlayerRevives");
         //Max Self Revives
         maxSelfRevives = mainTag.getInt("maxSelfRevives");
         //Disable Self Revive If Player Downed
@@ -429,9 +465,10 @@ public final class ReviveMeConfig {
         public final ForgeConfigSpec.ConfigValue<Double> revivedFood;
         public final ForgeConfigSpec.EnumValue<FallenCapability.PENALTYPE> penaltyType;
         public final ForgeConfigSpec.ConfigValue<Double> penaltyAmount;
-        public final ForgeConfigSpec.ConfigValue<Boolean> cancelReviveOnDamage;
         public final ForgeConfigSpec.ConfigValue<List<? extends String>> reviveEffects;
         public final ForgeConfigSpec.ConfigValue<List<? extends String>> selfReviveOptions;
+        public final ForgeConfigSpec.ConfigValue<Integer> maxTotalRevives;
+        public final ForgeConfigSpec.ConfigValue<Integer> maxPlayerRevives;
         public final ForgeConfigSpec.ConfigValue<Integer> maxSelfRevives;
         public final ForgeConfigSpec.ConfigValue<Boolean> disableSelfReviveIfPlayerDowned;
         public final ForgeConfigSpec.ConfigValue<Boolean> randomizeSelfReviveOptions;
@@ -445,13 +482,17 @@ public final class ReviveMeConfig {
         public final ForgeConfigSpec.ConfigValue<Integer> reviveKillAmount;
         public final ForgeConfigSpec.ConfigValue<Integer> reviveKillTime;
         public final ForgeConfigSpec.ConfigValue<List<? extends String>> reviveKillBlackList;
+        public final ForgeConfigSpec.ConfigValue<Boolean> hideReviveKillEffect;
         public final ForgeConfigSpec.ConfigValue<List<? extends String>> harmfulEffectsBlackList;
         public final ForgeConfigSpec.ConfigValue<Integer> negativeEffectsTime;
         public final ForgeConfigSpec.ConfigValue<Boolean> disableReviveEffects;
+        public final ForgeConfigSpec.ConfigValue<Boolean> hideNegativeEffects;
         public final ForgeConfigSpec.ConfigValue<Double> reviveXPLossPercentage;
         public final ForgeConfigSpec.ConfigValue<Integer> minReviveXPLevel;
         public final ForgeConfigSpec.ConfigValue<Double> fallenPenaltyTimer;
         public final ForgeConfigSpec.ConfigValue<Boolean> canRemovePenaltyTimer;
+        public final ForgeConfigSpec.ConfigValue<Boolean> hidePenaltyTimerEffect;
+        public final ForgeConfigSpec.ConfigValue<Integer> reviveRadius;
         public final ForgeConfigSpec.ConfigValue<Boolean> runDeathEventFirst;
         public final ForgeConfigSpec.ConfigValue<Double> fallenHealth;
         public final ForgeConfigSpec.ConfigValue<Boolean> canGiveUp;
@@ -493,7 +534,6 @@ public final class ReviveMeConfig {
             List<String> defaultSelfReviveList = new ArrayList<>(Arrays.asList(SELFREVIVETYPE.RANDOM_ITEMS.name(), SELFREVIVETYPE.CHANCE.name(), SELFREVIVETYPE.KILL.name(), SELFREVIVETYPE.STATUS_EFFECTS.name(), SELFREVIVETYPE.EXPERIENCE.name()));
             selfReviveOptions = builder.comment("List of all your self-revive options EXCEPT revive items (Duplicate options are allowed, can be empty). Self-revive options refresh from this list when the revive penalty ends. OPTIONS: 'CHANCE', 'RANDOM_ITEMS', 'KILL', 'STATUS_EFFECTS', 'EXPERIENCE'")
                     .defineList("SELF_REVIVE_OPTIONS", new ArrayList<>(defaultSelfReviveList), defaultSelfReviveList::contains);
-            maxSelfRevives = builder.comment("Max self revives (setting to 0 will disable self-revive) (setting to -1 will disable the self-revive max) (In multiplayer self-revive will only be disabled when you reach the max) Refreshes when penalty timer ends.").defineInRange("Max_Self_revives", 3, -1, Integer.MAX_VALUE);
             disableSelfReviveIfPlayerDowned = builder.comment("If self-revive should be disabled if a player places you in the fallen state").define("Disable_Self_Revive_On_PVP", false);
             randomizeSelfReviveOptions = builder.comment("If the chosen self-revive options are picked randomly.").define("Randomize_Self_Revive_Options", true);
             onlyUseAvailableOptions = builder.comment("If the mod should only pick self-revive options that you would meet the requirements for (when possible)").define("Only_Use_Available_Options", false);
@@ -519,6 +559,7 @@ public final class ReviveMeConfig {
             reviveKillBlackList = builder.comment("List of entities that won't count towards removing the death timer. Add \"//\" to make it a whitelist instead." +
                             " Add ';EntityClassification;' to block/allow mob categories. Usage: (ModId:EntityType) 'minecraft:zombie' or 'zombie' or 'minecraft'. Usage2: (EntityClassification) ';MONSTER;' or ';MISC;'")
                     .defineList("Revive_Kill_Blacklist", new ArrayList<>(), a -> !a.toString().isEmpty());
+            hideReviveKillEffect = builder.comment("If the Kill Revive particles should be hidden").define("Hide_Kill_Revive_Effect", false);
             builder.pop();
 
             builder.push("Status Effects");
@@ -528,6 +569,7 @@ public final class ReviveMeConfig {
 
             negativeEffectsTime = builder.comment("How long the harmful effects will last for. (Affected by penalty)").defineInRange("Effect_Duration", 15, 0, Integer.MAX_VALUE);
             disableReviveEffects = builder.comment("If Revive effects should be disabled when reviving with this self-revive type.").define("Disable_Revive_Effects", true);
+            hideNegativeEffects = builder.comment("If negative effect particles should be hidden").define("Hide_Negative_Effects", false);
             builder.pop();
 
             builder.push("EXPERIENCE");
@@ -560,19 +602,25 @@ public final class ReviveMeConfig {
                     "\nExample of binding: 'key.fullscreen' or 'fullscreen' will let you use the 'Toggle Fullscreen' keybinding while in the fallen state)").define("Allowed_Keybinds", new ArrayList<>());
             builder.pop();
 
+            maxTotalRevives = builder.comment("Max TOTAL revives (Setting to 0 will disable Revive Me!) (setting to -1 will disable the total-revive max) Refreshes when penalty timer ends.").defineInRange("Max_Total_revives", 6, -1, Integer.MAX_VALUE);
+            maxPlayerRevives = builder.comment("Max PLAYER revives (setting to 0 will disable player-revive) (setting to -1 will disable the player-revive max) Refreshes when penalty timer ends.").defineInRange("Max_Player_revives", -1, -1, Integer.MAX_VALUE);
+            maxSelfRevives = builder.comment("Max SELF revives (setting to 0 will disable self-revive) (setting to -1 will disable the self-revive max) Refreshes when penalty timer ends.").defineInRange("Max_Self_revives", 3, -1, Integer.MAX_VALUE);
+
+            reviveRadius = builder.comment("Max distance another player can be to enter the fallen state (0 disables this)").defineInRange("Revive_Radius", 0,0,Integer.MAX_VALUE);
             runDeathEventFirst = builder.comment("If Forge's Death Event should run first before this mod does (if Death event runs first and player death is cancelled, Revive-Me code will not execute. Same thing vice-versa.)")
                     .define("Run_Death_Event_First", true);
-            downedEffects = builder.comment("Potion effects the player has while fallen (ModId:PotionEffect:Amplification)(minecraft:slowness:0)").define("Downed_Effects", new ArrayList<String>(ImmutableList.of("minecraft:slowness:3")));
+            downedEffects = builder.comment("Potion effects the player has while fallen (ModId:PotionEffect:Amplification:HideEffect <-optional)(minecraft:slowness:0 or minecraft:blindness:0:true)").define("Downed_Effects", new ArrayList<String>(ImmutableList.of("minecraft:slowness:3:true")));
             dieOnDisconnect = builder.comment("If you should die instantly if you disconnect while in the fallen state").define("Die_On_Disconnect", false);
             builder.pop();
 
             builder.push("Timer Settings");
-            timeLeft = builder.comment("How long you have before death. Setting to 0 will disable the timer").defineInRange("Time_Left", 60, 0, Integer.MAX_VALUE);
+            timeLeft = builder.comment("How long you have before death. Setting to -1 will disable the timer").defineInRange("Time_Left", 60, -1, Integer.MAX_VALUE);
             dieWhenTimerEnds = builder.comment("If you should die when the death timer ends. If set to false, you will instead be targetable by mobs.").define("Die_When_Timer_Ends", false);
             pauseFallenTimerOnDisconnect = builder.comment("If the fallen timer should pause on disconnect (Multiplayer only)").define("Pause_Fallen_Timer_On_Disconnect", false);
             timeReductionPenalty = builder.comment("How much time (in seconds) your death timer loses each time you fall. (Less than 1 is a percentage of max death time, -1 will take away the max)").defineInRange("Time_Reduction_Penalty", 5, -1F, Double.MAX_VALUE);
             fallenPenaltyTimer = builder.comment("how long the revive penalty effects will last in SECONDS").defineInRange("Revive_Penalty_Timer", 45, 0F, Double.MAX_VALUE);
             canRemovePenaltyTimer = builder.comment("If you can remove the penalty timer before it ends").define("Can_Remove_Penalty_Timer", false);
+            hidePenaltyTimerEffect = builder.comment("If penalty timer particles should be hidden").define("Hide_Penalty_Timer_Particles", true);
             pvpTimer = builder.comment("How much time (in seconds) must pass before you may be killed by other players. Affected by time reduction penalty. Setting to -1 will disable this").defineInRange("PVP_Timer", 10, -1, Integer.MAX_VALUE);
             builder.pop();
 
@@ -586,12 +634,11 @@ public final class ReviveMeConfig {
 
             builder.push("Revive Settings");
             builder.push("Revivee Settings");
-            resetReviveOnHit = builder.comment("If revive progress resets when damage is taken").define("Reset_Revive_On_Hit", true);
             reviverMustLook = builder.comment("If the reviver must look at the revivee to revive them").define("Reviver_Must_look", true);
             revivedHealth = builder.comment("How much health you will be revived with, -1 is max health, Less than 1 is percentage").defineInRange("Revive_Health", 10F, -1F, Integer.MAX_VALUE);
             revivedFood = builder.comment("How much food you will be revived with, -1 is max food, Less than 1 is percentage").defineInRange("Revive_Food", 6F, -1F, Integer.MAX_VALUE);
-            reviveEffects = builder.comment("What effects you revive with (ModId:PotionEffect:Amplification:Ticks)(minecraft:fire_resistance:3:100)").defineList("Revive_Effects",
-                    Arrays.asList("minecraft:fire_resistance:5:100", "minecraft:resistance:5:100"), s -> !s.toString().isEmpty() && s.toString().split(":").length == 4);
+            reviveEffects = builder.comment("What effects you revive with (ModId:PotionEffect:Amplification:Ticks:HideEffect <-optional)(minecraft:fire_resistance:3:100 or minecraft:resistance:3:100:true)").defineList("Revive_Effects",
+                    Arrays.asList("minecraft:fire_resistance:5:100:true", "minecraft:resistance:5:100:true"), s -> !s.toString().isEmpty() && (s.toString().split(":").length == 4 || s.toString().split(":").length == 5));
             revertEffectsOnRevive = builder.comment("Give back all of the potion effects the player had before entering the fallen state").define("Revert_Effects_On_Revive", false);
             revertEffectBlacklist = builder.comment("What effects you won't gain back on revive. Add \"//\" to make it a whitelist instead. Add ';MobEffectCategory;' to block/allow effect categories. " +
                             "Usage: (ModId:PotionEffect) 'minecraft:slowness' or 'slowness' or 'minecraft'. Usage2: (MobEffectCategory) ';HARMFUL;' or ';NEUTRAL;' or ';BENEFICIAL;'")
@@ -602,7 +649,7 @@ public final class ReviveMeConfig {
             reviveTime = builder.comment("How long to revive someone").defineInRange("Revive_Time", 3, 0, Integer.MAX_VALUE);
             penaltyType = builder.comment("What the reviver will lose (Reviver can use ITEM without it being selected. Selecting ITEM while Revive Items are disabled will disable this revive option.)").defineEnum("Penalty_Type", FallenCapability.PENALTYPE.FOOD);
             penaltyAmount = builder.comment("Amount that will be taken from reviver, Numbers below 1 and greater than 0 will turn it into a percentage").define("Penalty_Amount", 10D);
-            cancelReviveOnDamage = builder.comment("If revive should be cancelled when taking damage").define("Cancel_Revive_On_Damage", false);
+            resetReviveOnHit = builder.comment("If revive progress resets when damage is taken").define("Reset_Revive_On_Hit", true);
             builder.pop();
             builder.pop();
 
