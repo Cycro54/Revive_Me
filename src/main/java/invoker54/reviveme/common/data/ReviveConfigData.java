@@ -75,13 +75,14 @@ public class ReviveConfigData {
             ResourceLocation effectLocation = ResourceLocation.fromNamespaceAndPath(pieces.get(0), pieces.get(1));
             int tier = Integer.parseInt(pieces.get(2));
             int ticks = Integer.parseInt(pieces.get(3));
+            boolean isVisible = pieces.size() != 5 || !Boolean.parseBoolean(pieces.get(4));
             MobEffect effect = BuiltInRegistries.MOB_EFFECT.get(effectLocation);
             if (effect == null){
                 LOGGER.error("Incorrect MOD ID or Potion MobEffect: " + effectString);
                 return null;
             }
 
-            return new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect), ticks, tier);
+            return new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect), ticks, tier, false, isVisible);
         }
         catch (Exception e){
             if (!effectString.equals("PARENT")) LOGGER.error("Invalid string: " + effectString);
@@ -168,12 +169,13 @@ public class ReviveConfigData {
         //endregion
 
         //Remove all potion effects
-        fallen.removeAllEffects();
+        cap.removeOriginalEffects(true);
         //Load the saved effects
         cap.loadEffects(fallen);
 
         //Add the fallen potion effect
-        if (getFallenPenaltyTimer() != 0) fallen.addEffect(new MobEffectInstance(MobEffectInit.FALLEN_EFFECT, (int) (fallenPenaltyTimer * 20), cap.getPenaltyMultiplier()));
+        if (getFallenPenaltyTimer() != 0) fallen.addEffect(new MobEffectInstance(MobEffectInit.FALLEN_EFFECT, (int) (fallenPenaltyTimer * 20), cap.getPenaltyMultiplier(), false,
+                !ReviveMeConfig.hidePenaltyTimerEffect, true));
 
         if (this.reviveEffects != null) {
             for (MobEffectInstance instance : reviveEffects) {
@@ -190,6 +192,7 @@ public class ReviveConfigData {
             NetworkInit.sendMessage(reviveText.getText(), isCommand, fallen);
 
             cap.syncClient(true);
+            if (reviver != null && reviver != fallen) FallenData.get(reviver).syncClient(true);
         }
     }
 

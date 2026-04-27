@@ -36,7 +36,7 @@ public class CapabilityEvents {
         if (!cap.isFallen()) return;
         //Do this just in case.
         cap.pauseTimerOnLogout();
-        player.removeAllEffects();
+        cap.removeOriginalEffects(true);
         if (!ReviveMeConfig.dieOnDisconnect) return;
         cap.forceDeath();
     }

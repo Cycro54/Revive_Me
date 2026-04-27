@@ -49,7 +49,6 @@ public record SyncClientCapMsg(String uuid, CompoundTag capDataTag, boolean rese
 
                         if (player == null) return;
                         FallenData data = FallenData.get(player);
-                        boolean wasFallen = data.isFallen();
                         data.readNBT(msg.capDataTag);
 
                         if (player != ClientUtil.getPlayer()) return;

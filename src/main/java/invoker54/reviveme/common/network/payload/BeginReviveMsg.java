@@ -66,7 +66,7 @@ public record BeginReviveMsg(String fallenUUID) implements CustomPacketPayload {
                         if (itemData == null) handStack = null;
 
                         double reviveSeconds = itemData == null ? ReviveMeConfig.reviveTime : itemData.getReviveSeconds();
-                        //Now add the player to the targets fallencapability and vice versa.
+                        //Now add the player to the targets FallenData and vice versa.
                         targCap.setProgress(player.level().getGameTime(), reviveSeconds);
                         targCap.setOtherPlayerAndItem(player.getUUID(), handStack);
                         cap.setProgress(player.level().getGameTime(), reviveSeconds);
