@@ -118,7 +118,7 @@ public class FallenCapability {
     protected double currentOverheal = 0;
 
     public static FallenCapability get(LivingEntity player){
-        return player.getCapability(FallenProvider.FallenCapability).orElseGet(FallenCapability::new);
+        return player.getCapability(FallenProvider.FALLENDATA).orElseGet(FallenCapability::new);
     }
 
     public void setFallen(boolean fallen) {
