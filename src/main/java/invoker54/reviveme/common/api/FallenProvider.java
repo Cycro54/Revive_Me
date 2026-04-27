@@ -23,10 +23,10 @@ public class FallenProvider implements ICapabilitySerializable<Tag> {
 
     //region Capability setup
     //This is where all of the fallen capability data is
-    public static Capability<FallenCapability> FALLENDATA = CapabilityManager.get(new CapabilityToken<>() {
+    public static Capability<FallenCapability> FallenCapability = CapabilityManager.get(new CapabilityToken<>() {
     });
 
-    private final static String FALLEN_NBT = "fallenData";
+    private final static String FALLEN_NBT = "FallenCapability";
     //This is where the current capability is stored to read and write
     private FallenCapability fallenCapability;
     private final LazyOptional<FallenCapability> optionalData = LazyOptional.of(() -> fallenCapability);
@@ -34,10 +34,10 @@ public class FallenProvider implements ICapabilitySerializable<Tag> {
     @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> capability, @Nullable Direction facing) {
-        return FALLENDATA.orEmpty(capability, this.optionalData);
+        return FallenCapability.orEmpty(capability, this.optionalData);
 //
 //
-//        if (FALLENDATA == capability) {
+//        if (FallenCapability == capability) {
 //            return LazyOptional.of(() -> fallenCapability).cast();
 //            // why are we using a lambda?  Because LazyOptional.of() expects a NonNullSupplier interface.  The lambda automatically
 //            //   conforms itself to that interface.  This save me having to define an inner class implementing NonNullSupplier.
@@ -60,7 +60,7 @@ public class FallenProvider implements ICapabilitySerializable<Tag> {
     @Override
     public Tag serializeNBT() {
 //        CompoundTag nbtData = new CompoundTag();
-//        Tag fallenNBT = FALLENDATA.writeNBT(fallenCapability, null);
+//        Tag fallenNBT = FallenCapability.writeNBT(fallenCapability, null);
 //        nbtData.put(FALLEN_NBT, fallenNBT);
 //        return  nbtData;
         return this.fallenCapability.writeNBT();
@@ -75,7 +75,7 @@ public class FallenProvider implements ICapabilitySerializable<Tag> {
 //        //System.out.println("I ran for deserializing");
 //        CompoundTag nbtData = (CompoundTag) nbt;
 //
-//        FALLENDATA.readNBT(fallenCapability, null, nbtData.getCompound(FALLEN_NBT));
+//        FallenCapability.readNBT(fallenCapability, null, nbtData.getCompound(FALLEN_NBT));
         this.fallenCapability.readNBT(nbt);
     }
 }

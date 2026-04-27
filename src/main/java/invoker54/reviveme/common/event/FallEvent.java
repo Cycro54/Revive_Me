@@ -25,6 +25,7 @@ public class FallEvent {
 
     public static boolean cancelEvent(Player player, DamageSource source) {
         FallenCapability instance = FallenCapability.get(player);
+        if (!instance.canSelfRevive() && !instance.canPlayerRevive()) return false;
 
         instance.refreshSelfReviveTypes();
 
@@ -35,7 +36,7 @@ public class FallEvent {
         if (!instance.isFallen()) {
 //            LOGGER.info("MAKING THEM FALLEN");
             NetworkHandler.sendMessage(InvoText.translate("revive-me.chat.player_fallen",
-                    player.getName(), source.getLocalizedDeathMessage(player)).getText(), false, player);
+                    player.getDisplayName(), source.getLocalizedDeathMessage(player)).getText(), false, player);
 
             //Set to fallen state
             instance.setFallen(true);
@@ -53,9 +54,6 @@ public class FallEvent {
             //Set last damage source for later
             instance.setDamageSource(source);
 
-            //Set time left to whatever is in config file
-            instance.SetTimeLeft(player.level.getGameTime(), ReviveMeConfig.timeLeft, true);
-
             //grab the FALLEN EFFECT amplifier for later use
             if (player.hasEffect(MobEffectInit.FALLEN_EFFECT)){
                 instance.setPenaltyMultiplier(player.getEffect(MobEffectInit.FALLEN_EFFECT).getAmplifier() + 1);
@@ -67,10 +65,13 @@ public class FallEvent {
             if (ReviveMeConfig.revertEffectsOnRevive){
                 instance.saveEffects(player);
             }
-            instance.removeOriginalEffects(player);
+            instance.removeOriginalEffects(true);
 
             //Give them all the downed effects.
             modifyPotionEffects(player);
+
+            //Set time left to whatever is in config file
+            instance.SetTimeLeft(player.level.getGameTime(), ReviveMeConfig.timeLeft, true);
 
             //Dismount the player if riding something
             player.stopRiding();
@@ -128,6 +129,7 @@ public class FallEvent {
 //                LOGGER.info("The effect split into pieces: " + Arrays.toString(array));
                 ResourceLocation effectLocation = new ResourceLocation(array[0],array[1]);
                 int tier = Integer.parseInt(array[2]);
+                boolean isVisible = array.length != 4 || !Boolean.parseBoolean(array[3]);
 //                LOGGER.info("The tier: " + tier);
                 MobEffect effect = ForgeRegistries.MOB_EFFECTS.getValue(effectLocation);
                 if (effect == null){
@@ -137,7 +139,7 @@ public class FallEvent {
 
                 MobEffectInstance effectInstance = player.getEffect(effect);
                 if (effectInstance == null) {
-                    player.addEffect(new MobEffectInstance(effect, Integer.MAX_VALUE, tier));
+                    player.addEffect(new MobEffectInstance(effect, Integer.MAX_VALUE, tier, false, isVisible, true));
                 }
             }
             catch (Exception e){

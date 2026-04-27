@@ -30,8 +30,13 @@ public abstract class KeyMappingMixin implements Comparable<KeyMapping>, net.min
     @Shadow
     public abstract void setDown(boolean p_225593_1_);
 
+    @Shadow
+    public int clickCount;
     @Unique
     private static final ModLogger LOGGERT = ModLogger.getLogger(KeyMappingMixin.class, ReviveMeConfig.debugMode);
+
+    @Unique
+    private boolean reviveMe$ShouldRun = true;
 
     @Inject(
             method = "matches",
@@ -75,7 +80,7 @@ public abstract class KeyMappingMixin implements Comparable<KeyMapping>, net.min
         if (!cap.isFallen()) return this.key;
         if (VanillaKeybindHandler.isAllowedKeybind((KeyMapping) (Object)this)) return this.key;
 
-        return InputConstants.Type.KEYSYM.getOrCreate(-1);
+        return InputConstants.Type.KEYSYM.getOrCreate(314);
     }
 
     @Inject(
@@ -86,9 +91,21 @@ public abstract class KeyMappingMixin implements Comparable<KeyMapping>, net.min
             cancellable = true)
     private void isDown(CallbackInfoReturnable<Boolean> cir) {
         if (!this.isDown) return;
+        if (!this.reviveMe$ShouldRun) return;
+        this.reviveMe$ShouldRun = false;
         KeyMapping keyBinding = ((KeyMapping) (Object) this);
-        if (VanillaKeybindHandler.canBeDown(keyBinding)) return;
 
-        this.setDown(false);
+        try {
+            boolean canBeDown = VanillaKeybindHandler.canBeDown(keyBinding);
+            if (!canBeDown) {
+                this.clickCount = 0;
+                this.setDown(false);
+            }
+        }
+        catch (Exception e){
+            LOGGERT.error("[Revive Me!] Something went wrong in my 'isDown' MIXIN!");
+            e.printStackTrace();
+        }
+        this.reviveMe$ShouldRun = true;
     }
 }
