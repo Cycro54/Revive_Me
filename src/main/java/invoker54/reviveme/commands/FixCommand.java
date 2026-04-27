@@ -64,7 +64,7 @@ public class FixCommand {
             }
 
             cap.setFallen(false);
-            fallen.removeAllEffects();
+            cap.removeOriginalEffects(true);
             FallEvent.cancelEvent(fallen, damageSource);
         }
 

@@ -99,7 +99,9 @@ public class KeyInit {
                     if (!VanillaKeybindHandler.useHeld) return;
                     Entity crossHairEntity = ClientUtil.getMinecraft().crosshairPickEntity;
                     if (!(crossHairEntity instanceof Player)) return;
-                    if (!FallenData.get((LivingEntity) crossHairEntity).isFallen()) ;
+                    FallenData otherPlayerCap = FallenData.get((LivingEntity) crossHairEntity);
+                    if (!otherPlayerCap.isFallen()) return;
+                    if (!otherPlayerCap.canPlayerRevive()) return;
 
                     ClientPacketDistributor.sendToServer(new BeginReviveMsg(crossHairEntity.getStringUUID()));
                 }));
