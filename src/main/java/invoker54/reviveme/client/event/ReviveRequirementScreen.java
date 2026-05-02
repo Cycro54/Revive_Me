@@ -21,6 +21,7 @@ import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import static invoker54.invocore.client.util.ClientUtil.getPlayer;
 import static invoker54.reviveme.client.event.FallScreenEvent.*;
 import static invoker54.reviveme.client.event.RenderFallPlateEvent.blackBg;
 
@@ -33,7 +34,7 @@ public class ReviveRequirementScreen {
         //if (true) return;
         //if (true) return;
         event.registerAboveAll("requirement_screen", (gui, guiGraphics, partialTicks, fullWidth, fullHeight) -> {
-            if (ClientUtil.getPlayer().isCreative() || ClientUtil.getPlayer().isSpectator()) return;
+            if (getPlayer().isSpectator()) return;
             if (FallenCapability.get(ClientUtil.getPlayer()).isFallen()) return;
             if (!(ClientUtil.getMinecraft().crosshairPickEntity instanceof Player)) return;
             if (((Player) ClientUtil.getMinecraft().crosshairPickEntity).isDeadOrDying()) return;
@@ -60,7 +61,7 @@ public class ReviveRequirementScreen {
             InvoZone requirementZone = new InvoZone(workZone.copy().splitWidth(8, 5).right(),
                     panelWidth, workZone.height() / 8, panelHeight);
 
-            if (cap.canPlayerRevive()) {
+            if (cap.canPlayerRevive() && !getPlayer().isCreative()) {
                 renderRequirements(guiGraphics.pose(), requirementZone, cap, penaltyTypeSize);
                 requirementZone.shift(0, requirementZone.height() + 2);
             }

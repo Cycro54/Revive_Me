@@ -31,7 +31,7 @@ import java.util.stream.Stream;
 public final class ReviveMeConfig {
     public static final CommonConfig COMMON;
     public static final ForgeConfigSpec COMMON_SPEC;
-    public static final AtomicBoolean debugMode = new AtomicBoolean(false);
+    public static final AtomicBoolean debugMode = new AtomicBoolean(true);
     public static final ModLogger LOGGER = ModLogger.getLogger(ReviveMeConfig.class, ReviveMeConfig.debugMode);
 
     public static boolean reviveMeEnabled;
