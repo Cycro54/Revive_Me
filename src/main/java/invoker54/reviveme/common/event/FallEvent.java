@@ -25,6 +25,10 @@ public class FallEvent {
 
     public static boolean cancelEvent(Player player, DamageSource source) {
         FallenData instance = FallenData.get(player);
+
+        //Set last damage source for later
+        instance.setDamageSource(source);
+
         if (!instance.canSelfRevive() && !instance.canPlayerRevive()) return false;
 
         instance.refreshSelfReviveTypes();
@@ -50,9 +54,6 @@ public class FallEvent {
 
             //Set food to 0
             player.getFoodData().setFoodLevel(1);
-
-            //Set last damage source for later
-            instance.setDamageSource(source);
 
             //grab the FALLEN EFFECT amplifier for later use
             if (player.hasEffect(MobEffectInit.FALLEN_EFFECT)){
