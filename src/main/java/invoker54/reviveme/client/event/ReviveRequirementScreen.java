@@ -32,7 +32,7 @@ public class ReviveRequirementScreen {
     @SubscribeEvent
     public static void renderRequirementScreen(RenderGameOverlayEvent.Post event) {
         if (event.getType() != RenderGameOverlayEvent.ElementType.CHAT) return;
-        if (getPlayer().isCreative() || getPlayer().isSpectator()) return;
+        if (getPlayer().isSpectator()) return;
         if (FallenCapability.get(ClientUtil.getPlayer()).isFallen()) return;
         if (!(mC.crosshairPickEntity instanceof PlayerEntity)) return;
         if (((PlayerEntity) mC.crosshairPickEntity).isDeadOrDying()) return;
@@ -61,7 +61,7 @@ public class ReviveRequirementScreen {
         InvoZone requirementZone = new InvoZone(workZone.copy().splitWidth(8, 5).right(),
                 panelWidth, workZone.height() / 8, panelHeight);
 
-        if (cap.canPlayerRevive()) {
+        if (cap.canPlayerRevive() && !getPlayer().isCreative()) {
             renderRequirements(stack, requirementZone, cap, penaltyTypeSize);
             requirementZone.shift(0, requirementZone.height() + 2);
         } else {
