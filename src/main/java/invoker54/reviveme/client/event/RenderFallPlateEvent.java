@@ -103,7 +103,7 @@ public class RenderFallPlateEvent {
 
                 if (!mC.player.isShiftKeyDown() && !player.isDeadOrDying()) {
                     canRender = true;
-                    chosenColor = greenProgCircle;
+                    chosenColor = cap.canPlayerRevive() ? greenProgCircle : redProgCircle;
 
                     float seconds = cap.getTimeLeft(false);
                     seconds += (seconds <= 0 ? 0 : 1);
@@ -154,7 +154,7 @@ public class RenderFallPlateEvent {
                                             .withStyle(true, InvoTextFormat.filter( ChatFormatting.YELLOW, ChatFormatting.BOLD)).getText()
                             );
                         }
-                    } else if (cap.hasEnough(mC.player)) {
+                    } else if (cap.hasEnough(mC.player) && cap.canPlayerRevive()) {
                         message = InvoText.translate("revive_me.fall_plate.revive").setArgs(
                                 InvoText.literal(VanillaKeybindHandler.getKey(KeyInit.rightOption.keyBind).getDisplayName().getString())
                                         .withStyle(true, InvoTextFormat.filter( ChatFormatting.YELLOW, ChatFormatting.BOLD)).getText()
