@@ -352,12 +352,12 @@ public class FallScreenEvent {
             mainCount = totalRevives;
             mainTypeText = InvoText.literal("");
         }
-        else if (selfRevives > 0){
+        else if (selfRevives > 0 && cap.canSelfRevive()){
             mainCount = selfRevives;
             mainTypeText = reviveCountSelfText;
         }
         //In this case, player revives can't be infinite
-        else if (playerRevives > 0){
+        else if (playerRevives > 0 && cap.canPlayerRevive()){
             mainCount = playerRevives;
             mainTypeText = reviveCountPlayerText;
         }
@@ -368,6 +368,7 @@ public class FallScreenEvent {
         renderReviveCount(stack, reviveTextZone, mainCount, mainTypeText, reviveCountFullText);
 
         if ((selfRevives <= 0 || playerRevives <= 0) || (totalRevives == selfRevives && totalRevives == playerRevives)) return;
+        if (!cap.canPlayerRevive() || !cap.canSelfRevive()) return;
 
         InvoZone reviveLeftZone = reviveTextZone.copy().splitWidth(5, 2).shift(0, reviveTextZone.height());
         renderReviveCount(stack, reviveLeftZone, selfRevives, reviveCountSelfText, reviveCountShortText);
