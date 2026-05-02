@@ -22,6 +22,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 
+import static invoker54.invocore.client.util.ClientUtil.getPlayer;
 import static invoker54.reviveme.ReviveMe.makeResource;
 import static invoker54.reviveme.client.event.FallScreenEvent.*;
 import static invoker54.reviveme.client.event.RenderFallPlateEvent.blackBg;
@@ -34,7 +35,7 @@ public class ReviveRequirementScreen {
     public static void registerRequirementScreen(RegisterGuiLayersEvent event) {
         Minecraft mC = ClientUtil.getMinecraft();
         event.registerAboveAll(makeResource("requirement_screen"), (guiGraphics, tracker) -> {
-            if (ClientUtil.getPlayer().isCreative() || ClientUtil.getPlayer().isSpectator()) return;
+            if (getPlayer().isSpectator()) return;
             if (FallenData.get(ClientUtil.getPlayer()).isFallen()) return;
             if (!(ClientUtil.getMinecraft().crosshairPickEntity instanceof Player)) return;
             if (((Player) ClientUtil.getMinecraft().crosshairPickEntity).isDeadOrDying()) return;
@@ -61,7 +62,7 @@ public class ReviveRequirementScreen {
             InvoZone requirementZone = new InvoZone(workZone.copy().splitWidth(8, 5).right(),
                     panelWidth, workZone.height() / 8, panelHeight);
 
-            if (cap.canPlayerRevive()) {
+            if (cap.canPlayerRevive() && !getPlayer().isCreative()) {
                 renderRequirements(guiGraphics, requirementZone, cap, penaltyTypeSize);
                 requirementZone.shiftXY(0, requirementZone.height() + 2);
             } else {
