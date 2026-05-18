@@ -12,12 +12,8 @@ jobs:
       contents: write
     runs-on: windows-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: List all files (including hidden)
-        run: ls -File
-        
       - uses: Kira-NT/mc-publish@v3.3.0
         with:
           # Only include this section if you wish to publish
@@ -30,4 +26,4 @@ jobs:
           curseforge-id: 676140
           curseforge-token: ${{ secrets.CURSE_TOKEN }}
 
-          changelog-file: '**/changelog.md'
+          changelog-file: **/changelog.md
