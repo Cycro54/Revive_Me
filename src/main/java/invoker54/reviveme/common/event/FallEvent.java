@@ -23,8 +23,28 @@ import java.util.Optional;
 public class FallEvent {
     private static final ModLogger LOGGER = ModLogger.getLogger(FallEvent.class, ReviveMeConfig.debugMode);
 
+    public static boolean canBypassReviveMe(DamageSource damageSource, boolean isInitial){
+        boolean isWhitelist = !ReviveMeConfig.damageSourceWhitelist.contains("//");
+        boolean inList = false;
+        String idString = damageSource.getMsgId();
+        for (String listString : ReviveMeConfig.damageSourceWhitelist){
+            if (listString.contains("//")) continue;
+
+            String cleanListString = listString.replaceAll("[*;]", "");
+            boolean canMatch = !listString.contains(";") || (idString.length() == (cleanListString.length()));
+            if (!canMatch) continue;
+            boolean shouldPass = (isWhitelist != isInitial) || listString.contains("*");
+
+            inList = (cleanListString.contains("/") || idString.contains(cleanListString)) && shouldPass;
+            if (inList) break;
+        }
+
+        return isWhitelist == inList;
+    }
+
     public static boolean cancelEvent(Player player, DamageSource source) {
         FallenData instance = FallenData.get(player);
+        if (canBypassReviveMe(source, true)) return false;
 
         //Set last damage source for later
         instance.setDamageSource(source);

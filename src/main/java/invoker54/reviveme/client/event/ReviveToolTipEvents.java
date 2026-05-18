@@ -53,12 +53,12 @@ public class ReviveToolTipEvents {
 
         list.add(InvoText.translate("reviveme.item.tooltip.combination",
                 KeyInit.tooltip.keyBind.getTranslatedKeyMessage()).getText());
-        //ID
-        list.add(idText.withStyle(true).setArgs(FallenItemScreenEvent
-                .formatString(itemData.getIdName()).getText()).getText());
         //Display
         list.add(displayText.withStyle(true).setArgs(FallenItemScreenEvent
                 .formatString(itemData.getDisplayName().getString()).getText()).getText());
+        //ID
+        list.add(idText.withStyle(true).setArgs(FallenItemScreenEvent
+                .formatString(itemData.getIdName()).getText()).getText());
         //Item User
         list.add(userText.withStyle(true).setArgs(FallenItemScreenEvent
                 .formatString(itemData.getItemUser().name()).getText()).getText());
@@ -74,12 +74,12 @@ public class ReviveToolTipEvents {
         List<Component> list = event.getToolTip();
         list.clear();
 
-        //ID
-        list.add(idText.withStyle(true).setArgs(FallenItemScreenEvent
-                .formatString(itemData.getIdName()).getText()).getText());
         //Display
         list.add(displayText.withStyle(true).setArgs(FallenItemScreenEvent
                 .formatString(itemData.getDisplayName().getString()).getText()).getText());
+        //ID
+        list.add(idText.withStyle(true).setArgs(FallenItemScreenEvent
+                .formatString(itemData.getIdName()).getText()).getText());
         //Item User
         list.add(userText.withStyle(true).setArgs(FallenItemScreenEvent
                 .formatString(itemData.getItemUser().name()).getText()).getText());

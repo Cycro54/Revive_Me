@@ -11,7 +11,9 @@ import net.minecraft.world.level.GameType;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.event.entity.living.LivingHealEvent;
+import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
@@ -19,6 +21,12 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 @EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class FallenTimerEvent {
     private static final ModLogger LOGGER = ModLogger.getLogger(FallenTimerEvent.class, ReviveMeConfig.debugMode);
+
+    @SubscribeEvent
+    public static void fallenPickUpItem(ItemEntityPickupEvent.Pre event){
+        if (!(FallenData.get(event.getPlayer()).isFallen())) return;
+        event.setCanPickup(ReviveMeConfig.canPickUpItems ? TriState.DEFAULT : TriState.FALSE);
+    }
 
     @SubscribeEvent
     public static void changeGamemode(PlayerEvent.PlayerChangeGameModeEvent event){

@@ -1,5 +1,5 @@
 {
-  "message_id": "revive-me.damage_source.kill_revive",
+  "message_id": "revive_me.damage_source.kill_revive",
   "exhaustion": 0.0,
   "scaling": "never"
 }
