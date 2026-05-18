@@ -79,6 +79,8 @@ public final class ReviveMeConfig {
     public static Integer reviveRadius;
     public static boolean runDeathEventFirst;
     public static double fallenHealth;
+    public static List<String> damageSourceWhitelist;
+    public static boolean canPickUpItems;
     public static boolean canGiveUp;
     public static Double overhealAmount;
     public static Double overhealPenaltyPercentage;
@@ -220,6 +222,8 @@ public final class ReviveMeConfig {
         reviveRadius = COMMON.reviveRadius.get();
         runDeathEventFirst = COMMON.runDeathEventFirst.get();
         fallenHealth = COMMON.fallenHealth.get();
+        damageSourceWhitelist = (List<String>) COMMON.damageSourceWhitelist.get();
+        canPickUpItems = COMMON.canPickUpItems.get();
         canGiveUp = COMMON.canGiveUp.get();
         overhealAmount = COMMON.overhealAmount.get();
         overhealPenaltyPercentage = COMMON.overhealPenaltyPercentage.get();
@@ -510,6 +514,8 @@ public final class ReviveMeConfig {
         public final ForgeConfigSpec.ConfigValue<Integer> reviveRadius;
         public final ForgeConfigSpec.ConfigValue<Boolean> runDeathEventFirst;
         public final ForgeConfigSpec.ConfigValue<Double> fallenHealth;
+        public final ForgeConfigSpec.ConfigValue<List<? extends String>> damageSourceWhitelist;
+        public final ForgeConfigSpec.ConfigValue<Boolean> canPickUpItems;
         public final ForgeConfigSpec.ConfigValue<Boolean> canGiveUp;
         public final ForgeConfigSpec.ConfigValue<Double> overhealAmount;
         public final ForgeConfigSpec.ConfigValue<Double> overhealPenaltyPercentage;
@@ -610,12 +616,15 @@ public final class ReviveMeConfig {
             deathTimerMaxDistance = builder.comment("How far you can see the death timer for a player in the fallen state.").defineInRange("Death_Timer_Max_Distance", 40, 0, Double.MAX_VALUE);
             builder.pop();
 
-            canGiveUp = builder.comment("If you can give up and die").define("Can_Give_Up", true);
-            interactWithInventory = builder.comment("If the player can use their inventory while fallen").defineEnum("Interact_With_Inventory", INTERACT_WITH_INVENTORY.LOOK_ONLY);
-            blockedCommands = builder.comment("Commands the player isn't allowed to use while fallen. Type \"/\" to block all commands. Type \"//\" to make this a whitelist.").define("Blocked_Commands", new ArrayList<>());
+            canPickUpItems = builder.comment("If a fallen player can pick up items").define("Can_Pick_Up_Items", true);
+            canGiveUp = builder.comment("If a fallen player can give up and die").define("Can_Give_Up", true);
+            interactWithInventory = builder.comment("If a fallen player can use their inventory").defineEnum("Interact_With_Inventory", INTERACT_WITH_INVENTORY.LOOK_ONLY);
+            blockedCommands = builder.comment("Commands a fallen player isn't allowed to use. Type \"/\" to block all commands. Type \"//\" to make this a whitelist.").define("Blocked_Commands", new ArrayList<>());
             allowedKeybinds = builder.comment("Keybinds that you can use while in the fallen state. (You can put a piece or the full name of a keybind. (Check the translation json for keybinding names (en_us.json for example))" +
                     "\nExample of binding: 'key.fullscreen' or 'fullscreen' will let you use the 'Toggle Fullscreen' keybinding while in the fallen state)").define("Allowed_Keybinds", new ArrayList<>());
             builder.pop();
+
+            damageSourceWhitelist = builder.comment("List of damage sources that bypass fallen state invulnerability (or the entire mod). Type \"/\" to allow all damage sources. Type \"//\" to make it a blacklist instead (entries will trigger the fallen state). You can also use parts of a damage source, add ';' to make it match exactly (Case sensitive both ways), add '*' to make it bypass the entire mod (does the opposite if set to blacklist). Usage: (MessageID) 'inWall' or 'Wall' or ';inWall', or '*inWall' or ';*inWall'").define("Damage_Source_Whitelist", new ArrayList<>(ImmutableList.of(";outOfWorld")));
 
             maxTotalRevives = builder.comment("Max TOTAL revives (Setting to 0 will disable Revive Me!) (setting to -1 will disable the total-revive max) Refreshes when penalty timer ends.").defineInRange("Max_Total_revives", 6, -1, Integer.MAX_VALUE);
             maxPlayerRevives = builder.comment("Max PLAYER revives (setting to 0 will disable player-revive) (setting to -1 will disable the player-revive max) Refreshes when penalty timer ends.").defineInRange("Max_Player_revives", -1, -1, Integer.MAX_VALUE);

@@ -1,0 +1,27 @@
+name: mc-publish
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 1.16.5
+
+jobs:
+  build:
+    # ...
+    permissions:
+      contents: write
+    steps:
+      - uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          # Only include this section if you wish to publish
+          # your assets on Modrinth.
+          modrinth-id: e1Ub5iPm
+          modrinth-token: ${{ env.MODRINTH_TOKEN }}
+
+          # Only include this section if you wish to publish
+          # your assets on CurseForge.
+          curseforge-id: 676140
+          curseforge-token: ${{ env.CURSE_TOKEN }}
+
+          changelog-file: CHANGELOG.md
+    runs-on: self-hosted

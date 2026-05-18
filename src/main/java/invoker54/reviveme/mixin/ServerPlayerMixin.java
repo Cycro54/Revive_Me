@@ -3,6 +3,7 @@ package invoker54.reviveme.mixin;
 import com.mojang.authlib.GameProfile;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
+import invoker54.reviveme.common.event.FallEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerPlayerGameMode;
@@ -69,7 +70,7 @@ public abstract class ServerPlayerMixin extends Player {
             },
             cancellable = true)
     private synchronized void hurtStart(DamageSource damageSource, float damage, CallbackInfoReturnable<Boolean> cir) throws InterruptedException {
-        if (damageSource.isBypassInvul()) return;
+        if (FallEvent.canBypassReviveMe(damageSource, false)) return;
         if (revive_Me$getCap() == null) return;
         if (!revive_Me$getCap().isFallen()) return;
 
