@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: List all files (including hidden)
-        run: ls -a
+        run: ls -File
         
       - uses: Kira-NT/mc-publish@v3.3.0
         with:
