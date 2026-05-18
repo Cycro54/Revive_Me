@@ -7,6 +7,7 @@ import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.compatibility.controllable.client.events.ControllableModEvents;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.commands.EffectCommands;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModList;
