@@ -1,16 +1,14 @@
 # 1.16.5-1.17.3
 **Additions**
-
-`-(Config) Damage_Source_Whitelist - What damage sources that can bypass fallen state`
-
-`-(Config) Can_Pick_Up_items - if fallen players can grab items`
-
+```
+-(Config) Damage_Source_Whitelist - What damage sources that can bypass fallen state
+-(Config) Can_Pick_Up_items - if fallen players can grab items
+```
 **Changes**
-
-`-FixCommand and ReviveCommand now accounts for multiple players`
-
-`-You can now remove Penalty timer with effect command regardless of Can_Remove_Penalty_Timer config`
-
+```
+-FixCommand and ReviveCommand now accounts for multiple players
+-You can now remove Penalty timer with effect command regardless of Can_Remove_Penalty_Timer config
+```
 **Fixes**
 
 `-Revive effects can now be properly hidden`
