@@ -24,4 +24,4 @@ jobs:
           curseforge-id: 676140
           curseforge-token: ${{ secrets.CURSE_TOKEN }}
 
-          changelog-file: changelog.md
+          changelog-file: **/changelog.md
