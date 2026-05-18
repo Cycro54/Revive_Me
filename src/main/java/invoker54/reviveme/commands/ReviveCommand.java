@@ -1,5 +1,6 @@
 package invoker54.reviveme.commands;
 
+import com.google.common.collect.ImmutableList;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -10,45 +11,47 @@ import invoker54.reviveme.init.NetworkInit;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.Permissions;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ReviveCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
                 Commands.literal("reviveme")
-                        .requires((commandSource ->
-                                commandSource.permissions().hasPermission(Permissions.COMMANDS_ADMIN)))
-                        .executes(ReviveCommand::revivePlayer)
-                        .then(Commands.argument("player", EntityArgument.player())
-                                .executes(ReviveCommand::revivePlayer)
+                        .requires((commandSource -> commandSource.permissions().hasPermission(Permissions.COMMANDS_ADMIN)))
+                        .executes((context -> revivePlayer(context, ImmutableList.of(context.getSource().getPlayerOrException()))))
+                        .then(Commands.argument("players", EntityArgument.players())
+                                .executes((context -> revivePlayer(context, new ArrayList<>(EntityArgument.getPlayers(context, "players")))))
                         )
         );
     }
 
-    private static int revivePlayer(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
-        ServerPlayer fallen;
-        Entity caller = commandContext.getSource().getEntity();
-        try {
-            fallen = EntityArgument.getPlayer(commandContext, "player");
-        }
-        catch (Exception e){
-            if (!(commandContext.getSource().getEntity() instanceof Player)){
-                return 1;
+    private static int revivePlayer(CommandContext<CommandSourceStack> commandContext, List<? extends Player> players) throws CommandSyntaxException {
+        int reviveCount = 0;
+        Entity commandEntity = commandContext.getSource().getEntity();
+        Player reviver = commandEntity instanceof Player ? (Player) commandEntity : null;
+
+        for (Player fallen : players){
+            FallenData cap = FallenData.get(fallen);
+            if (fallen.isDeadOrDying() || !cap.isFallen()){
+                InvoText failTxt = InvoText.translate("revive_me.commands.revive_fail", fallen.getDisplayName());
+                NetworkInit.sendMessage(failTxt.getText(), true, fallen);
+                continue;
             }
-            fallen = commandContext.getSource().getPlayerOrException();
-        }
 
-        FallenData cap = FallenData.get(fallen);
-        if (fallen.isDeadOrDying() || !cap.isFallen()){
-            InvoText failTxt = InvoText.translate("revive_me.commands.revive_fail", fallen.getDisplayName());
-            NetworkInit.sendMessage(failTxt.getText(), true, fallen);
-            return 1;
+            ReviveMeConfig.configReviveData.revivePlayer(fallen, true, reviver, "command");
+            reviveCount++;
         }
+        if (commandEntity == null) return reviveCount;
 
-        ReviveMeConfig.configReviveData.revivePlayer(fallen, true, (Player) caller, "command");
-        return 1;
+        InvoText countText = InvoText.translate("revive_me.commands.revive.count", InvoText.literal(""+reviveCount).getText(),
+                InvoText.translate(reviveCount == 1 ? "revive_me.commands.count.single" : "revive_me.commands.count.multiple").getText());
+        NetworkInit.sendMessage(countText.getText(), true, commandEntity);
+
+        return reviveCount;
     }
 }

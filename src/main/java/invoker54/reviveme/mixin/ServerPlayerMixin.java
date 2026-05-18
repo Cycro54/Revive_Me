@@ -3,11 +3,10 @@ package invoker54.reviveme.mixin;
 import com.mojang.authlib.GameProfile;
 import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
-import net.minecraft.core.BlockPos;
+import invoker54.reviveme.common.event.FallEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerPlayerGameMode;
-import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -74,8 +73,8 @@ public abstract class ServerPlayerMixin extends Player {
                     @At(value = "HEAD")
             },
             cancellable = true)
-    private synchronized void hurtStart(ServerLevel serverLevel, DamageSource damageSource, float damage, CallbackInfoReturnable<Boolean> cir) throws InterruptedException {
-        if (damageSource.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) return;
+    private synchronized void hurtStart(ServerLevel level, DamageSource damageSource, float damage, CallbackInfoReturnable<Boolean> cir) throws InterruptedException {
+        if (FallEvent.canBypassReviveMe(damageSource, false)) return;
         if (revive_Me$getCap() == null) return;
         if (!revive_Me$getCap().isFallen()) return;
 
