@@ -21,6 +21,7 @@ import java.util.UUID;
 
 public class FallenPotionEffect extends MobEffect {
     public static List<UUID> warnedPlayers = new ArrayList<>();
+    public static boolean bypassConfig = false;
 
     public static final int effectColor = new Color(35, 5, 5, 255).getRGB();
 
@@ -55,7 +56,7 @@ public class FallenPotionEffect extends MobEffect {
             FallenData cap = FallenData.get(entity);
             if (cap.isFallen()) return false;
 
-            if (!completed && !ReviveMeConfig.canRemovePenaltyTimer && !((Player) entity).isCreative()){
+            if (!bypassConfig && !completed && !ReviveMeConfig.canRemovePenaltyTimer && !((Player) entity).isCreative()){
                 if (!warnedPlayers.contains(entity.getUUID())){
                     ((Player) entity).displayClientMessage(InvoText.translate("effect.reviveme.fallen_effect.cant_remove").getText(), false);
                     warnedPlayers.add(entity.getUUID());
