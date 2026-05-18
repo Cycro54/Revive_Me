@@ -10,6 +10,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.world.GameType;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingHealEvent;
+import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -19,6 +20,12 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class FallenTimerEvent {
     private static final ModLogger LOGGER = ModLogger.getLogger(FallenTimerEvent.class, ReviveMeConfig.debugMode);
+
+    @SubscribeEvent
+    public static void fallenPickUpItem(EntityItemPickupEvent event){
+        if (!(FallenCapability.get(event.getPlayer()).isFallen())) return;
+        event.setCanceled(!ReviveMeConfig.canPickUpItems);
+    }
 
     @SubscribeEvent
     public static void changeGamemode(PlayerEvent.PlayerChangeGameModeEvent event){

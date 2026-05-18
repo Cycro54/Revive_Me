@@ -12,7 +12,8 @@
     "ServerLevelMixin",
     "ServerPlayerMixin",
     "SlotMixin",
-    "PlayerMixin"
+    "PlayerMixin",
+    "CommandsMixin"
   ],
   "client": [
     "ClientEntityMixin",

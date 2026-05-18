@@ -1,5 +1,6 @@
 package invoker54.reviveme.commands;
 
+import com.google.common.collect.ImmutableList;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -13,63 +14,62 @@ import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.EntityArgument;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.DamageSource;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class FixCommand {
     public static void register(CommandDispatcher<CommandSource> dispatcher) {
         dispatcher.register(
                 Commands.literal("revivemefix")
                         .requires((commandSource -> commandSource.hasPermission(2)))
-                        .executes(FixCommand::fixPlayer)
-                        .then(Commands.argument("player", EntityArgument.player())
-                                .executes(FixCommand::fixPlayer)
+                        .executes((context -> fixPlayer(context, ImmutableList.of(context.getSource().getPlayerOrException()))))
+                        .then(Commands.argument("players", EntityArgument.players())
+                                .executes((context -> fixPlayer(context, new ArrayList<>(EntityArgument.getPlayers(context, "players")))))
                         )
         );
     }
 
-    private static int fixPlayer(CommandContext<CommandSource> commandContext) throws CommandSyntaxException {
-        ServerPlayerEntity fallen;
-        Entity caller = commandContext.getSource().getEntity();
-        try {
-            fallen = EntityArgument.getPlayer(commandContext, "player");
-        }
-        catch (Exception e){
-            if (!(commandContext.getSource().getEntity() instanceof ServerPlayerEntity)){
-                return 1;
-            }
-            fallen = (ServerPlayerEntity) commandContext.getSource().getEntity();
-        }
-        FallenCapability cap = FallenCapability.get(fallen);
+    private static int fixPlayer(CommandContext<CommandSource> commandContext, List<? extends PlayerEntity> players) throws CommandSyntaxException {
+        int fixCount = 0;
+        Entity commandEntity = commandContext.getSource().getEntity();
+        PlayerEntity fixer = commandEntity instanceof PlayerEntity ? (PlayerEntity) commandEntity : null;
 
-        if (!fallen.isAlive()){
-            return 1;
-        }
+        for (PlayerEntity player : players){
+            if (!player.isAlive()) continue;
+            FallenCapability cap = FallenCapability.get(player);
+            NetworkHandler.sendMessage(InvoText.translate("revive-me.commands.fix",
+                    player.getDisplayName()).getText(),true, player);
+            fixCount++;
 
-        NetworkHandler.sendMessage(InvoText.translate("revive-me.commands.fix",
-                fallen.getDisplayName()).getText(),true, fallen);
+            //This should fix the player if they are downed
+            if (cap.isFallen()){
+                DamageSource damageSource = cap.getDamageSource();
+                if (damageSource == null) damageSource = DamageSource.OUT_OF_WORLD;
 
-        //This should fix the player if they are downed
-        if (cap.isFallen()){
-            DamageSource damageSource = cap.getDamageSource();
-            if (damageSource == null) damageSource = DamageSource.OUT_OF_WORLD;
+                //If they are out of time, smite them.
+                if (cap.timeRanOut() && ReviveMeConfig.dieWhenTimerEnds){
+                    cap.forceDeath();
+                    continue;
+                }
 
-            //If they are out of time, smite them.
-            if (cap.timeRanOut() && ReviveMeConfig.dieWhenTimerEnds){
-                cap.forceDeath();
-                return 1;
+                cap.setFallen(false);
+                cap.removeOriginalEffects(true);
+                FallEvent.cancelEvent(player, damageSource);
             }
 
-            cap.setFallen(false);
-            cap.removeOriginalEffects(true);
-            FallEvent.cancelEvent(fallen, damageSource);
+            //This should fix the player if they are no longer fallen
+            else {
+                ReviveMeConfig.configReviveData.revivePlayer(player, true, fixer, "command");
+            }
         }
+        if (commandEntity == null) return fixCount;
 
-        //This should fix the player if they are no longer fallen
-        else {
-            ReviveMeConfig.configReviveData.revivePlayer(fallen, true, (PlayerEntity) caller, "command");
-        }
+        InvoText countText = InvoText.translate("revive-me.commands.fix.count", InvoText.literal(""+fixCount).getText(),
+                InvoText.translate(fixCount == 1 ? "revive-me.commands.count.single" : "revive-me.commands.count.multiple").getText());
+        NetworkHandler.sendMessage(countText.getText(), true, commandEntity);
 
-        return 1;
+        return fixCount;
     }
 }
