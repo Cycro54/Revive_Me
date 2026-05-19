@@ -2,20 +2,6 @@ name: Build and Publish
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Mod Version'
-        required: true
-        type: string
-      version_type:
-        description: 'Version Type'
-        required: true
-        type: choice
-        default: release
-        options:
-          - alpha
-          - beta
-          - release
 
 permissions:
   contents: write
