@@ -11,6 +11,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+#    This will grab the commit that triggered this workflow run
       - name: Checkout repository
         uses: actions/checkout@v4
         
@@ -60,5 +61,7 @@ jobs:
           java: ${{ steps.all.outputs.java_version }}
           changelog-file: changelog.md
           loaders: ${{ steps.all.outputs.loaders }}
-          game-versions: $ {{ steps.all.outputs.minecraft_version_range }}
-          debug-mode: blah
+          game-versions: ${{ steps.all.outputs.minecraft_version_range }}
+          dependencies: |
+            invocore-utility-mod(required)
+
