@@ -11,15 +11,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
       - uses: madhead/read-java-properties@latest
         id: all
         with:
           file: gradle.properties
           all: true
       #          How to use this: steps.all.outputs.[value]
-
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      
       - name: Set up JDK ${{ steps.all.outputs.java_version }}
         uses: actions/setup-java@v4
         with:
