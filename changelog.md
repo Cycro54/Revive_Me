@@ -1,4 +1,4 @@
-# 1.16.5-1.17.3
+# 1.16.5-1.17.6
 **Additions**
 ```
 -(Config) Damage_Source_Whitelist - What damage sources that can bypass fallen state
