@@ -1,27 +1,68 @@
-name: mc-publish
+name: Build and Publish
+
 on:
   workflow_dispatch:
   push:
-    branches:
-      - 1.16.5
+
+permissions:
+  contents: write
 
 jobs:
   build:
-    # ...
-    permissions:
-      contents: write
+    runs-on: ubuntu-latest
     steps:
+#    This will grab the commit that triggered this workflow run
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - uses: madhead/read-java-properties@latest
+        id: all
+        with:
+          file: gradle.properties
+          all: true
+      #          How to use this: steps.all.outputs.[value]
+      
+      - name: Set up JDK ${{ steps.all.outputs.java_version }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ steps.all.outputs.java_version }}
+          distribution: "temurin"
+          cache: gradle
+          cache-dependency-path: |
+            *.gradle
+            gradle.*
+            gradle/wrapper/gradle-wrapper.properties
+            
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+        
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Build with Gradle
+        run: ./gradlew build
+#      - uses: actions/upload-artifact@v4
+#        with:
+#          name: all-jar
+#          path: build/libs/*-all.jar
+#      - uses: actions/upload-artifact@v4
+#        with:
+#          name: sources-jar
+#          path: build/libs/*-sources.jar
+
       - uses: Kir-Antipov/mc-publish@v3.3
         with:
-          # Only include this section if you wish to publish
-          # your assets on Modrinth.
-          modrinth-id: e1Ub5iPm
-          modrinth-token: ${{ env.MODRINTH_TOKEN }}
-
-          # Only include this section if you wish to publish
-          # your assets on CurseForge.
+          name: ${{ steps.all.outputs.mod_id }}-${{ steps.all.outputs.minecraft_version }}-${{ steps.all.outputs.mod_version }}
+          version: ${{ steps.all.outputs.mod_version }}
+          version-type: release
+          java: ${{ steps.all.outputs.java_version }}
+          changelog-file: changelog.md
+          loaders: |
+            ${{ steps.all.outputs.loaders }}
+          game-versions: ${{ steps.all.outputs.minecraft_version_range }}
+          dependencies: |
+            invocore-utility-mod(required)
           curseforge-id: 676140
-          curseforge-token: ${{ env.CURSE_TOKEN }}
+          curseforge-token: ${{ secrets.CURSE_TOKEN }}
+          modrinth-id: e1Ub5iPm
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
 
-          changelog-file: CHANGELOG.md
-    runs-on: self-hosted
