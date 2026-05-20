@@ -1,4 +1,4 @@
-# 1.19.2-${mod_version}
+# 1.20.1-${mod_version}
 
 **Fixes**
 ```
