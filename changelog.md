@@ -1,3 +1,9 @@
+# 26.1-7.2.1
+
+**Fixes**
+```
+-(Config) Kill_On_Fail works again
+```
 # 26.1-7.2.0
 
 **Additions**
