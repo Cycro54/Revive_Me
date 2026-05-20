@@ -56,7 +56,8 @@ jobs:
           version-type: release
           java: ${{ steps.all.outputs.java_version }}
           changelog-file: changelog.md
-          loaders: ${{ steps.all.outputs.loaders }}
+          loaders: |
+            ${{ steps.all.outputs.loaders }}
           game-versions: ${{ steps.all.outputs.minecraft_version_range }}
           dependencies: |
             invocore-utility-mod(required)

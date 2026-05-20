@@ -5,8 +5,5 @@ pluginManagement {
             name = 'MinecraftForge'
             url = 'https://maven.minecraftforge.net/'
         }
-        maven {
-            url "https://maven.firstdark.dev/releases"
-        }
     }
 }

@@ -445,8 +445,10 @@ public class FallenCapability {
             cycleReviveOptions(SELFREVIVETYPE.CHANCE);
         }
 
+        boolean isAllowedToDie = ReviveMeConfig.reviveChanceKillOnFail || (this.getTotalReviveCount(true) < 1);
+
         if (shouldRevive) reviveData.revivePlayer(player, false, player, SELFREVIVETYPE.CHANCE);
-        else if (canDie) this.forceDeath();
+        else if (canDie && isAllowedToDie) this.forceDeath();
         else if (ReviveMeConfig.reviveChanceKillOnFail) this.selfReviveCount = Math.max(ReviveMeConfig.maxSelfRevives, 0);
         else{
             refreshSelfReviveTypes();
