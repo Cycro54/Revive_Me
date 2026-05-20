@@ -216,16 +216,13 @@ tasks.register('PrependToChangelog', Copy) {
     }
 }
 
-tasks.register("CommitMod", Exec) {
-    workingDir '.'
-    commandLine 'git', 'add', '.'
-
-//    def msgFile = file('build/lastChangeProcessed.md') // Your markdown file path
-//
-//    commandLine 'git', 'add', '.'
-//    doLast {
-//        commandLine 'git', 'commit', '-F', msgFile.absolutePath
-//        commandLine 'git', 'push'
-//    }
-
+tasks.register("AddGitChanges", Exec) {
+    commandLine('git', 'add', '.')
+}
+tasks.register("CommitGitChanges", Exec) {
+    def msgFile = file('build/lastChangeProcessed.md') // Your markdown file path
+    commandLine('git', 'commit', '-F', msgFile.absolutePath)
+}
+tasks.register("PushGitChanges", Exec) {
+    commandLine('git', 'push')
 }
