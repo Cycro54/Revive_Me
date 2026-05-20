@@ -16,7 +16,6 @@ plugins {
     id 'maven-publish'
     id 'net.minecraftforge.gradle' version '[6.0,6.2)'
     id 'org.spongepowered.mixin' version '0.7.+'
-//    id "com.hypherionmc.modutils.modpublisher" version "${PUBLICATION_GRADLE_VERSION}"
 }
 
 version = mod_version
@@ -235,4 +234,50 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+
+tasks.register('PrependToChangelog', Copy) {
+    from 'lastChange.md'              // Folder containing your original .md file
+    into "build/"   // Where the modified file will be saved
+//    include 'lastChange.md'
+
+    // Use a filter to replace a placeholder string with the property value
+    filter { line ->
+        line.replace('${mod_version}', project.findProperty('mod_version') ?: 'unknown')
+    }
+    rename {String fileName -> 'lastChangeProcessed.md' }
+
+    doLast {
+        def headerFile = file('build/lastChangeProcessed.md')
+        def targetFile = file('changelog.md')
+
+        if (headerFile.exists() && targetFile.exists()) {
+            def headerContent = headerFile.text
+            def originalContent = targetFile.text
+            if (originalContent.contains(headerContent)) return
+            targetFile.text = headerContent + "\n" + originalContent
+            println "Successfully prepended ${headerFile.name} to ${targetFile.name}"
+        } else {
+            throw new GradleException("One or both markdown files are missing!")
+        }
+
+    }
+}
+
+tasks.register("CommitMod", Exec){
+    def msgFile = file('build/lastChangeProcessed.md') // Your markdown file path
+
+    // Ensure all changes are staged before committing
+    commandLine 'git', 'add', '.'
+
+    // Then commit using the file content as the message
+    doLast {
+        exec {
+            commandLine 'git', 'commit', '-F', msgFile.absolutePath
+        }
+        exec {
+            commandLine 'git', 'push'
+        }
+        // Optional: Push to
+    }
 }

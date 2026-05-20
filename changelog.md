@@ -1,3 +1,9 @@
+# 1.18.2-3.14.1
+
+**Fixes**
+```
+-(Config) Kill_On_Fail works again
+```
 # 1.19.2-3.14.0
 
 **Additions**
