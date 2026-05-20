@@ -261,3 +261,21 @@ tasks.register('PrependToChangelog', Copy) {
         }
     }
 }
+
+tasks.register("CommitMod", Exec){
+    def msgFile = file('build/lastChangeProcessed.md') // Your markdown file path
+
+    // Ensure all changes are staged before committing
+    commandLine 'git', 'add', '.'
+
+    // Then commit using the file content as the message
+    doLast {
+        exec {
+            commandLine 'git', 'commit', '-F', msgFile.absolutePath
+        }
+        exec {
+            commandLine 'git', 'push'
+        }
+        // Optional: Push to
+    }
+}
