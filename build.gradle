@@ -254,6 +254,7 @@ tasks.register('PrependToChangelog', Copy) {
         if (headerFile.exists() && targetFile.exists()) {
             def headerContent = headerFile.text
             def originalContent = targetFile.text
+            if (originalContent.contains(headerContent)) return
             targetFile.text = headerContent + "\n" + originalContent
             println "Successfully prepended ${headerFile.name} to ${targetFile.name}"
         } else {
