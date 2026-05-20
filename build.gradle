@@ -254,10 +254,30 @@ tasks.register('PrependToChangelog', Copy) {
         if (headerFile.exists() && targetFile.exists()) {
             def headerContent = headerFile.text
             def originalContent = targetFile.text
+            if (originalContent.contains(headerContent)) return
             targetFile.text = headerContent + "\n" + originalContent
             println "Successfully prepended ${headerFile.name} to ${targetFile.name}"
         } else {
             throw new GradleException("One or both markdown files are missing!")
         }
+
+    }
+}
+
+tasks.register("CommitMod", Exec){
+    def msgFile = file('build/lastChangeProcessed.md') // Your markdown file path
+
+    // Ensure all changes are staged before committing
+    commandLine 'git', 'add', '.'
+
+    // Then commit using the file content as the message
+    doLast {
+        exec {
+            commandLine 'git', 'commit', '-F', msgFile.absolutePath
+        }
+        exec {
+            commandLine 'git', 'push'
+        }
+        // Optional: Push to
     }
 }
