@@ -3,6 +3,9 @@ name: Build and Publish
 on:
   workflow_dispatch:
   push:
+    paths-ignore:
+      - 'README.md'
+      - 'publish.yml'
 
 permissions:
   contents: write
