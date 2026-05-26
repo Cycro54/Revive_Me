@@ -46,43 +46,4 @@ Shtuff to maybe do later
 
 [  ] Add a new keybind that allows you to disable the HUD and HUD keybinds
 [  ] Ability to give reviver effects after reviving someone
-[  ] I have to update all my pics
-[  ] Make a new video
-
-What are things I want to show on the Revive Me! page?
-
-When taking fatal damage, the player will enter the fallen state. Players in the fallen state are treated like they are in creative mode by mobs.
-
-By default, when a fallen player's timer reaches 0, they will be targetable by mobs again.
-
-(almost) everything is configurable!
-Over 50+ settings!
-
-Can be set to run before OR after every mod that deals with death (Run_Death_Event_First)
-
-Block keybinds and commands
-Compatible with Controllable
-Compatible with vanilla /team
-Compatible with popular mods like SuperbWarfare, TACZ, Epic Fight, etc.
-
-Revival methods
-General
-• OVERHEAL - Revive players by healing them (note: counts as a player revive since I can't track who does it)
-• COMMAND - Use /reviveme or /reviveme <player> for general revive
-• REVIVE ITEMS - Can setup ANY item for revival (highly configurable - check config folder -> reviveme -> reviveme-items-example.json for examples!)
-
-Self Revive
-• EXPERIENCE - Lose experience
-• KILL - Destroy mobs in a certain amount of time
-• STATUS EFFECTS - Gain negative effects
-• CHANCE - Use percentage chance
-• RANDOM_ITEMS - Selects up to 4 items in inventory to destroy
-
-
-Player Revive
-• ITEM - Takes Revive Item (note: revive items can be used regardless whether this option is selected or not)
-• NONE - Takes nothing (note: this is automatically selected if the reviver is in creative)
-• HEALTH - Takes reviver's health
-• FOOD - Takes Reviver's food from food bar
-• EXPERIENCE - Takes Reviver's XP
 
