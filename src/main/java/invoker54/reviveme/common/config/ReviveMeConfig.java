@@ -631,7 +631,7 @@ public final class ReviveMeConfig {
 
             reviveRadius = builder.comment("Max distance another player can be to enter the fallen state (0 disables this)").defineInRange("Revive_Radius", 0,0,Integer.MAX_VALUE);
             runDeathEventFirst = builder.comment("If Forge's Death Event should run first before this mod does (if Death event runs first and player death is cancelled, Revive-Me code will not execute. Same thing vice-versa.)")
-                    .define("Run_Death_Event_First", true);
+                    .define("Run_Death_Event_First", false);
             downedEffects = builder.comment("Potion effects the player has while fallen (ModId:PotionEffect:Amplification:HideEffect <-optional)(minecraft:slowness:0 or minecraft:blindness:0:true)").define("Downed_Effects", new ArrayList<String>(ImmutableList.of("minecraft:slowness:3:true")));
             dieOnDisconnect = builder.comment("If you should die instantly if you disconnect while in the fallen state").define("Die_On_Disconnect", false);
             builder.pop();

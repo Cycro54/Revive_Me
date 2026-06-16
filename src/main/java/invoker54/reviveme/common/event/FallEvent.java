@@ -4,21 +4,16 @@ import invoker54.invocore.client.util.InvoText;
 import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
+import invoker54.reviveme.common.data.ReviveConfigData;
 import invoker54.reviveme.init.MobEffectInit;
-import invoker54.reviveme.init.NetworkInit;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.player.Player;
-
-import java.util.Optional;
+import invoker54.reviveme.init.NetworkInit;
 
 public class FallEvent {
     private static final ModLogger LOGGER = ModLogger.getLogger(FallEvent.class, ReviveMeConfig.debugMode);
@@ -147,22 +142,11 @@ public class FallEvent {
     public static void modifyPotionEffects(Player player){
         for (String string : ReviveMeConfig.downedEffects){
             try {
-                String[] array = string.split(":");
-//                LOGGER.info("The effect split into pieces: " + Arrays.toString(array));
-                ResourceLocation effectLocation = ResourceLocation.fromNamespaceAndPath(array[0],array[1]);
-                int tier = Integer.parseInt(array[2]);
-                boolean isVisible = array.length != 4 || !Boolean.parseBoolean(array[3]);
-//                LOGGER.info("The tier: " + tier);
-                Optional<Holder.Reference<MobEffect>> effect = BuiltInRegistries.MOB_EFFECT.getHolder(effectLocation);
-                if (effect.isEmpty()){
-                    LOGGER.error("Incorrect MOD ID or Potion Effect: " + string);
-                    continue;
-                }
+                MobEffectInstance effectInstance = ReviveConfigData.EffectFromString(string);
+                if (effectInstance == null) continue;
 
-                MobEffectInstance effectInstance = player.getEffect(effect.get());
-                if (effectInstance == null) {
-                    player.addEffect(new MobEffectInstance(effect.get(), Integer.MAX_VALUE, tier, false, isVisible, true));
-                }
+                if (player.hasEffect(effectInstance.getEffect())) continue;
+                player.addEffect(effectInstance);
             }
             catch (Exception e){
                 LOGGER.error("This string couldn't be parsed: " + string);
