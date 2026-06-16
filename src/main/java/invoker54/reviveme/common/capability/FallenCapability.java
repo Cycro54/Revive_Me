@@ -267,8 +267,12 @@ public class FallenCapability {
         this.player.getCombatTracker().recordDamage(this.getDamageSource(), 1, 1);
         if (this.damageSource.getEntity() instanceof Player) this.player.setLastHurtByPlayer((Player) this.damageSource.getEntity());
         if (this.damageSource.getEntity() instanceof Mob) this.player.setLastHurtByMob((Mob) this.damageSource.getEntity());
-        this.player.die(this.damageSource);
         this.player.setHealth(0);
+        this.player.die(this.damageSource);
+        if (Float.isNaN(this.player.getHealth())){
+//            LOGGER.error("HEALTH IS WRONG, FIXING");
+            this.player.setHealth(0);
+        }
     }
 
     public double countReviverPenaltyAmount(Player reviver){
@@ -307,7 +311,7 @@ public class FallenCapability {
     public float getTimeLeft(boolean divideByMax) {
 //        double maxSeconds = getPenaltyTicks(fellEnd);
         double maxSeconds = fellEnd;
-        if (ReviveMeConfig.timeLeft <= 0) maxSeconds = 0;
+        if (ReviveMeConfig.timeLeft < 0) maxSeconds = 0;
 
         if (divideByMax)
             return (float) (1d - ((level.getGameTime() - fellStart)/ maxSeconds));

@@ -5,6 +5,7 @@ import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
+import invoker54.reviveme.common.data.ReviveConfigData;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.init.MobEffectInit;
 import net.minecraft.resources.ResourceLocation;
@@ -17,7 +18,6 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class FallEvent {
@@ -146,22 +146,11 @@ public class FallEvent {
     public static void modifyPotionEffects(Player player){
         for (String string : ReviveMeConfig.downedEffects){
             try {
-                String[] array = string.split(":");
-//                LOGGER.info("The effect split into pieces: " + Arrays.toString(array));
-                ResourceLocation effectLocation = new ResourceLocation(array[0],array[1]);
-                int tier = Integer.parseInt(array[2]);
-                boolean isVisible = array.length != 4 || !Boolean.parseBoolean(array[3]);
-//                LOGGER.info("The tier: " + tier);
-                MobEffect effect = ForgeRegistries.MOB_EFFECTS.getValue(effectLocation);
-                if (effect == null){
-                    LOGGER.error("Incorrect MOD ID or Potion MobEffect: " + string);
-                    continue;
-                }
+                MobEffectInstance effectInstance = ReviveConfigData.EffectFromString(string);
+                if (effectInstance == null) continue;
 
-                MobEffectInstance effectInstance = player.getEffect(effect);
-                if (effectInstance == null) {
-                    player.addEffect(new MobEffectInstance(effect, Integer.MAX_VALUE, tier, false, isVisible, true));
-                }
+                if (player.hasEffect(effectInstance.getEffect())) continue;
+                player.addEffect(effectInstance);
             }
             catch (Exception e){
                 LOGGER.error("This string couldn't be parsed: " + string);
