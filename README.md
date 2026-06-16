@@ -41,5 +41,9 @@ Shtuff to maybe do later
 * ~Revive radius config (If can't self revive, the max distance a teammate can be before instant death (0 disables this)~
 * Disable/Enable Revive Me for hard-core mode?
 * ~Hide potion effects?~
-* Stop fallen players from picking up items?
+* ~Stop fallen players from picking up items?~
 * ~Make the Time_Left config be able to go to -1 to disable it. 0 will either instakill or make you targetable~
+
+[  ] Add a new keybind that allows you to disable the HUD and HUD keybinds
+[  ] Ability to give reviver effects after reviving someone
+
