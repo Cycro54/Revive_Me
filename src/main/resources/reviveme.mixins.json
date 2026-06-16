@@ -16,6 +16,8 @@
     "CommandsMixin"
   ],
   "client": [
+    "SleepNameTagMixin",
+    "SleepRotatePlayerMixin",
     "ClientEntityMixin",
     "KeyBindingMapMixin",
     "IForgeKeyMixin",
@@ -24,7 +26,6 @@
     "OptionsMixin",
     "PlayerControllerMixin",
     "PlayerInventoryMixin",
-    "PlayerRendererMixin",
     "WidgetMixin",
     "compatibility.ControllableButtonBindingMixin",
   ],

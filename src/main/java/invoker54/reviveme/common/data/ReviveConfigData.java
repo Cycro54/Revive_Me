@@ -20,7 +20,6 @@ import net.minecraft.util.SoundCategory;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class ReviveConfigData {
@@ -71,14 +70,17 @@ public class ReviveConfigData {
 
     public static EffectInstance EffectFromString(String effectString) {
         try {
-            List<String> pieces = Arrays.asList(effectString.split(":"));
-            ResourceLocation effectLocation = new ResourceLocation(pieces.get(0), pieces.get(1));
-            int tier = Integer.parseInt(pieces.get(2));
-            int ticks = Integer.parseInt(pieces.get(3));
-            boolean isVisible = pieces.size() != 5 || !Boolean.parseBoolean(pieces.get(4));
+            String[] array = effectString.split(":");
+            ResourceLocation effectLocation = new ResourceLocation(array[0],array[1]);
+            int tier = Integer.parseInt(array[2]);
+            int ticks = Integer.MAX_VALUE;
+            try {ticks = Integer.parseInt(array[3]);}
+            catch (Exception ignored){}
+            boolean isVisibleBool = array[array.length-1].equalsIgnoreCase("true") || array[array.length-1].equalsIgnoreCase("false");
+            boolean isVisible = !isVisibleBool || !Boolean.parseBoolean(array[array.length-1]);
             Effect effect = ForgeRegistries.POTIONS.getValue(effectLocation);
             if (effect == null){
-                LOGGER.error("Incorrect MOD ID or Potion Effect: " + effectString);
+                LOGGER.error("Incorrect MOD ID or Potion MobEffect: " + effectString);
                 return null;
             }
 
@@ -179,7 +181,7 @@ public class ReviveConfigData {
 
         if (this.reviveEffects != null) {
             for (EffectInstance instance : reviveEffects) {
-                fallen.addEffect(new EffectInstance(instance.getEffect(), instance.getDuration(), instance.getAmplifier()));
+                fallen.addEffect(new EffectInstance(instance.getEffect(), instance.getDuration(), instance.getAmplifier(), false, instance.isVisible()));
             }
         }
 
