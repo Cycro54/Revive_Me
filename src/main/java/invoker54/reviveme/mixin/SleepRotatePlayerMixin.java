@@ -5,6 +5,7 @@ import com.mojang.math.Axis;
 import invoker54.invocore.client.util.ClientUtil;
 import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
+import invoker54.reviveme.init.ContextKeyInit;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
@@ -40,6 +41,7 @@ public class SleepRotatePlayerMixin {
         if (ReviveMeConfig.fallenPose != ReviveMeConfig.FALLEN_POSE.SLEEP) return;
 
         stack.mulPose(Axis.YP.rotationDegrees(-(avatarRenderState.bodyRot + 90)));
+        renderState.setRenderData(ContextKeyInit.bodyRotContext, avatarRenderState.bodyRot);
         avatarRenderState.bodyRot = 0;
         stack.translate(1,0.1f,0);
     }
