@@ -272,8 +272,12 @@ public class FallenData implements ValueIOSerializable {
         this.player.getCombatTracker().recordDamage(this.getDamageSource(), 1);
         if (this.damageSource.getEntity() instanceof Player) this.player.setLastHurtByPlayer((Player) this.damageSource.getEntity(), 100);
         if (this.damageSource.getEntity() instanceof Mob) this.player.setLastHurtByMob((Mob) this.damageSource.getEntity());
-        this.player.die(this.damageSource);
         this.player.setHealth(0);
+        this.player.die(this.damageSource);
+        if (Float.isNaN(this.player.getHealth())){
+//            LOGGER.error("HEALTH IS WRONG, FIXING");
+            this.player.setHealth(0);
+        }
     }
 
     public double countReviverPenaltyAmount(Player reviver){
@@ -345,7 +349,7 @@ public class FallenData implements ValueIOSerializable {
     public float getTimeLeft(boolean divideByMax) {
 //        double maxSeconds = getPenaltyTicks(fellEnd);
         double maxSeconds = fellEnd;
-        if (ReviveMeConfig.timeLeft <= 0) maxSeconds = 0;
+        if (ReviveMeConfig.timeLeft < 0) maxSeconds = 0;
 
         if (divideByMax)
             return (float) (1d - ((level.getGameTime() - fellStart)/ maxSeconds));
@@ -365,7 +369,7 @@ public class FallenData implements ValueIOSerializable {
     }
 
     public boolean timeRanOut(){
-        return ReviveMeConfig.timeLeft != 0 && getTimeLeft(false) <= 0;
+        return ReviveMeConfig.timeLeft != -1 && getTimeLeft(false) <= 0;
     }
 
     public boolean canDieThisTick(){
