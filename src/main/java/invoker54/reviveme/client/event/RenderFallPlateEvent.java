@@ -43,6 +43,7 @@ public class RenderFallPlateEvent {
     public static final int greenProgCircle = new Color(39, 235, 86, 255).getRGB();
     public static final int redProgCircle = new Color(173, 17, 17, 255).getRGB();
     public static final int goldProgCircle = new Color(227, 175, 7,244).getRGB();
+    public static final int purpleProgCircle = new Color(132, 31, 205,244).getRGB();
     public static final int blackBg = new Color(0, 0, 0, 176).getRGB();
 
     @SubscribeEvent
@@ -126,6 +127,10 @@ public class RenderFallPlateEvent {
                         endAngle = endAngle * (cap.getKillTime(true));
                     } else if (ReviveMeConfig.timeLeft != -1) endAngle *= Math.max(0, cap.getTimeLeft(true));
 
+                    //Overkill thing
+                    CircleRender.drawArc(stack, 0, 0, radius + 4, 0,
+                            Math.max(0.001D,cap.getOverkillPercentage() * 360), purpleProgCircle);
+
                     //Overheal thing
                     CircleRender.drawArc(stack, 0, 0, radius + 2, 0,
                             Math.max(0.001D,cap.getOverhealPercentage() * 360), goldProgCircle);
@@ -144,7 +149,9 @@ public class RenderFallPlateEvent {
                 }
 
                 InvoText message = null;
-                if (mC.crosshairPickEntity == player && !player.isDeadOrDying() && !iAmFallen) {
+                boolean canOverkillRevive = ReviveMeConfig.overkillAmount != 0 && cap.canPlayerRevive();
+                boolean lookingAtDownedPlayer = ClientUtil.getMinecraft().crosshairPickEntity == player && !player.isDeadOrDying() && !iAmFallen;
+                if (lookingAtDownedPlayer) {
                     if (mC.player.isShiftKeyDown()) {
                         if (cap.getKillTime(false) > 0) {
                             message = InvoText.translate("revive_me.fall_plate.cant_kill");
@@ -161,7 +168,7 @@ public class RenderFallPlateEvent {
                         );
 
                     }
-                    else {
+                    else if (!cap.canPlayerRevive()){
                         message = InvoText.translate("revive_me.fall_plate.cant_revive").withStyle(true,
                                 InvoTextFormat.filter( ChatFormatting.RED, ChatFormatting.BOLD));
                     }
@@ -175,8 +182,16 @@ public class RenderFallPlateEvent {
                             .append(InvoText.literal(" ABBA").withStyle(true, InvoTextFormat.filter( ChatFormatting.BOLD, ChatFormatting.RED, ChatFormatting.OBFUSCATED)));
                 }
 
-                if (message != null) {
-                    int txtWidth = mC.font.width(message.getText());
+                if (message != null || (lookingAtDownedPlayer && canOverkillRevive)) {
+                    boolean wasNull = message == null;
+
+                    InvoText overkillText = InvoText.translate("revive_me.fall_plate.revive").setArgs(
+                            InvoText.literal(VanillaKeybindHandler.getKey(inst.options.keyAttack).getDisplayName().getString())
+                                    .withStyle(true, InvoTextFormat.filter( ChatFormatting.RED, ChatFormatting.BOLD)).getText());
+
+                    if (wasNull) message = overkillText;
+
+                    int txtWidth = ClientUtil.getMinecraft().font.width(message.getText());
                     int padding = 2;
                     int width = txtWidth + (padding * 2);
                     int height = (mC.font.lineHeight + (padding * 2));
@@ -187,7 +202,13 @@ public class RenderFallPlateEvent {
 
                     ClientUtil.blitColor(stack, txtZone, blackBg);
                     TextUtil.renderText(stack, message.getText(), false, 1,
-                            txtZone.inflate(-2, -2), TextUtil.txtAlignment.MIDDLE);
+                            txtZone.copy().inflate(-2, -2), TextUtil.txtAlignment.MIDDLE);
+
+                    if (!wasNull && canOverkillRevive){
+                        ClientUtil.blitColor(stack, txtZone.shift(0, txtZone.height() + 3), blackBg);
+                        TextUtil.renderText(stack, overkillText.getText(), false, 1,
+                                txtZone.copy().inflate(-2, -2), TextUtil.txtAlignment.MIDDLE);
+                    }
                 }
             } else if (!mC.player.getUUID().equals(cap.getOtherPlayer()) && distance < ReviveMeConfig.deathTimerMaxDistance) {
                 int radius = 20;
