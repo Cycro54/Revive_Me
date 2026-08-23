@@ -22,6 +22,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Inventory;
@@ -64,6 +65,8 @@ public class FallenData implements ValueIOSerializable {
     public static final String REVIVE_STACK_ITEMSTACK = "REVIVE_STACK_ITEMSTACK";
     public static final String MAX_OVERHEAL_DOUBLE = "MAX_OVERHEAL_DOUBLE";
     public static final String CURRENT_OVERHEAL_DOUBLE = "CURRENT_OVERHEAL_DOUBLE";
+    public static final String MAX_OVERKILL_DOUBLE = "MAX_OVERKILL_DOUBLE";
+    public static final String CURRENT_OVERKILL_DOUBLE = "CURRENT_OVERKILL_DOUBLE";
     public static final String REVIVE_ITEM_LIST_COMPOUND = "REVIVE_ITEM_LIST_COMPOUND";
 //    public static final String REVIVE_ITEMS_USED_NBT = "IS_CALL_TOGGLED_BOOL";
 
@@ -116,6 +119,10 @@ public class FallenData implements ValueIOSerializable {
     protected double maxOverheal = 0;
     protected double currentOverheal = 0;
 
+    protected boolean canDoOverKill = false;
+    protected double maxOverkill = 0;
+    protected double currentOverkill = 0;
+
     public static FallenData get(LivingEntity player){
         if (!(player instanceof Player)) throw new ClassCastException(player.getClass() + " is not of type Player!");
         FallenData cap = player.getData(AttachmentTypesInit.FALLEN_DATA);
@@ -142,6 +149,39 @@ public class FallenData implements ValueIOSerializable {
             this.player.setForcedPose(null); //Mixin will assign the correct pose (PlayerMixin)
         }
     }
+
+    public void setCanDoOverkill(boolean value){
+        this.canDoOverKill = value;
+    }
+
+    public boolean canDoOverkill(DamageSource damageSource){
+        boolean allowSelfDamage = ((damageSource.getEntity() == this.player || damageSource.getEntity() == null) && this.canSelfRevive());
+        boolean allowOtherDamage = (damageSource.getEntity() != null && damageSource.getEntity() != this.player && this.canPlayerRevive());
+        return this.canDoOverKill && (allowSelfDamage || allowOtherDamage);
+    }
+
+    public void setMaxOverkill(){
+        int penalty = this.getPenaltyMultiplier();
+        double penaltyPercentage =  penalty * ReviveMeConfig.overkillPenaltyPercentage;
+        this.maxOverkill = ReviveMeConfig.overkillAmount * (1 + penaltyPercentage);
+        this.currentOverkill = 0;
+    }
+
+    public boolean addOverkill(float damageAmount){
+        if (this.maxOverkill == 0) return false;
+        if (!this.canDoOverKill) return false;
+        this.currentOverkill += damageAmount;
+        this.setCanDoOverkill(false);
+//        LOGGER.error("WHATS MY VALUE: "+ this.currentOverkill);
+        return this.currentOverkill >= maxOverkill;
+    }
+
+    public double getOverkillPercentage(){
+        if (this.maxOverkill == 0) return 0;
+        return Math.min(1,this.currentOverkill/this.maxOverkill);
+    }
+
+
 
     public void removeOriginalEffects(boolean reset) {
         if (reset) this.isEffectsRemoved = false;
@@ -438,7 +478,8 @@ public class FallenData implements ValueIOSerializable {
     }
 
     public SELFREVIVETYPE getSelfReviveOption(int mouseButton){
-        if (this.selfReviveTypeList.isEmpty()) return SELFREVIVETYPE.NONE;
+        if (mouseButton == -1) return SELFREVIVETYPE.NONE;
+        if (mouseButton == 1 && this.selfReviveTypeList.size() == 1) return SELFREVIVETYPE.NONE;
         return this.selfReviveTypeList.get(mouseButton);
     }
 
@@ -468,6 +509,9 @@ public class FallenData implements ValueIOSerializable {
             }
             case EXPERIENCE -> {
                 useExperience(penaltyPercentage, reviveData, canDie);
+            }
+            case NONE -> {
+                if (ReviveMeConfig.canGiveUp) this.forceDeath();
             }
         }
     }
@@ -575,7 +619,7 @@ public class FallenData implements ValueIOSerializable {
         this.playerReviveCount = 0;
     }
 
-    public void incrementReviveCount(Player player){
+    public void incrementReviveCount(Entity player){
         if (player == this.player) this.selfReviveCount++;
         else this.playerReviveCount++;
     }
@@ -710,17 +754,19 @@ public class FallenData implements ValueIOSerializable {
         else if (ReviveMeConfig.timeReductionPenalty < 1) multiplier *= ticks;
         else if (ReviveMeConfig.timeReductionPenalty >= 1) multiplier *= 20F;
 
+        if (ReviveMeConfig.timerType == ReviveMeConfig.TIMER_TYPE.REVIVE) multiplier = -multiplier;
+
         return (long) Math.max(0, ticks - multiplier);
     }
     public void setPenaltyMultiplier(int newMultiplier){
         this.penaltyMultiplier = newMultiplier;
     }
-    
+
     public void refreshReviveItemList(){
         this.reviveItemList.clear();
         if (!ReviveMeConfig.refreshItems) this.getReviveItemList(true);
     }
-    
+
     public List<Pair<ItemStack, ReviveItemData>> getReviveItemList(boolean initialRefresh) {
         boolean shouldRefresh = initialRefresh || ReviveMeConfig.refreshItems;
         if (!shouldRefresh) return new ArrayList<>(this.reviveItemList);
@@ -859,8 +905,10 @@ public class FallenData implements ValueIOSerializable {
         if (this.reviveStack != null) cNBT.put(REVIVE_STACK_ITEMSTACK, ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, this.reviveStack).getOrThrow());
 
         cNBT.putDouble(MAX_OVERHEAL_DOUBLE, this.maxOverheal);
-
         cNBT.putDouble(CURRENT_OVERHEAL_DOUBLE, this.currentOverheal);
+
+        cNBT.putDouble(MAX_OVERKILL_DOUBLE, this.maxOverkill);
+        cNBT.putDouble(CURRENT_OVERKILL_DOUBLE, this.currentOverkill);
 
         ListTag reviveItemListTag = new ListTag();
         for (var pair : this.reviveItemList){
@@ -940,8 +988,10 @@ public class FallenData implements ValueIOSerializable {
         }
 
         this.maxOverheal = tag.getDouble(MAX_OVERHEAL_DOUBLE).get();
-
         this.currentOverheal = tag.getDouble(CURRENT_OVERHEAL_DOUBLE).get();
+
+        this.maxOverkill = tag.getDouble(MAX_OVERKILL_DOUBLE).get();
+        this.currentOverkill = tag.getDouble(CURRENT_OVERKILL_DOUBLE).get();
 
         this.reviveItemList.clear();
         ListTag reviveItemListTag = tag.getListOrEmpty(REVIVE_ITEM_LIST_COMPOUND);

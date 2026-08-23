@@ -16,6 +16,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
 
@@ -102,7 +104,7 @@ public class ReviveConfigData {
         return new ArrayList<>(this.reviveEffects);
     }
 
-    public void revivePlayer(Player fallen, boolean isCommand, Player reviver, FallenData.PENALTYPE penaltype){
+    public void revivePlayer(Player fallen, boolean isCommand, Entity reviver, FallenData.PENALTYPE penaltype){
         String reviveString = "none";
         switch (penaltype){
             case NONE: reviveString = "none"; break;
@@ -110,10 +112,10 @@ public class ReviveConfigData {
             case EXPERIENCE: reviveString = "experience"; break;
             case FOOD: reviveString = "food"; break;
         }
-        if (reviver.isCreative()) reviveString = "creative";
+        if (reviver instanceof Player && ((Player) reviver).isCreative()) reviveString = "creative";
         this.revivePlayer(fallen, isCommand, reviver, reviveString);
     }
-    public void revivePlayer(Player fallen, boolean isCommand, Player reviver, FallenData.SELFREVIVETYPE selfrevivetype){
+    public void revivePlayer(Player fallen, boolean isCommand, Entity reviver, FallenData.SELFREVIVETYPE selfrevivetype){
         String reviveString = "none";
         switch (selfrevivetype){
             case CHANCE: reviveString = "chance"; break;
@@ -126,13 +128,13 @@ public class ReviveConfigData {
         this.revivePlayer(fallen, isCommand, reviver, reviveString);
     }
 
-    public void revivePlayer(Player fallen, boolean isCommand, Player reviver, String reviveString){
+    public void revivePlayer(Player fallen, boolean isCommand, Entity reviver, String reviveString){
         this.revivePlayer(fallen, isCommand, reviver, reviveText.setArgs(fallen.getDisplayName(),
                 reviver == null ? InvoText.translate("revive_me.reviver.unknown").getText() : reviver.getDisplayName(),
                 InvoText.translate("revive_me.revive_type."+reviveString).getText()));
     }
     
-    public void revivePlayer(Player fallen, boolean isCommand, Player reviver, InvoText reviveText){
+    public void revivePlayer(Player fallen, boolean isCommand, Entity reviver, InvoText reviveText){
         FallenData cap = FallenData.get(fallen);
 
         //region Set the revived players health
@@ -193,7 +195,7 @@ public class ReviveConfigData {
             NetworkInit.sendMessage(reviveText.getText(), isCommand, fallen);
 
             cap.syncClient(true);
-            if (reviver != null && reviver != fallen) FallenData.get(reviver).syncClient(true);
+            if (reviver instanceof Player && reviver != fallen) FallenData.get((LivingEntity) reviver).syncClient(true);
         }
     }
 

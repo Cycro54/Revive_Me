@@ -105,6 +105,9 @@ public class FallEvent {
             //Set the maxOverheal thingy
             instance.setMaxOverheal();
 
+            //Also set the maxOverkill thingy
+            instance.setMaxOverkill();
+
             //Also refresh revive item list
             instance.refreshReviveItemList();
 

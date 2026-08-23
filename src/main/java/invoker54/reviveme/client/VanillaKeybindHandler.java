@@ -2,6 +2,7 @@ package invoker54.reviveme.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import invoker54.invocore.client.util.ClientUtil;
+import invoker54.reviveme.client.event.FallScreenEvent;
 import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.init.KeyInit;
@@ -83,6 +84,7 @@ public class VanillaKeybindHandler {
         if (keybinding == KeyInit.callForHelpKey.keyBind) return true;
         if (keybinding == KeyInit.leftOption.keyBind) return true;
         if (keybinding == KeyInit.rightOption.keyBind) return true;
+        if (keybinding == KeyInit.toggleGUIKey.keyBind) return true;
 
         boolean isVanilla = VanillaKeybindHandler.isVanillaKeybind(keybinding);
         boolean isKeyInventory = keybinding == ClientUtil.getMinecraft().options.keyInventory;
@@ -96,7 +98,10 @@ public class VanillaKeybindHandler {
 
         for (String s : ReviveMeConfig.allowedKeybinds){
             if (s.isEmpty()) continue;
+            boolean affectedByGUIToggle = s.contains(";");
+            if (affectedByGUIToggle) s = s.replace(";", "");
             if (!keybinding.getName().contains(s)) continue;
+            if (affectedByGUIToggle && !FallScreenEvent.guiToggled) continue;
             isAllowedKeybind = true;
             break;
         }
