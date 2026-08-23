@@ -2,6 +2,7 @@ package invoker54.reviveme.mixin;
 
 import invoker54.invocore.client.util.ClientUtil;
 import invoker54.invocore.common.ModLogger;
+import invoker54.reviveme.client.event.FallScreenEvent;
 import invoker54.reviveme.client.event.FallenItemScreenEvent;
 import invoker54.reviveme.common.capability.FallenData;
 import invoker54.reviveme.common.config.ReviveMeConfig;
@@ -41,6 +42,7 @@ public class PlayerInventoryMixin {
         if (!cap.isFallen()) return;
         if (!FallenItemScreenEvent.isItemScreenActive) return;
         if (!cap.canSelfRevive()) return;
+        if (FallScreenEvent.guiToggled) return;
         int moveAmount = (int) -Math.signum(slot - this.selected);
         if (Math.abs(slot - this.selected) > 1) moveAmount *= -1;
         FallenItemScreenEvent.changeSelectedItem(moveAmount);
@@ -58,6 +60,7 @@ public class PlayerInventoryMixin {
         if (!cap.isFallen()) return;
         if (!FallenItemScreenEvent.isItemScreenActive) return;
         if (!cap.canSelfRevive()) return;
+        if (FallScreenEvent.guiToggled) return;
         Pair<ItemStack, ReviveItemData> pair = FallenItemScreenEvent.getSelectedPair();
         if (pair == null) return;
 

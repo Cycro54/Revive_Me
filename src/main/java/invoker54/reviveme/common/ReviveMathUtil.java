@@ -1,7 +1,9 @@
 package invoker54.reviveme.common;
 
+import invoker54.invocore.client.util.ClientUtil;
 import invoker54.invocore.client.util.InvoZone;
 import invoker54.invocore.common.util.MathUtil;
+import invoker54.reviveme.client.event.FallScreenEvent;
 import net.minecraft.world.entity.player.Player;
 
 public class ReviveMathUtil {
@@ -25,6 +27,10 @@ public class ReviveMathUtil {
         //-2,-1,0,1,2,3
     }
 
+    public static double clamp(double value, double min, double max){
+        return Math.max(min, Math.min(value, max));
+    }
+
     public static InvoZone zoneLerp(double percentage, InvoZone beginZone, InvoZone endZone){
         InvoZone lerpZone = beginZone.copy();
 
@@ -36,6 +42,10 @@ public class ReviveMathUtil {
 
         lerpZone.setWidth((float) width).setHeight((float) height).centerX((float) middleX).centerY((float) middleY);
         return lerpZone;
+    }
+
+    public static float ticksPassed(double startTime){
+        return (float) ((ClientUtil.getWorld().getGameTime() + FallScreenEvent.getPartialTicks()) - startTime);
     }
 
     public static double percentageLerp(double value, double begin, double end){

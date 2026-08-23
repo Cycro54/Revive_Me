@@ -81,6 +81,7 @@ public class FallScreenEvent {
     private static final InvoText cantForceDeathText = InvoText.translate("fallenScreen.cant_force_death_text");
     public static final DecimalFormat df = new DecimalFormat("0.#");
     public static final int goldProgCircle = new Color(227, 175, 7,244).getRGB();
+    public static final int purpleProgCircle = new Color(132, 31, 205,244).getRGB();
     private static final int greenColor = new Color(39, 235, 86, 255).getRGB();
     private static final int whiteColor = new Color(255, 255, 255, 255).getRGB();
     private static final int blackFadeColor = new Color(0, 0, 0, 71).getRGB();
@@ -108,6 +109,12 @@ public class FallScreenEvent {
     private static final InvoText experienceTxt = InvoText.translate(fallenDirectory+"experience_1");
     private static final InvoText callToggleTip = InvoText.translate(fallenDirectory+"revive_help_toggle");
     private static final InvoText screenToggleTip = InvoText.translate(fallenDirectory+"revive_switch_screen");
+    private static final InvoText toggleGUITip = InvoText.translate(fallenDirectory+"revive_toggle_gui");
+    private static final InvoText giveUpTip = InvoText.translate(fallenDirectory+"revive_give_up");
+
+    public static boolean guiToggled = false;
+    public static double guiToggleTransitionStartTicks = 0;
+    public final static float guiToggleTransitionTicks = 8;
 
 
     @SubscribeEvent
@@ -124,7 +131,8 @@ public class FallScreenEvent {
 
             InvoText callForHelpMsg = InvoText.literal("[" + KeyInit.callForHelpKey.keyBind.getKey().getDisplayName().getString()
                     + "]").withStyle(true, InvoTextFormat.filter(ChatFormatting.BOLD));
-            if (cap.callForHelpCooldown() < 1) callForHelpMsg.withStyle(true, InvoTextFormat.filter(ChatFormatting.BLACK));
+            if (cap.callForHelpCooldown() < 1)
+                callForHelpMsg.withStyle(true, InvoTextFormat.filter(ChatFormatting.BLACK));
 
             InvoZone reviveButtonZone = revive_help_button_IMG.getRenderZone();
             reviveButtonZone.setDown(workZone.down() - 16).setRight(workZone.right() - 16);
@@ -136,23 +144,42 @@ public class FallScreenEvent {
                     .withStyle(false, InvoTextFormat.filter(ChatFormatting.YELLOW)).getText());
             toggleText.withStyle(true, InvoTextFormat.filter( ChatFormatting.BOLD, ChatFormatting.WHITE));
 
-            InvoZone toggleZone = reviveButtonZone.copy().splitHeight(2,1).splitWidth(1, 1.5F)
+            InvoZone toggleZone = reviveButtonZone.copy().splitHeight(2, 1).splitWidth(1, 1.5F)
                     .centerX(reviveButtonZone.middleX()).setDown(reviveButtonZone.y() - 4);
 
-            Color toggleBGColor = new Color(0,0,0,200);
+            Color toggleBGColor = new Color(0, 0, 0, 200);
             if (cap.isCallToggled()) toggleBGColor = new Color(58, 243, 74, 200);
-            Color toggleFGColor = new Color(0,0,0,200);
+            Color toggleFGColor = new Color(0, 0, 0, 200);
 
             ClientUtil.blit2DColor(GuiGraphicsExtractor, toggleZone, toggleBGColor.getRGB());
-            ClientUtil.blit2DColor(GuiGraphicsExtractor, toggleZone.inflate(-1,-1), toggleFGColor.getRGB());
+            ClientUtil.blit2DColor(GuiGraphicsExtractor, toggleZone.copy().inflate(-1, -1), toggleFGColor.getRGB());
             TextUtil.render2DText(GuiGraphicsExtractor, toggleText.getText(), false, 2,
-                    toggleZone.copy().inflate(-1,-0.5f), TextUtil.txtAlignment.MIDDLE);
+                    toggleZone.copy().inflate(-2, -1.5f), TextUtil.txtAlignment.MIDDLE);
             //endregion
 
             boolean isOptionsDisabled = ReviveMeConfig.selfReviveOptions.isEmpty();
-            boolean isItemsDisabled = ReviveItemData.reviveItemMap.isEmpty();
+            boolean isItemsDisabled = ReviveMeConfig.itemUser == ReviveItemData.USER.REVIVER || ReviveMeConfig.itemUser == ReviveItemData.USER.NONE;
             boolean canSwitchScreens = cap.canSelfRevive() && !isOptionsDisabled && !isItemsDisabled;
-            if (canSwitchScreens) {
+
+            //Toggle GUI option
+            if (ReviveMeConfig.canToggleGUI) {
+                toggleText = toggleGUITip.setArgs(InvoText.literal(mC.options.keyShift.getKey().getDisplayName().getString())
+                        .withStyle(false, InvoTextFormat.filter(ChatFormatting.YELLOW)).getText());
+                if (isSneaking) toggleText = toggleGUITip.setArgs(InvoText.literal(KeyInit.toggleGUIKey
+                        .keyBind.getKey().getDisplayName().getString()).withStyle(false, InvoTextFormat.filter(ChatFormatting.YELLOW)).getText());
+                toggleText.withStyle(true, InvoTextFormat.filter(ChatFormatting.BOLD, ChatFormatting.WHITE));
+
+                toggleZone.setDown(toggleZone.y() - 4);
+
+                toggleBGColor = guiToggled ? new Color(251, 201, 38, 200) : new Color(0, 0, 0, 200);
+
+                ClientUtil.blit2DColor(GuiGraphicsExtractor, toggleZone, toggleBGColor.getRGB());
+                ClientUtil.blit2DColor(GuiGraphicsExtractor, toggleZone.copy().inflate(-1, -1), toggleFGColor.getRGB());
+                TextUtil.render2DText(GuiGraphicsExtractor, toggleText.getText(), false, 2,
+                        toggleZone.copy().inflate(-2, -1.5f), TextUtil.txtAlignment.MIDDLE);
+            }
+
+            if (!guiToggled && canSwitchScreens) {
                 //region This is for switching self revive modes (GENERAL or ITEMS)
                 toggleText = screenToggleTip.setArgs(InvoText.literal(ClientUtil.getMinecraft().options.keyShift.getKey().getDisplayName().getString())
                         .withStyle(false, InvoTextFormat.filter(ChatFormatting.YELLOW)).getText());
@@ -165,21 +192,42 @@ public class FallScreenEvent {
                 toggleBGColor = new Color(0, 0, 0, 200);
 
                 ClientUtil.blit2DColor(GuiGraphicsExtractor, toggleZone, toggleBGColor.getRGB());
-                ClientUtil.blit2DColor(GuiGraphicsExtractor, toggleZone.inflate(-1, -1), toggleFGColor.getRGB());
+                ClientUtil.blit2DColor(GuiGraphicsExtractor, toggleZone.copy().inflate(-1, -1), toggleFGColor.getRGB());
                 TextUtil.render2DText(GuiGraphicsExtractor, toggleText.getText(), false, 2,
-                        toggleZone.copy().inflate(-1, -0.5f), TextUtil.txtAlignment.MIDDLE);
+                        toggleZone.copy().inflate(-2, -1.5f), TextUtil.txtAlignment.MIDDLE);
                 //endregion
             }
+
+            //Give up option
+            if (!guiToggled && cap.canSelfRevive() && !FallenItemScreenEvent.isItemScreenActive && ReviveMeConfig.selfReviveOptions.size() > 1) {
+                toggleText = giveUpTip.setArgs(InvoText.literal(mC.options.keyShift.getKey().getDisplayName().getString())
+                        .withStyle(false, InvoTextFormat.filter(ChatFormatting.YELLOW)).getText());
+                if (isSneaking) toggleText = screenToggleTip.setArgs(InvoText.literal(KeyInit.rightOption
+                        .keyBind.getKey().getDisplayName().getString()).withStyle(false, InvoTextFormat.filter(ChatFormatting.YELLOW)).getText());
+                toggleText.withStyle(true, InvoTextFormat.filter(ChatFormatting.BOLD, ChatFormatting.WHITE));
+
+                toggleZone.setDown(toggleZone.y() - 4);
+
+                toggleBGColor = new Color(182, 55, 30, 200);
+
+                ClientUtil.blit2DColor(GuiGraphicsExtractor, toggleZone, toggleBGColor.getRGB());
+                ClientUtil.blit2DColor(GuiGraphicsExtractor, toggleZone.copy().inflate(-1, -1), toggleFGColor.getRGB());
+                TextUtil.render2DText(GuiGraphicsExtractor, toggleText.getText(), false, 2,
+                        toggleZone.copy().inflate(-2, -1.5f), TextUtil.txtAlignment.MIDDLE);
+            }
+
+            //Give up popup will be a little red AND only shows on the self revive screen.
+            //Toggle GUI will ALWAYS show (unless disabled)
 
             //Basic GREEN animation to make revive button pop out
             //Every five seconds do a 0.2 second animation
             long tickCount = getPlayer().level().getGameTime() % (6*20);
             long maxTicks = 15;
             long maxInflate = 5;
-            if (!cap.isCallingForHelp() && tickCount > (5*20)) {
-                tickCount -= (5*20);
+            if (!cap.isCallingForHelp() && tickCount > (5 * 20)) {
+                tickCount -= (5 * 20);
                 tickCount = Math.min(maxTicks, tickCount);
-                double progress = MathUtil.EaseType.EASEOUTBOUNCE.getEase ((double) (tickCount + getPartialTicks()) /maxTicks);
+                double progress = MathUtil.EaseType.EASEOUTBOUNCE.getEase((double) (tickCount + getPartialTicks()) / maxTicks);
                 progress = Math.min(1, progress);
                 ClientUtil.blit2DColor(GuiGraphicsExtractor, reviveButtonZone.copy().
                         inflate((float) (maxInflate * progress), (float) (maxInflate * progress)), new Color(58, 243, 74, (int) (255 - (255 * progress))).getRGB());
@@ -215,6 +263,8 @@ public class FallScreenEvent {
             //Wait For text
             InvoZone waitTextZone = workZone.copy().setWidth(workZone.width() / 3).setHeight(8).setY((workZone.height() / 4) + 12)
                     .centerX(workZone.middleX());
+            InvoZone toggledWaitTextZone = waitTextZone.copy().setDown(workZone.y());
+            waitTextZone = ReviveMathUtil.zoneLerp(FallenItemScreenEvent.getTogglePercentage(), waitTextZone, toggledWaitTextZone);
             TextUtil.render2DText(GuiGraphicsExtractor, waitText.getText(), true, 1, waitTextZone, TextUtil.txtAlignment.MIDDLE);
 
             //Force death text
@@ -224,9 +274,20 @@ public class FallScreenEvent {
                     InvoText.literal(VanillaKeybindHandler.getKey(KeyInit.leftOption.keyBind).getDisplayName().getString()).getText(),
                     RenderFallPlateEvent.df.format(2 - (FallenPlayerActionsEvent.timeHeld / 20f)));
             InvoZone forceDeathTextZone = waitTextZone.copy().setY(waitTextZone.down() + 17).setWidth(workZone.width()).centerX(waitTextZone.middleX());
+            InvoZone toggledForceDeathTextZone = forceDeathTextZone.copy().setDown(workZone.y());
+
+            forceDeathTextZone = ReviveMathUtil.zoneLerp(FallenItemScreenEvent.getTogglePercentage(), forceDeathTextZone, toggledForceDeathTextZone);
+
+
             TextUtil.render2DText(GuiGraphicsExtractor, forceDeathTextResult.getText(), true, 1, forceDeathTextZone, TextUtil.txtAlignment.MIDDLE);
 
-            renderTimer(GuiGraphicsExtractor, cap, workZone, workZone.down() - (workZone.down() / 3), 36, 64);
+            if (!ReviveMeConfig.compactReviveUI) {
+                float timerMiddleY = workZone.down() - (workZone.down() / 3);
+                renderTimer(GuiGraphicsExtractor, cap, workZone, timerMiddleY, 36, 64);
+            } else {
+                float timerMiddleY = workZone.down() - (workZone.down() / 4);
+                renderTimer(GuiGraphicsExtractor, cap, workZone, timerMiddleY, 18, 32);
+            }
         });
 
         event.registerAbove(VanillaGuiLayers.CHAT, makeResource("fallen_self_revive_screen"), (GuiGraphicsExtractor, tracker) -> {
@@ -234,7 +295,7 @@ public class FallScreenEvent {
             if (cap == null) return;
             if ((ClientUtil.getMinecraft().screen instanceof ChatScreen)) return;
             if (!cap.canSelfRevive()) return;
-            if (ReviveMeConfig.selfReviveOptions.isEmpty() && !FallenItemScreenEvent.isItemScreenActive){
+            if (ReviveMeConfig.selfReviveOptions.isEmpty() && !FallenItemScreenEvent.isItemScreenActive) {
                 FallenItemScreenEvent.switchReviveScreens();
             }
 
@@ -266,6 +327,7 @@ public class FallScreenEvent {
             double switchPercentage = FallenItemScreenEvent.getSwitchPercentage();
             boolean isSwitchDone = switchPercentage == 1;
             if (!FallenItemScreenEvent.isItemScreenActive) switchPercentage = 1 - switchPercentage;
+            double togglePercent = FallenItemScreenEvent.getTogglePercentage();
 
             if (FallenItemScreenEvent.isItemScreenActive || !isSwitchDone) {
                 FallenItemScreenEvent.renderItemPage(GuiGraphicsExtractor, switchPercentage, workZone, leftZone.copy(), rightZone.copy());
@@ -289,10 +351,13 @@ public class FallScreenEvent {
                 }
 
                 leftZone.setY(MathUtil.lerp(switchPercentage, leftZone.y(), workZone.down()));
+                leftZone.setY(MathUtil.lerp(togglePercent, leftZone.y(), workZone.down()));
                 rightZone.setY(MathUtil.lerp(switchPercentage, rightZone.y(), workZone.down()));
+                rightZone.setY(MathUtil.lerp(togglePercent, rightZone.y(), workZone.down()));
 
                 renderReviveOption(GLFW.GLFW_MOUSE_BUTTON_1, GuiGraphicsExtractor, leftZone, cap, VanillaKeybindHandler.attackHeld);
-                renderReviveOption(GLFW.GLFW_MOUSE_BUTTON_2, GuiGraphicsExtractor, rightZone, cap, VanillaKeybindHandler.useHeld);
+                int secondOption = ClientUtil.getPlayer().isDiscrete() || ReviveMeConfig.selfReviveOptions.size() == 1 ? -1 : GLFW.GLFW_MOUSE_BUTTON_2;
+                renderReviveOption(secondOption, GuiGraphicsExtractor, rightZone, cap, VanillaKeybindHandler.useHeld);
                 //endregion
             }
         });
@@ -307,11 +372,14 @@ public class FallScreenEvent {
             renderTimer(GuiGraphicsExtractor, cap, workZone, workZone.down() - (workZone.down() / 3), 36, 64);
         });
     }
-    public static void renderHeaderAndReviveCount(GuiGraphicsExtractor stack, FallenData cap, InvoZone workZone){
+    public static void renderHeaderAndReviveCount(GuiGraphicsExtractor GuiGraphicsExtractor, FallenData cap, InvoZone workZone){
         //Title text
         InvoZone titleTextZone = workZone.copy().setWidth(workZone.width() / 3).setHeight(workZone.height() / 5).inflate(0, -12)
                 .centerX(workZone.middleX());
-        TextUtil.render2DText(stack, titleText.getText(), true, 1, titleTextZone, TextUtil.txtAlignment.MIDDLE);
+        InvoZone toggledTitleTextZone = titleTextZone.copy().setDown(workZone.y() - (titleTextZone.height() * 2));
+        titleTextZone = ReviveMathUtil.zoneLerp(FallenItemScreenEvent.getTogglePercentage(), titleTextZone, toggledTitleTextZone);
+
+        TextUtil.render2DText(GuiGraphicsExtractor, titleText.getText(), true, 1, titleTextZone, TextUtil.txtAlignment.MIDDLE);
 
         //All different renders
         /*
@@ -359,19 +427,19 @@ public class FallScreenEvent {
 
         InvoZone reviveTextZone = titleTextZone.copy().setWidthConstraint(titleTextZone.width() * 0.7F).centerX(titleTextZone.middleX())
                 .setY(titleTextZone.down()).splitHeight(3, 2);
-        renderReviveCount(stack, reviveTextZone, mainCount, mainTypeText, reviveCountFullText);
+        renderReviveCount(GuiGraphicsExtractor, reviveTextZone, mainCount, mainTypeText, reviveCountFullText);
 
         if ((selfRevives <= 0 || playerRevives <= 0) || (totalRevives == selfRevives && totalRevives == playerRevives)) return;
         if (!cap.canPlayerRevive() || !cap.canSelfRevive()) return;
 
         InvoZone reviveLeftZone = reviveTextZone.copy().splitWidth(5, 2).shiftXY(0, reviveTextZone.height());
-        renderReviveCount(stack, reviveLeftZone, selfRevives, reviveCountSelfText, reviveCountShortText);
+        renderReviveCount(GuiGraphicsExtractor, reviveLeftZone, selfRevives, reviveCountSelfText, reviveCountShortText);
 
         InvoZone reviveRightZone = reviveLeftZone.copy().mirrorX(reviveTextZone.middleX());
-        renderReviveCount(stack, reviveRightZone, playerRevives, reviveCountPlayerText, reviveCountShortText);
+        renderReviveCount(GuiGraphicsExtractor, reviveRightZone, playerRevives, reviveCountPlayerText, reviveCountShortText);
     }
 
-    public static void  renderReviveCount(GuiGraphicsExtractor stack, InvoZone renderZone, int reviveCount, InvoText typeText, InvoText mainText) {
+    public static void  renderReviveCount(GuiGraphicsExtractor GuiGraphicsExtractor, InvoZone renderZone, int reviveCount, InvoText typeText, InvoText mainText) {
         boolean turnRed = reviveCount <= 1;
         boolean isSingle = reviveCount == 1;
 
@@ -381,23 +449,22 @@ public class FallScreenEvent {
 
         mainText = mainText.setArgs(countText.getText(), typeText.getText(), pluralText.getText());
 
-        ClientUtil.blit2DColor(stack, renderZone, new Color(0, 0, 0, 150).getRGB());
-        TextUtil.render2DText(stack, mainText.getText(), true, 1,
+        ClientUtil.blit2DColor(GuiGraphicsExtractor, renderZone, new Color(0, 0, 0, 150).getRGB());
+        TextUtil.render2DText(GuiGraphicsExtractor, mainText.getText(), true, 1,
                 renderZone.copy().inflate(-2, -2), TextUtil.txtAlignment.MIDDLE);
     }
 
-    public static void renderReviveOption(int mouseButton, GuiGraphicsExtractor graphics, InvoZone workZone, FallenData cap, boolean beingHeld) {
+    public static void renderReviveOption(int mouseButton, GuiGraphicsExtractor GuiGraphicsExtractor, InvoZone workZone, FallenData cap, boolean beingHeld) {
         FallenData.SELFREVIVETYPE selfReviveType = cap.getSelfReviveOption(mouseButton);
-        if (selfReviveType == FallenData.SELFREVIVETYPE.NONE) return;
         Minecraft inst = ClientUtil.getMinecraft();
 
         boolean shouldPass = true;
-        ClientUtil.blit2DColor(graphics, workZone, blackFadeColor);
+        ClientUtil.blit2DColor(GuiGraphicsExtractor, workZone, blackFadeColor);
         InvoZone headerZone = workZone.copy().splitHeight(4, 1);
         InvoZone mainZone = workZone.copy().setY(headerZone.down()).setHeight(workZone.height()-headerZone.height());
         InvoZone progressZone = mainZone.copy();
         InvoText chosenTxt = null;
-        ClientUtil.blit2DColor(graphics, mainZone, new Color(0, 0, 0, 128).getRGB());
+        ClientUtil.blit2DColor(GuiGraphicsExtractor, mainZone, new Color(0, 0, 0, 128).getRGB());
 
         switch (selfReviveType) {
             case CHANCE: {
@@ -408,7 +475,7 @@ public class FallScreenEvent {
                         InvoText.literal(reviveChance+"%")
                                 .withStyle(true, InvoTextFormat.filter(ChatFormatting.BOLD, (shouldPass ? ChatFormatting.GOLD : ChatFormatting.RED)));
 
-                TextUtil.render2DText(graphics, chanceNumberTxt.getText(), true, 1, mainZone.copy()
+                TextUtil.render2DText(GuiGraphicsExtractor, chanceNumberTxt.getText(), true, 1, mainZone.copy()
                         .splitHeight(6,4f).centerY(mainZone.middleY())
                         .inflate(-12,0), TextUtil.txtAlignment.MIDDLE);
                 break;
@@ -424,7 +491,7 @@ public class FallScreenEvent {
                 ArrayList<ItemStack> itemArrayList = cap.getItemList();
                 if (itemArrayList.isEmpty()){
                     shouldPass = false;
-                    TextUtil.render2DText(graphics, randomItemFalseTxt.deepCopy().withStyle(true,
+                    TextUtil.render2DText(GuiGraphicsExtractor, randomItemFalseTxt.deepCopy().withStyle(true,
                                             InvoTextFormat.filter(ChatFormatting.RED)).append(InvoText.literal("\n\n"))
                                     .append(randomItemHotbarTxt.deepCopy().withStyle(true, InvoTextFormat.filter(ChatFormatting.RED))).getText(),
                             true, 0, mainZone.inflate(-4,-4), TextUtil.txtAlignment.MIDDLE);
@@ -438,7 +505,7 @@ public class FallScreenEvent {
 
                 for (ItemStack sacrificeStack : itemArrayList) {
                     //Draw the background
-                    ClientUtil.blit2DColor(graphics, mainZone, new Color(0, 0, 0, 255).getRGB());
+                    ClientUtil.blit2DColor(GuiGraphicsExtractor, mainZone, new Color(0, 0, 0, 255).getRGB());
 
                     InvoZone randomItemFullZone = mainZone.copy().inflate(-randomItemPadding, -randomItemPadding);
                     InvoZone randomItemImageZone = randomItemFullZone.copy().setWidth(randomItemSize);
@@ -446,19 +513,19 @@ public class FallScreenEvent {
                             .setX(randomItemImageZone.right()).splitWidth(3, 1);
 
                     //Draw the item
-                    ClientUtil.blit2DItem(graphics, randomItemImageZone, sacrificeStack);
+                    ClientUtil.blit2DItem(GuiGraphicsExtractor, randomItemImageZone, sacrificeStack);
 
                     //Draw the amount they have, then the amount they will have after reduction
                     int count = FallenData.getSacrificeItems(inst.player.getInventory(), sacrificeStack).getRight();
-                    TextUtil.render2DText(graphics, InvoText.literal("" + count).withStyle(true, InvoTextFormat.filter(ChatFormatting.BOLD, ChatFormatting.GREEN)).getText(),
+                    TextUtil.render2DText(GuiGraphicsExtractor, InvoText.literal("" + count).withStyle(true, InvoTextFormat.filter(ChatFormatting.BOLD, ChatFormatting.GREEN)).getText(),
                             true, 1, randomItemTxtZone, TextUtil.txtAlignment.MIDDLE);
                     randomItemTxtZone.shiftXY(randomItemTxtZone.width(), 0);
 
-                    TextUtil.render2DText(graphics, InvoText.literal(" -> ").withStyle(true, InvoTextFormat.filter(ChatFormatting.BOLD)).getText(),
+                    TextUtil.render2DText(GuiGraphicsExtractor, InvoText.literal(" -> ").withStyle(true, InvoTextFormat.filter(ChatFormatting.BOLD)).getText(),
                             true, 1, randomItemTxtZone, TextUtil.txtAlignment.MIDDLE);
                     randomItemTxtZone.shiftXY(randomItemTxtZone.width(), 0);
 
-                    TextUtil.render2DText(graphics, InvoText.literal("" + (count - (Math.round(Math.max(1,
+                    TextUtil.render2DText(GuiGraphicsExtractor, InvoText.literal("" + (count - (Math.round(Math.max(1,
                                             count * ReviveMeConfig.sacrificialItemPercent*(1+cap.getSelfPenaltyPercentage()))))))
                                     .withStyle(true, InvoTextFormat.filter(ChatFormatting.BOLD, ChatFormatting.RED)).getText(),
                             true, 1, randomItemTxtZone, TextUtil.txtAlignment.MIDDLE);
@@ -467,61 +534,6 @@ public class FallScreenEvent {
                 }
                 break;
             }
-//            case SPECIFIC_ITEM: {
-//                chosenTxt = specificItemTxt;
-//                Pair<Integer, List<ItemStack>> itemPair = cap.getSpecificItem(getPlayer());
-//                InvoZone itemZone = mainZone.copy().splitHeight(3,2);
-//                itemZone.setHeight(Math.min(itemZone.height(), itemZone.width())).setWidth(Math.min(itemZone.width(), itemZone.height()));
-//                itemZone.centerX(mainZone.middleX());
-//                InvoZone countZone = itemZone.copy().setY(itemZone.down()).setHeight(mainZone.down()-itemZone.down())
-//                        .setWidth(mainZone.width()).setX(mainZone.x());
-//
-//                InvoText badText = specificItemFalseTxt.withStyle(true,ChatFormatting.RED, ChatFormatting.BOLD);
-//
-//                if (itemPair.getKey() >= ReviveMeConfig.specificItemCount) {
-//                    Inventory inventory = getPlayer().getInventory();
-//                    int itemCount = 0;
-//                    ItemStack specificStack = itemPair.getRight().get(0);
-//                    for (int a = 0; a < inventory.getContainerSize(); a++) {
-//                        ItemStack containerStack = inventory.getItem(a);
-//                        if (!containerStack.sameItem(specificStack)) continue;
-//                        if (!FallenData.hasMatchingTags(specificStack, containerStack)) continue;
-//                        itemCount += containerStack.getCount();
-//                    }
-//
-//                    ClientUtil.blit2DColor(stack, mainZone, new Color(0, 0, 0, 100).getRGB());
-//                    ClientUtil.blit2DItem(stack, itemZone, specificStack);
-//                    ClientUtil.blit2DColor(stack, countZone, new Color(0, 0, 0, 100).getRGB());
-//                    countZone.splitWidth(3,1);
-//                    TextUtil.render2DText(stack, InvoText.literal(itemCount+"").withStyle(true,ChatFormatting.GREEN).getText(),
-//                            true, 1, countZone.copy().inflate(-4,-4), TextUtil.txtAlignment.MIDDLE);
-//                    TextUtil.render2DText(stack, InvoText.literal("->").getText(),
-//                            true, 1, countZone.setX(countZone.right()), TextUtil.txtAlignment.MIDDLE);
-//                    TextUtil.render2DText(stack, InvoText.literal((itemCount-itemPair.getKey())+"").withStyle(true,ChatFormatting.RED).getText(),
-//                            true, 1, countZone.setX(countZone.right()).copy().inflate(-4,-4), TextUtil.txtAlignment.MIDDLE);
-//                }
-//                else {
-//                    shouldPass = false;
-////                    ClientUtil.blit2DItem(stack, itemZone, itemPair.getRight().get(0));
-////                    ClientUtil.blit2DColor(stack, mainZone, new Color(0,0,0,230).getRGB());
-//                    mainZone.splitHeight(2,1);
-//                    InvoText itemCountTxt = InvoText.literal(""+Math.abs(itemPair.getKey() - ReviveMeConfig.specificItemCount)).withStyle(true,ChatFormatting.GREEN);
-//                    TextUtil.render2DText(stack, badText.setArgs(itemCountTxt.getText()).getText(),true, 0,
-//                            mainZone.copy().inflate(-4,-2), TextUtil.txtAlignment.MIDDLE);
-//
-//                    mainZone.setY(mainZone.down());
-//                    if (ReviveMeConfig.showSpecificItemName) mainZone.splitHeight(2,1);
-//
-//                    ClientUtil.blit2DItem(stack, mainZone.copy().setWidth(mainZone.height()).centerX(mainZone.middleX()), itemPair.getRight().get(0));
-//                    if (ReviveMeConfig.showSpecificItemName){
-//                        InvoText itemNameTxt = InvoText.component((MutableComponent) itemPair.getRight().get(0)
-//                                .getDisplayName()).withStyle(false, ChatFormatting.BOLD);
-//                        TextUtil.render2DText(stack, itemNameTxt.getText(), true, 1, mainZone.setY(mainZone.down())
-//                                .inflate(-4,-4), TextUtil.txtAlignment.MIDDLE);
-//                    }
-//                }
-//                break;
-//            }
             case KILL: {
                 chosenTxt = killTxt1;
                 int seconds = (int) ((ReviveMeConfig.reviveKillTime * 20 * (1 - cap.getSelfPenaltyPercentage()))/20);
@@ -530,23 +542,23 @@ public class FallScreenEvent {
                 if (shouldPass) {
                     mainZone.splitHeight(4, 1);
                     mainZone.setY(mainZone.middleY());
-                    TextUtil.render2DText(graphics, killTxt2.withStyle(true, InvoTextFormat.filter(ChatFormatting.GOLD)).setArgs(
+                    TextUtil.render2DText(GuiGraphicsExtractor, killTxt2.withStyle(true, InvoTextFormat.filter(ChatFormatting.GOLD)).setArgs(
                                     InvoText.literal("" + ReviveMeConfig.reviveKillAmount)
                                             .withStyle(true, InvoTextFormat.filter(ChatFormatting.RED)).getText()).getText(),
                             true, 1, mainZone.copy()
                                     .inflate(-3, -3), TextUtil.txtAlignment.MIDDLE);
 
-                    TextUtil.render2DText(graphics, killTxt3.withStyle(true, InvoTextFormat.filter(ChatFormatting.GOLD, ChatFormatting.BOLD)).getText(),
+                    TextUtil.render2DText(GuiGraphicsExtractor, killTxt3.withStyle(true, InvoTextFormat.filter(ChatFormatting.GOLD, ChatFormatting.BOLD)).getText(),
                             true, 1, mainZone.shiftXY(0, mainZone.height()).copy()
                                     .inflate(-3, -3), TextUtil.txtAlignment.MIDDLE);
 
-                    TextUtil.render2DText(graphics, killTxt4.withStyle(true, InvoTextFormat.filter(ChatFormatting.GOLD)).setArgs(InvoText.literal("" + seconds)
+                    TextUtil.render2DText(GuiGraphicsExtractor, killTxt4.withStyle(true, InvoTextFormat.filter(ChatFormatting.GOLD)).setArgs(InvoText.literal("" + seconds)
                                     .withStyle(true, InvoTextFormat.filter(ChatFormatting.RED)).getText()).getText(),
                             true, 1, mainZone.shiftXY(0, mainZone.height()).copy()
                                     .inflate(-3, -3), TextUtil.txtAlignment.MIDDLE);
                 }
                 else {
-                    TextUtil.render2DText(graphics, killFalseTxt.withStyle(true, InvoTextFormat.filter(ChatFormatting.RED)).getText(),
+                    TextUtil.render2DText(GuiGraphicsExtractor, killFalseTxt.withStyle(true, InvoTextFormat.filter(ChatFormatting.RED)).getText(),
                             true, 0, mainZone.inflate(-4,-4), TextUtil.txtAlignment.MIDDLE);
                 }
 
@@ -572,7 +584,7 @@ public class FallScreenEvent {
                     //private void renderEffects(GuiGraphicsExtractor GuiGraphicsExtractor, DeltaTracker deltaTracker) {
                     Identifier effectId = Gui.getMobEffectSprite(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect));
 //                    LOGGER.warn("What's the id? " + effectId);
-                    TextureAtlasSprite sprite = graphics.guiSprites.getSprite(effectId);
+                    TextureAtlasSprite sprite = GuiGraphicsExtractor.guiSprites.getSprite(effectId);
                     ClientUtil.Image effectIMG = new ClientUtil.Image(sprite.atlasLocation(), sprite.getU0(),
                             (sprite.getU1() - sprite.getU0()), sprite.getV0(),
                             (sprite.getV1() - sprite.getV0()), 1, 1);
@@ -580,13 +592,13 @@ public class FallScreenEvent {
 
                     backgroundZone.center(mainZone);
 //                    GuiGraphicsExtractor.blitSprite(RenderPipelines.GUI_TEXTURED, ambient ? EFFECT_BACKGROUND_AMBIENT_SPRITE : EFFECT_BACKGROUND_SPRITE, x, y, k, 32);
-                    graphics.blitSprite(RenderPipelines.GUI_TEXTURED, EFFECT_BACKGROUND, (int) backgroundZone.x(), (int) backgroundZone.y(), (int) backgroundZone.width(), (int) backgroundZone.height());
-//                    backgroundImg.render(graphics);
+                    GuiGraphicsExtractor.blitSprite(RenderPipelines.GUI_TEXTURED, EFFECT_BACKGROUND, (int) backgroundZone.x(), (int) backgroundZone.y(), (int) backgroundZone.width(), (int) backgroundZone.height());
+//                    backgroundImg.render(GuiGraphicsExtractor);
                     effectZone.copy(backgroundZone);
 
                     //Divide the background zone width by 4 and that will be the effect img zone
                     effectZone.splitWidth(4,1).inflate(-4,-4);
-                    effectIMG.render(graphics);
+                    effectIMG.render(GuiGraphicsExtractor);
 
                     InvoZone textZone = backgroundZone.copy().splitWidth(4,1);
                     textZone.setX(textZone.right()).setWidth(textZone.width()*3).inflate(-2,-6)
@@ -602,10 +614,10 @@ public class FallScreenEvent {
                     }
                     String s1 = MobEffectUtil.formatDuration(instance, 1.0F, 20).getString();
 
-                    TextUtil.render2DText(graphics, InvoText.literal(s).getText(), true, 1, textZone,
+                    TextUtil.render2DText(GuiGraphicsExtractor, InvoText.literal(s).getText(), true, 1, textZone,
                             TextUtil.txtAlignment.LEFT);
                     textZone.setY(textZone.down()+2);
-                    TextUtil.render2DText(graphics, InvoText.literal(s1).withStyle(true, InvoTextFormat.filter(ChatFormatting.DARK_GRAY)).getText(),
+                    TextUtil.render2DText(GuiGraphicsExtractor, InvoText.literal(s1).withStyle(true, InvoTextFormat.filter(ChatFormatting.DARK_GRAY)).getText(),
                             true, 1, textZone, TextUtil.txtAlignment.LEFT);
 
                     mainZone.setY(mainZone.down());
@@ -620,40 +632,48 @@ public class FallScreenEvent {
 
                 InvoZone itemZone = mainZone.copy().splitHeight(4, 3);
                 itemZone.inflate(Math.min((itemZone.height()-itemZone.width())/2, 0), Math.min((itemZone.width()-itemZone.height())/2,0));
-                ClientUtil.blit2DItem(graphics, itemZone.inflate(-5,-5),
+                ClientUtil.blit2DItem(GuiGraphicsExtractor, itemZone.inflate(-5,-5),
                         new ItemStack(Items.EXPERIENCE_BOTTLE));
 
                 if (ReviveMeConfig.minReviveXPLevel <= inst.player.experienceLevel) {
                     mainZone.splitWidth(3, 1).splitHeight(4, 1).shiftXY(0, mainZone.height() * 3);
-                    TextUtil.render2DText(graphics, InvoText.literal(inst.player.experienceLevel + "").withStyle(true, InvoTextFormat.filter(ChatFormatting.GREEN, ChatFormatting.BOLD))
+                    TextUtil.render2DText(GuiGraphicsExtractor, InvoText.literal(inst.player.experienceLevel + "").withStyle(true, InvoTextFormat.filter(ChatFormatting.GREEN, ChatFormatting.BOLD))
                             .getText(), true, 1, mainZone.copy().inflate(-2, -2), TextUtil.txtAlignment.MIDDLE);
 
                     mainZone.shiftXY(mainZone.width(), 0);
-                    TextUtil.render2DText(graphics, InvoText.literal("->")
+                    TextUtil.render2DText(GuiGraphicsExtractor, InvoText.literal("->")
                             .getText(), true, 1, mainZone.copy().inflate(-2, -2), TextUtil.txtAlignment.MIDDLE);
 
                     mainZone.shiftXY(mainZone.width(), 0);
-                    TextUtil.render2DText(graphics, InvoText.literal(df.format(newLevel)).withStyle(true, InvoTextFormat.filter(ChatFormatting.RED, ChatFormatting.BOLD))
+                    TextUtil.render2DText(GuiGraphicsExtractor, InvoText.literal(df.format(newLevel)).withStyle(true, InvoTextFormat.filter(ChatFormatting.RED, ChatFormatting.BOLD))
                             .getText(), true, 1, mainZone.copy().inflate(-2, -2), TextUtil.txtAlignment.MIDDLE);
                 }
                 else {
                     shouldPass = false;
-                    ClientUtil.blit2DColor(graphics, mainZone, new Color(0,0,0,230).getRGB());
-                    TextUtil.render2DText(graphics, experienceFalseTxt.setArgs(InvoText.literal(""+ReviveMeConfig.minReviveXPLevel)
+                    ClientUtil.blit2DColor(GuiGraphicsExtractor, mainZone, new Color(0,0,0,230).getRGB());
+                    TextUtil.render2DText(GuiGraphicsExtractor, experienceFalseTxt.setArgs(InvoText.literal(""+ReviveMeConfig.minReviveXPLevel)
                                             .withStyle(true, InvoTextFormat.filter(ChatFormatting.GREEN, ChatFormatting.BOLD)).getText())
                                     .withStyle(true, InvoTextFormat.filter(ChatFormatting.RED)).getText(), true, 0,
                             mainZone.inflate(-4,-4), TextUtil.txtAlignment.MIDDLE);
                 }
                 break;
             }
+            case NONE: {
+                shouldPass = false;
+                chosenTxt = chanceTxt;
+                ClientUtil.blit2DItem(GuiGraphicsExtractor, mainZone.copy().setWidth(Math.min(mainZone.width(), mainZone.height()))
+                        .setHeight(Math.min(mainZone.width(), mainZone.height())).center(mainZone), Items.BARRIER.asItem().getDefaultInstance());
+                break;
+
+            }
         }
 
-        if (!shouldPass) ClientUtil.blit2DColor(graphics, progressZone, blackFadeColor);
+        if (!shouldPass) ClientUtil.blit2DColor(GuiGraphicsExtractor, progressZone, blackFadeColor);
 
         if (beingHeld) {
             int progressColor = shouldPass ? new Color(117, 243, 54, 216).getRGB() : new Color(243, 60, 54, 216).getRGB();
             float fillPercent = MathUtil.lerp((FallenPlayerActionsEvent.timeHeld / 40F), 0, progressZone.height());
-            ClientUtil.blit2DColor(graphics, progressZone.copy().setHeight(fillPercent).mirrorY(progressZone.middleY()), progressColor);
+            ClientUtil.blit2DColor(GuiGraphicsExtractor, progressZone.copy().setHeight(fillPercent).mirrorY(progressZone.middleY()), progressColor);
         }
 
         if (chosenTxt != null) {
@@ -674,15 +694,18 @@ public class FallScreenEvent {
                     chosenTxt = cantGiveUp.deepCopy();
                 }
             }
-            TextUtil.render2DText(graphics, chosenTxt.withStyle(true, InvoTextFormat.filter(ChatFormatting.BOLD)).getText(), true,3,
+            TextUtil.render2DText(GuiGraphicsExtractor, chosenTxt.withStyle(true, InvoTextFormat.filter(ChatFormatting.BOLD)).getText(), true,3,
                     headerZone.inflate(-2,-3), TextUtil.txtAlignment.MIDDLE);
         }
     }
-
-    public static void renderTimer(GuiGraphicsExtractor graphics, FallenData cap, InvoZone workZone, float y, int progressCircleRadius, int imageSize) {
+    public static void renderTimer(GuiGraphicsExtractor GuiGraphicsExtractor, FallenData cap, InvoZone workZone, float y, float progressCircleRadius, int imageSize){
         //Where the timer will be placed.
-        InvoZone timerZone = timerIMG.getRenderZone().setWidth(imageSize).setHeight(imageSize).setY(y).centerX(workZone.middleX());
+        float progressCircleMultiplier = (70/36f);
+        InvoZone timerZone = timerIMG.getRenderZone().copy().setWidth(imageSize).setHeight(imageSize).setY(y).centerX(workZone.middleX());
+        InvoZone timerZoneAdjusted = timerZone.copy().inflate(timerZone.width()/-4f, timerZone.height()/-4f).setDown(timerZone.down());
 
+        timerZone = ReviveMathUtil.zoneLerp(FallenItemScreenEvent.getTogglePercentage(), timerZone, timerZoneAdjusted);
+        progressCircleRadius = MathUtil.lerp(FallenItemScreenEvent.getTogglePercentage(), progressCircleRadius, progressCircleRadius/2F);
         //Increase seconds by 1 if seconds isn't at 0
         float seconds = cap.getTimeLeft(false);
         seconds += (seconds <= 0 ? 0 : 1);
@@ -695,23 +718,30 @@ public class FallScreenEvent {
         //This is the timer background
         timerZone.shiftXY(0, -timerZone.height()/2);
 
-//        LOGGER.error("This is now!");
-        CircleRender.draw2DArc(graphics, timerZone.middleX(), timerZone.middleY(), 75,
+        //This is overkill
+        CircleRender.draw2DArc(GuiGraphicsExtractor, timerZone.middleX(), timerZone.middleY(), (progressCircleRadius + 4) * progressCircleMultiplier,
+                0, Math.max(0.001D,cap.getOverkillPercentage() * 360), purpleProgCircle);
+
+        //This is overheal
+        CircleRender.draw2DArc(GuiGraphicsExtractor, timerZone.middleX(), timerZone.middleY(), (progressCircleRadius + 2) * progressCircleMultiplier,
                 0, Math.max(0.001D,cap.getOverhealPercentage() * 360), goldProgCircle);
-//        graphics.guiRenderState.forEachElement(state -> LOGGER.error(state.getClass().getName()), GuiRenderState.TraverseRange.ALL);
+//        GuiGraphicsExtractor.guiRenderState.forEachElement(state -> LOGGER.error(state.getClass().getName()), GuiRenderState.TraverseRange.ALL);
 
         //green color: 2616150
         seconds = cap.getTimeLeft(true);
         float endAngle = seconds <= 0 ? 360 : seconds * 360;
 //        LOGGER.error("ZoneX:"+(timerZone.middleX() - 90)+", ZoneY:"+(timerZone.middleY()-90)+
 //                ", W:"+(90*2)+", H:"+(90*2));
-//        ClientUtil.blit2DColor(graphics, InvoZone.fromPoint(timerZone.middle()).inflate(45), Color.BLACK.getRGB());
-        CircleRender.draw2DArc(graphics, timerZone.middleX(), timerZone.middleY(), 70, 0, endAngle, greenColor);
+//        ClientUtil.blit2DColor(GuiGraphicsExtractor, InvoZone.fromPoint(timerZone.middle()).inflate(45), Color.BLACK.getRGB());
+        CircleRender.draw2DArc(GuiGraphicsExtractor, timerZone.middleX(), timerZone.middleY(), progressCircleRadius * progressCircleMultiplier, 0, endAngle, greenColor);
 //        ClientUtil.getMinecraft().renderBuffers().bufferSource().endBatch();
 
-        timerIMG.render(graphics);
+        InvoZone originalZone = timerIMG.getRenderZone().copy();
+        timerIMG.getRenderZone().copy(timerZone);
+        timerIMG.render(GuiGraphicsExtractor);
+        timerIMG.getRenderZone().copy(originalZone);
 
-        TextUtil.render2DText(graphics, timeLeftTxt.getText(), false, 1,
+        TextUtil.render2DText(GuiGraphicsExtractor, timeLeftTxt.getText(), false, 1,
                 timerZone.inflate(-imageSize/4F, -imageSize/4F), TextUtil.txtAlignment.MIDDLE);
     }
 

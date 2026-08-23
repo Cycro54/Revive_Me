@@ -43,10 +43,13 @@ public record SelfReviveMsg(int selectedOption) implements CustomPacketPayload {
                             return;
                         }
 
-                        if (!cap.canSelfRevive() && ReviveMeConfig.canGiveUp){
+                        boolean isRightDeathOption = ((player.isDiscrete() || ReviveMeConfig.selfReviveOptions.size() == 1) && msg.selectedOption == 1);
+
+                        //If they can't self revive, or they are holding down sneak while using the right self revive option OR There is only one self revive option
+                        if ((!cap.canSelfRevive() || isRightDeathOption) && ReviveMeConfig.canGiveUp){
                             cap.forceDeath();
                         }
-                        else if (cap.canSelfRevive()){
+                        else if (cap.canSelfRevive() && !isRightDeathOption){
                             cap.useReviveOption(cap.getSelfReviveOption(msg.selectedOption));
                         }
                     });

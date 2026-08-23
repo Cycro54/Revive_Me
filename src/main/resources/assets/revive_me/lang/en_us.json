@@ -52,6 +52,8 @@
   "revive_me.fallenScreen.self_revive.experience_1": "Hold [%1$s] to sacrifice XP levels",
   "revive_me.fallenScreen.self_revive.revive_help_toggle": "[%1$s]\n(toggle call)",
   "revive_me.fallenScreen.self_revive.revive_switch_screen": "[%1$s]\n(switch screen)",
+  "revive_me.fallenScreen.self_revive.revive_toggle_gui": "[%1$s]\n(toggle GUI)",
+  "revive_me.fallenScreen.self_revive.revive_give_up": "[%1$s]\n(give up)",
 
   "__comment": "This is for mob effect names",
   "effect.revive_me.fallen_effect": "Fallen Penalty",
@@ -72,6 +74,7 @@
   "__comment": "This is for Keys",
   "key.category.revive_me.revive_me": "Revive Me!",
   "key.revive_me.callForHelpKey": "Call For Help",
+  "key.reviveme.toggleGUIKey": "Toggle GUI",
   "key.revive_me.leftOption": "Left Option",
   "key.revive_me.rightOption": "Right Option",
   "key.revive_me.tooltip": "Show Tooltip",
@@ -90,6 +93,8 @@
   "revive_me.revive_type.command": "Command",
   "revive_me.revive_type.creative": "Creative",
   "revive_me.revive_type.overheal": "Overheal",
+  "revive_me.revive_type.overkill": "Overkill",
+  "revive_me.revive_type.countdown": "Countdown",
 
   "__comment": "This is for Revive Item info",
   "reviveme.item.tooltip.combination": "[Revive Me!] [%1$s] for full info",
