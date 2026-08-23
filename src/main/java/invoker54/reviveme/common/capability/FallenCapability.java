@@ -20,6 +20,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Inventory;
@@ -58,6 +59,8 @@ public class FallenCapability {
     public static final String REVIVE_STACK_ITEMSTACK = "REVIVE_STACK_ITEMSTACK";
     public static final String MAX_OVERHEAL_DOUBLE = "MAX_OVERHEAL_DOUBLE";
     public static final String CURRENT_OVERHEAL_DOUBLE = "CURRENT_OVERHEAL_DOUBLE";
+    public static final String MAX_OVERKILL_DOUBLE = "MAX_OVERKILL_DOUBLE";
+    public static final String CURRENT_OVERKILL_DOUBLE = "CURRENT_OVERKILL_DOUBLE";
     public static final String REVIVE_ITEM_LIST_COMPOUND = "REVIVE_ITEM_LIST_COMPOUND";
 //    public static final String REVIVE_ITEMS_USED_NBT = "IS_CALL_TOGGLED_BOOL";
 
@@ -117,6 +120,10 @@ public class FallenCapability {
     protected double maxOverheal = 0;
     protected double currentOverheal = 0;
 
+    protected boolean canDoOverKill = false;
+    protected double maxOverkill = 0;
+    protected double currentOverkill = 0;
+
     public static FallenCapability get(LivingEntity player){
         return player.getCapability(FallenProvider.FALLENDATA).orElseGet(FallenCapability::new);
     }
@@ -138,6 +145,38 @@ public class FallenCapability {
             this.player.setForcedPose(null); //Mixin will assign the correct pose (PlayerMixin)
         }
     }
+
+    public void setCanDoOverkill(boolean value){
+        this.canDoOverKill = value;
+    }
+
+    public boolean canDoOverkill(DamageSource damageSource){
+        return this.canDoOverKill &&
+                ((damageSource.getEntity() == this.player || damageSource.getEntity() == null) && this.canSelfRevive()) ||
+                (damageSource.getEntity() != null && damageSource.getEntity() != this.player && this.canPlayerRevive());
+    }
+
+    public void setMaxOverkill(){
+        int penalty = this.getPenaltyMultiplier();
+        double penaltyPercentage =  penalty * ReviveMeConfig.overkillPenaltyPercentage;
+        this.maxOverkill = ReviveMeConfig.overkillAmount * (1 + penaltyPercentage);
+        this.currentOverkill = 0;
+    }
+
+    public boolean addOverkill(float damageAmount){
+        if (this.maxOverkill == 0) return false;
+        if (!this.canDoOverKill) return false;
+        this.currentOverkill += damageAmount;
+//        LOGGER.error("WHATS MY VALUE: "+ this.currentOverkill);
+        return this.currentOverkill >= maxOverkill;
+    }
+
+    public double getOverkillPercentage(){
+        if (this.maxOverkill == 0) return 0;
+        return Math.min(1,this.currentOverkill/this.maxOverkill);
+    }
+
+
 
     public void removeOriginalEffects(boolean reset) {
         if (reset) this.isEffectsRemoved = false;
@@ -401,7 +440,8 @@ public class FallenCapability {
     }
 
     public SELFREVIVETYPE getSelfReviveOption(int mouseButton){
-        if (this.selfReviveTypeList.isEmpty()) return SELFREVIVETYPE.NONE;
+        if (mouseButton == -1) return SELFREVIVETYPE.NONE;
+        if (mouseButton == 1 && this.selfReviveTypeList.size() == 1) return SELFREVIVETYPE.NONE;
         return this.selfReviveTypeList.get(mouseButton);
     }
 
@@ -431,6 +471,9 @@ public class FallenCapability {
             }
             case EXPERIENCE -> {
                 useExperience(penaltyPercentage, reviveData, canDie);
+            }
+            case NONE -> {
+                if (ReviveMeConfig.canGiveUp) this.forceDeath();
             }
         }
     }
@@ -537,7 +580,7 @@ public class FallenCapability {
         this.playerReviveCount = 0;
     }
 
-    public void incrementReviveCount(Player player){
+    public void incrementReviveCount(Entity player){
         if (player == this.player) this.selfReviveCount++;
         else this.playerReviveCount++;
     }
@@ -671,6 +714,8 @@ public class FallenCapability {
         if (ReviveMeConfig.timeReductionPenalty == -1) multiplier = getPenaltyMultiplier() * ticks;
         else if (ReviveMeConfig.timeReductionPenalty < 1) multiplier *= ticks;
         else if (ReviveMeConfig.timeReductionPenalty >= 1) multiplier *= 20F;
+
+        if (ReviveMeConfig.timerType == ReviveMeConfig.TIMER_TYPE.REVIVE) multiplier = -multiplier;
 
         return (long) Math.max(0, ticks - multiplier);
     }
@@ -811,8 +856,10 @@ public class FallenCapability {
         if (this.reviveStack != null) cNBT.put(REVIVE_STACK_ITEMSTACK, this.reviveStack.serializeNBT());
 
         cNBT.putDouble(MAX_OVERHEAL_DOUBLE, this.maxOverheal);
-
         cNBT.putDouble(CURRENT_OVERHEAL_DOUBLE, this.currentOverheal);
+
+        cNBT.putDouble(MAX_OVERKILL_DOUBLE, this.maxOverkill);
+        cNBT.putDouble(CURRENT_OVERKILL_DOUBLE, this.currentOverkill);
 
         ListTag reviveItemListTag = new ListTag();
         for (var pair : this.reviveItemList){
@@ -880,8 +927,10 @@ public class FallenCapability {
         if (cNBT.contains(REVIVE_STACK_ITEMSTACK)) this.reviveStack = ItemStack.of(cNBT.getCompound(REVIVE_STACK_ITEMSTACK));
 
         this.maxOverheal = cNBT.getDouble(MAX_OVERHEAL_DOUBLE);
-
         this.currentOverheal = cNBT.getDouble(CURRENT_OVERHEAL_DOUBLE);
+
+        this.maxOverkill = cNBT.getDouble(MAX_OVERKILL_DOUBLE);
+        this.currentOverkill = cNBT.getDouble(CURRENT_OVERKILL_DOUBLE);
 
         this.reviveItemList.clear();
         ListTag reviveItemListTag = cNBT.getList(REVIVE_ITEM_LIST_COMPOUND, CompoundTag.TAG_COMPOUND);

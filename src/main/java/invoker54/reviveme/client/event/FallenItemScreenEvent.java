@@ -82,7 +82,9 @@ public class FallenItemScreenEvent {
         if (mC.level.getGameTime() % 10 == 0) refreshItemData();
 
         leftZone.setRight(MathUtil.lerp(1 - switchPercentage, leftZone.right(), workZone.x()));
+        leftZone.setRight(MathUtil.lerp(getTogglePercentage(), leftZone.right(), workZone.x()));
         rightZone.setX(MathUtil.lerp(1 - switchPercentage, rightZone.x(), workZone.right()));
+        rightZone.setX(MathUtil.lerp(getTogglePercentage(), rightZone.x(), workZone.right()));
 
         if ((prevLeftZone.width() * prevLeftZone.height()) != (leftZone.width() * leftZone.height())) pageList.clear();
         prevLeftZone = leftZone;
@@ -469,7 +471,8 @@ public class FallenItemScreenEvent {
 
     public static void switchReviveScreens(){
         if (isItemScreenActive && ReviveMeConfig.selfReviveOptions.isEmpty()) return;
-        if (!isItemScreenActive && ReviveItemData.reviveItemMap.isEmpty()) return;
+        boolean canBeItemScreen = ReviveMeConfig.itemUser == ReviveItemData.USER.FALLEN || ReviveMeConfig.itemUser == ReviveItemData.USER.BOTH;
+        if (!isItemScreenActive && !canBeItemScreen) return;
 
         isItemScreenActive = !isItemScreenActive;
         startTransition = mC.level.getGameTime();
@@ -486,5 +489,12 @@ public class FallenItemScreenEvent {
         double percentage = ((mC.level.getGameTime() + FallScreenEvent.getPartialTicks()) - startTransition) / range;
         percentage = Math.max(0, Math.min(1, percentage));
         return easeType.getEase(percentage);
+    }
+
+    public static double getTogglePercentage() {
+        double percentage = ReviveMathUtil.ticksPassed(FallScreenEvent.guiToggleTransitionStartTicks) / FallScreenEvent.guiToggleTransitionTicks;
+        percentage = easeType.getEase(ReviveMathUtil.clamp(percentage, 0, 1));
+        if (!FallScreenEvent.guiToggled) percentage = ReviveMathUtil.percentageLerp(percentage, 1, 0);
+        return percentage;
     }
 }
