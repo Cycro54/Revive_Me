@@ -119,7 +119,7 @@ public abstract class ServerPlayerMixin extends PlayerEntity {
 
         List<String> sourceList = ReviveMeConfig.overkillWhitelist.stream().filter(a -> !a.contains(".*;.*;.*") && !a.contains("//")).collect(Collectors.toList());
         if (sourceList.contains("/")) foundSource = true;
-        else {
+        else if (foundType){
             String idString = damageSource.getMsgId();
             for (String listString : sourceList){
                 if (!idString.contains(listString)) continue;
@@ -128,10 +128,6 @@ public abstract class ServerPlayerMixin extends PlayerEntity {
             }
         }
 
-//        LOGGERT.error("Found type: " + foundType);
-//        LOGGERT.error("Found Source: " + foundSource);
-//        LOGGERT.error("Whitelist: " + isWhitelist);
-//        LOGGERT.error("Overkill works: " + (foundType == foundSource && foundSource == isWhitelist));
         boolean isMatch = foundType && foundSource;
 
         FallenCapability cap = FallenCapability.get(damaged);

@@ -1,3 +1,10 @@
+# 1.16.5-1.18.1
+
+**Fixes**
+```
+-Overkill correctly registers which damage sources are allowed now
+-Damage sources that are suppose to bypass fallen state work again
+```
 # 1.16.5-1.18.0
 
 **Additions**

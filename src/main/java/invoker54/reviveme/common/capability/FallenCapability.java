@@ -151,9 +151,9 @@ public class FallenCapability {
     }
 
     public boolean canDoOverkill(DamageSource damageSource){
-        return this.canDoOverKill &&
-                ((damageSource.getEntity() == this.player || damageSource.getEntity() == null) && this.canSelfRevive()) ||
-                (damageSource.getEntity() != null && damageSource.getEntity() != this.player && this.canPlayerRevive());
+        boolean allowSelfDamage = ((damageSource.getEntity() == this.player || damageSource.getEntity() == null) && this.canSelfRevive());
+        boolean allowOtherDamage = (damageSource.getEntity() != null && damageSource.getEntity() != this.player && this.canPlayerRevive());
+        return this.canDoOverKill && (allowSelfDamage || allowOtherDamage);
     }
 
     public void setMaxOverkill(){
@@ -167,6 +167,7 @@ public class FallenCapability {
         if (this.maxOverkill == 0) return false;
         if (!this.canDoOverKill) return false;
         this.currentOverkill += damageAmount;
+        this.setCanDoOverkill(false);
 //        LOGGER.error("WHATS MY VALUE: "+ this.currentOverkill);
         return this.currentOverkill >= maxOverkill;
     }
