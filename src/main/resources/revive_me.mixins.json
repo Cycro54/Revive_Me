@@ -13,7 +13,8 @@
     "ServerPlayerMixin",
     "SlotMixin",
     "PlayerMixin",
-    "CommandsMixin"
+    "CommandsMixin",
+    "LivingEntityMixin"
   ],
   "client": [
     "SleepNameTagMixin",

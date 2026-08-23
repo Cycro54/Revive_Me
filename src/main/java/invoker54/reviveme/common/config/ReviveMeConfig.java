@@ -37,7 +37,12 @@ public final class ReviveMeConfig {
     public static boolean reviveMeEnabled;
     public static ReviveItemData.USER itemUser;
     public static Integer timeLeft;
-    public static Boolean dieWhenTimerEnds;
+    public enum TIMER_TYPE{
+        TARGETABLE,
+        DEATH,
+        REVIVE
+    }
+    public static TIMER_TYPE timerType;
     public static boolean pauseFallenTimerOnDisconnect;
     public static Integer reviveTime;
     public static boolean resetReviveOnHit;
@@ -78,11 +83,18 @@ public final class ReviveMeConfig {
     public static Integer reviveRadius;
     public static boolean runDeathEventFirst;
     public static double fallenHealth;
+    public static boolean fallenIsTargetable;
     public static List<String> damageSourceWhitelist;
+    public static boolean canToggleGUI;
     public static boolean canPickUpItems;
     public static boolean canGiveUp;
     public static Double overhealAmount;
     public static Double overhealPenaltyPercentage;
+    public static Double overkillAmount;
+    public static Double overkillPenaltyPercentage;
+    public static List<String> overkillWhitelist;
+    public static Double fallenDamageScaleIn;
+    public static Double fallenDamageScaleOut;
     public static boolean dieOnDisconnect;
     public static Double reviveHelpDuration;
     public static Double reviveGlowMaxDistance;
@@ -150,7 +162,7 @@ public final class ReviveMeConfig {
     public static void bakeConfig() {
         itemUser = COMMON.itemUser.get();
         timeLeft = COMMON.timeLeft.get();
-        dieWhenTimerEnds = COMMON.dieWhenTimerEnds.get();
+        timerType = COMMON.timerType.get();
         pauseFallenTimerOnDisconnect = COMMON.pauseFallenTimerOnDisconnect.get();
         reviveTime = COMMON.reviveTime.get();
         resetReviveOnHit = COMMON.resetReviveOnHit.get();
@@ -166,7 +178,7 @@ public final class ReviveMeConfig {
 
         selfReviveOptions = COMMON.selfReviveOptions.get().stream().map(FallenCapability.SELFREVIVETYPE::valueOf).collect(Collectors.toList());
 //        if (selfReviveOptions.isEmpty()) selfReviveOptions.add(SELFREVIVETYPE.CHANCE);
-        if (selfReviveOptions.size() == 1) selfReviveOptions.add(selfReviveOptions.get(0));
+//        if (selfReviveOptions.size() == 1) selfReviveOptions.add(selfReviveOptions.get(0));
 
         bakeMaxReviveStuff();
 
@@ -221,11 +233,18 @@ public final class ReviveMeConfig {
         reviveRadius = COMMON.reviveRadius.get();
         runDeathEventFirst = COMMON.runDeathEventFirst.get();
         fallenHealth = COMMON.fallenHealth.get();
+        fallenIsTargetable = COMMON.fallenIsTargetable.get();
         damageSourceWhitelist = (List<String>) COMMON.damageSourceWhitelist.get();
+        canToggleGUI = COMMON.canToggleGUI.get();
         canPickUpItems = COMMON.canPickUpItems.get();
         canGiveUp = COMMON.canGiveUp.get();
         overhealAmount = COMMON.overhealAmount.get();
         overhealPenaltyPercentage = COMMON.overhealPenaltyPercentage.get();
+        overkillAmount = COMMON.overkillAmount.get();
+        overkillPenaltyPercentage = COMMON.overkillPenaltyPercentage.get();
+        overkillWhitelist = (List<String>) COMMON.overkillWhitelist.get();
+        fallenDamageScaleIn = COMMON.fallenDamageScaleIn.get();
+        fallenDamageScaleOut = COMMON.fallenDamageScaleOut.get();
         dieOnDisconnect = COMMON.dieOnDisconnect.get();
         reviveHelpDuration = COMMON.reviveHelpDuration.get();
         reviveGlowMaxDistance = COMMON.reviveGlowMaxDistance.get();
@@ -326,6 +345,8 @@ public final class ReviveMeConfig {
         mainTag.putInt("minReviveXPLevel", minReviveXPLevel);
         //Can Run Death Event
         mainTag.putBoolean("runDeathEventFirst", runDeathEventFirst);
+        //Can Toggle GUI
+        mainTag.putBoolean("canToggleGUI", canToggleGUI);
         //Can Give Up
         mainTag.putBoolean("canGiveUp", canGiveUp);
 //        //Overheal Amount
@@ -416,6 +437,8 @@ public final class ReviveMeConfig {
         minReviveXPLevel = mainTag.getInt("minReviveXPLevel");
         //Run Living Death Event first
         runDeathEventFirst = mainTag.getBoolean("runDeathEventFirst");
+        //Can Toggle GUI
+        canToggleGUI = mainTag.getBoolean("canToggleGUI");
         //Can Give Up
         canGiveUp = mainTag.getBoolean("canGiveUp");
 //        //Overheal Amount
@@ -474,7 +497,7 @@ public final class ReviveMeConfig {
         //public static final ForgeConfigSpec.ConfigValue<Integer> exampleInt;
         public final ForgeConfigSpec.EnumValue<ReviveItemData.USER> itemUser;
         public final ForgeConfigSpec.ConfigValue<Integer> timeLeft;
-        public final ForgeConfigSpec.ConfigValue<Boolean> dieWhenTimerEnds;
+        public final ForgeConfigSpec.ConfigValue<TIMER_TYPE> timerType;
         public final ForgeConfigSpec.ConfigValue<Boolean> pauseFallenTimerOnDisconnect;
         public final ForgeConfigSpec.ConfigValue<Integer> reviveTime;
         public final ForgeConfigSpec.ConfigValue<Boolean> resetReviveOnHit;
@@ -513,11 +536,18 @@ public final class ReviveMeConfig {
         public final ForgeConfigSpec.ConfigValue<Integer> reviveRadius;
         public final ForgeConfigSpec.ConfigValue<Boolean> runDeathEventFirst;
         public final ForgeConfigSpec.ConfigValue<Double> fallenHealth;
+        public final ForgeConfigSpec.ConfigValue<Boolean> fallenIsTargetable;
         public final ForgeConfigSpec.ConfigValue<List<? extends String>> damageSourceWhitelist;
+        public final ForgeConfigSpec.ConfigValue<Boolean> canToggleGUI;
         public final ForgeConfigSpec.ConfigValue<Boolean> canPickUpItems;
         public final ForgeConfigSpec.ConfigValue<Boolean> canGiveUp;
         public final ForgeConfigSpec.ConfigValue<Double> overhealAmount;
         public final ForgeConfigSpec.ConfigValue<Double> overhealPenaltyPercentage;
+        public final ForgeConfigSpec.ConfigValue<Double> overkillAmount;
+        public final ForgeConfigSpec.ConfigValue<Double> overkillPenaltyPercentage;
+        public final ForgeConfigSpec.ConfigValue<List<? extends String>> overkillWhitelist;
+        public final ForgeConfigSpec.ConfigValue<Double> fallenDamageScaleIn;
+        public final ForgeConfigSpec.ConfigValue<Double> fallenDamageScaleOut;
         public final ForgeConfigSpec.ConfigValue<Boolean> dieOnDisconnect;
         public final ForgeConfigSpec.ConfigValue<Double> reviveHelpDuration;
         public final ForgeConfigSpec.ConfigValue<Double> reviveGlowMaxDistance;
@@ -608,6 +638,15 @@ public final class ReviveMeConfig {
             overhealPenaltyPercentage = builder.comment("Increases overheal cost each time you are revived, stacks additively.").defineInRange("Overheal_Penalty_Percentage", 0.25F, 0, Integer.MAX_VALUE);
             builder.pop();
 
+            builder.push("Attack & Damage Settings");
+            fallenDamageScaleIn = builder.comment("Percentage of damage a fallen player recieves").defineInRange("Fallen_Damage_Scale_In", 1.0f, 0f, Integer.MAX_VALUE);
+            fallenDamageScaleOut = builder.comment("Percentage of damage a fallen player deals").defineInRange("Fallen_Damage_Scale_Out", 1.0f, 0f, Integer.MAX_VALUE);
+            overkillAmount = builder.comment("How much damage you have to take to be revived, 0 disables this feature, -1 is max health, Less than 1 is percentage").defineInRange("Overkill_Amount", 0, -1F, Integer.MAX_VALUE);
+            overkillPenaltyPercentage = builder.comment("Increases overkill cost each time you are revived, stacks additively.").defineInRange("Overkill_Penalty_Percentage", 0.25F, 0, Integer.MAX_VALUE);
+            overkillWhitelist = builder.comment("What damage sources count towards overkill revive. Add \"//\" to make it a blacklist instead. Add ';Type;' to block/allow certain attackers. All types: ';NON_ENTITY;', ';NON_TEAM;', ';TEAM;', ';SELF;', ';MOB;', ';PLAYER;'." +
+                    " Type \"/\" to block/allow all damage sources").defineList("Overkill_Whitelist", Arrays.asList("/", ";PLAYER;"), a -> !a.toString().isEmpty());
+            builder.pop();
+
             builder.push("Interaction Settings");
             builder.push("Call For Help Settings");
             reviveHelpDuration = builder.comment("How long the Help call will last in SECONDS").defineInRange("Revive_Help_Duration", 10F, 1, Double.MAX_VALUE);
@@ -615,15 +654,19 @@ public final class ReviveMeConfig {
             deathTimerMaxDistance = builder.comment("How far you can see the death timer for a player in the fallen state.").defineInRange("Death_Timer_Max_Distance", 40, 0, Double.MAX_VALUE);
             builder.pop();
 
+            canToggleGUI = builder.comment("If a fallen player can toggle the GUI on and off, will let them use items and attack if allowed").define("Can_Toggle_GUI", true);
             canPickUpItems = builder.comment("If a fallen player can pick up items").define("Can_Pick_Up_Items", true);
             canGiveUp = builder.comment("If a fallen player can give up and die").define("Can_Give_Up", true);
             interactWithInventory = builder.comment("If a fallen player can use their inventory").defineEnum("Interact_With_Inventory", INTERACT_WITH_INVENTORY.LOOK_ONLY);
-            blockedCommands = builder.comment("Commands a fallen player isn't allowed to use. Type \"/\" to block all commands. Type \"//\" to make this a whitelist.").define("Blocked_Commands", new ArrayList<>());
+            blockedCommands = builder.comment("Commands a fallen player isn't allowed to use. Type \"/\" to block all commands. Type \"//\" to make this a whitelist.").defineList("Blocked_Commands", new ArrayList<>(), a -> !a.toString().isEmpty());
             allowedKeybinds = builder.comment("Keybinds that you can use while in the fallen state. (You can put a piece or the full name of a keybind. (Check the translation json for keybinding names (en_us.json for example))" +
-                    "\nExample of binding: 'key.fullscreen' or 'fullscreen' will let you use the 'Toggle Fullscreen' keybinding while in the fallen state)").define("Allowed_Keybinds", new ArrayList<>());
+                    "\nExample of binding: 'key.fullscreen' or 'fullscreen' will let you use the 'Toggle Fullscreen' keybinding while in the fallen state. Add ';' to make the keybind only work when revive gui is toggled off)").defineList("Allowed_Keybinds", new ArrayList<>(), a -> !a.toString().isEmpty());
             builder.pop();
 
-            damageSourceWhitelist = builder.comment("List of damage sources that bypass fallen state invulnerability (or the entire mod). Type \"/\" to allow all damage sources. Type \"//\" to make it a blacklist instead (entries will trigger the fallen state). You can also use parts of a damage source, add ';' to make it match exactly (Case sensitive both ways), add '*' to make it bypass the entire mod (does the opposite if set to blacklist). Usage: (MessageID) 'inWall' or 'Wall' or ';inWall', or '*inWall' or ';*inWall'").define("Damage_Source_Whitelist", new ArrayList<>(ImmutableList.of(";outOfWorld")));
+            fallenIsTargetable = builder.comment("If fallen players can be targeted by mobs (will do the opposite if timer hits 0)").define("Fallen_Is_Targetable", false);
+
+            damageSourceWhitelist = builder.comment("List of damage sources that bypass fallen state invulnerability (or the entire mod). Type \"/\" to allow all damage sources. Type \"//\" to make it a blacklist instead (entries will trigger the fallen state). You can also use parts of a damage source, add ';' to make it match exactly (Case sensitive both ways), add '*' to make it bypass the entire mod (does the opposite if set to blacklist). Usage: (MessageID) 'inWall' or 'Wall' or ';inWall', or '*inWall' or ';*inWall'").defineList("Damage_Source_Whitelist", new ArrayList<>(ImmutableList.of(";outOfWorld", ";genericKill")),
+                    a -> !a.toString().isEmpty());
 
             maxTotalRevives = builder.comment("Max TOTAL revives (Setting to 0 will disable Revive Me!) (setting to -1 will disable the total-revive max) Refreshes when penalty timer ends.").defineInRange("Max_Total_revives", 6, -1, Integer.MAX_VALUE);
             maxPlayerRevives = builder.comment("Max PLAYER revives (setting to 0 will disable player-revive) (setting to -1 will disable the player-revive max) Refreshes when penalty timer ends.").defineInRange("Max_Player_revives", -1, -1, Integer.MAX_VALUE);
@@ -632,13 +675,14 @@ public final class ReviveMeConfig {
             reviveRadius = builder.comment("Max distance another player can be to enter the fallen state (0 disables this)").defineInRange("Revive_Radius", 0,0,Integer.MAX_VALUE);
             runDeathEventFirst = builder.comment("If Forge's Death Event should run first before this mod does (if Death event runs first and player death is cancelled, Revive-Me code will not execute. Same thing vice-versa.)")
                     .define("Run_Death_Event_First", false);
-            downedEffects = builder.comment("Potion effects the player has while fallen (ModId:PotionEffect:Amplification:HideEffect <-optional)(minecraft:slowness:0 or minecraft:blindness:0:true)").define("Downed_Effects", new ArrayList<String>(ImmutableList.of("minecraft:slowness:3:true")));
+            downedEffects = builder.comment("Potion effects the player has while fallen (ModId:PotionEffect:Amplification:HideEffect <-optional)(minecraft:slowness:0 or minecraft:blindness:0:true)").defineList("Downed_Effects",
+                    new ArrayList<String>(ImmutableList.of("minecraft:slowness:3:true")), a -> !a.toString().isEmpty());
             dieOnDisconnect = builder.comment("If you should die instantly if you disconnect while in the fallen state").define("Die_On_Disconnect", false);
             builder.pop();
 
             builder.push("Timer Settings");
             timeLeft = builder.comment("How long you have before death. Setting to -1 will disable the timer").defineInRange("Time_Left", 60, -1, Integer.MAX_VALUE);
-            dieWhenTimerEnds = builder.comment("If you should die when the death timer ends. If set to false, you will instead be targetable by mobs.").define("Die_When_Timer_Ends", false);
+            timerType = builder.comment("What happens when the timer ends, Targetable: Become targetable by mobs (does the opposite if Fallen_Is_Targetable is true), Death: Causes you to die, Revive: Uses self revive, if none left, uses player revive)").defineEnum("Timer_Type", TIMER_TYPE.TARGETABLE);
             pauseFallenTimerOnDisconnect = builder.comment("If the fallen timer should pause on disconnect (Multiplayer only)").define("Pause_Fallen_Timer_On_Disconnect", false);
             timeReductionPenalty = builder.comment("How much time (in seconds) your death timer loses each time you fall. (Less than 1 is a percentage of max death time, -1 will take away the max)").defineInRange("Time_Reduction_Penalty", 5, -1F, Double.MAX_VALUE);
             fallenPenaltyTimer = builder.comment("how long the revive penalty effects will last in SECONDS").defineInRange("Revive_Penalty_Timer", 45, 0F, Double.MAX_VALUE);

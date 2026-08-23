@@ -3,6 +3,7 @@ package invoker54.reviveme.common.network.message;
 import invoker54.invocore.client.util.ClientUtil;
 import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.client.VanillaKeybindHandler;
+import invoker54.reviveme.client.event.FallScreenEvent;
 import invoker54.reviveme.client.event.FallenItemScreenEvent;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
@@ -58,6 +59,7 @@ public class SyncClientCapMsg {
             if (msg.resetBinds) {
                 VanillaKeybindHandler.useHeld = false;
                 VanillaKeybindHandler.attackHeld = false;
+                FallScreenEvent.guiToggled = false;
             }
 
             FallenItemScreenEvent.refreshItemData();

@@ -35,25 +35,6 @@ public abstract class EntityMixin {
         return this.revive_Me$cap;
     }
 
-    //TODO: DELETE COMMENTED CODE
-//    @Inject(
-//            method = "hasPose",
-//            at = {
-//                    @At(value = "HEAD")
-//            }, cancellable = true)
-//    private void hasPose(Pose pose, CallbackInfoReturnable<Boolean> cir){
-//        Entity entity = this.level.getEntity(this.getId());
-//        if (!(entity instanceof Player player)) return;
-//
-//        if (!FallenCapability.get(player).isFallen()) return;
-//
-//        switch (ReviveMeConfig.fallenPose){
-//            case CROUCH -> cir.setReturnValue(pose == Pose.CROUCHING);
-//            case PRONE -> cir.setReturnValue(pose == Pose.SWIMMING);
-//            case SLEEP -> cir.setReturnValue(pose == Pose.SLEEPING);
-//        }
-//    }
-
     @Inject(
             method = "isInvulnerable",
             at = {
@@ -64,7 +45,9 @@ public abstract class EntityMixin {
         if (revive_Me$getCap() == null) return;
         if (!revive_Me$getCap().isFallen()) return;
         if (this.level.isClientSide) return;
-        if (!ReviveMeConfig.dieWhenTimerEnds && revive_Me$getCap().timeRanOut()) return;
+        boolean isTargetable = ReviveMeConfig.fallenIsTargetable;
+        if (revive_Me$getCap().timeRanOut() && ReviveMeConfig.timerType == ReviveMeConfig.TIMER_TYPE.TARGETABLE) isTargetable = !isTargetable;
+        if (isTargetable) return;
 
         cir.setReturnValue(true);
     }
