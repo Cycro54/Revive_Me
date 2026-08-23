@@ -1,6 +1,7 @@
 package invoker54.reviveme.mixin;
 
 import invoker54.invocore.client.util.ClientUtil;
+import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.init.MobEffectInit;
@@ -12,6 +13,7 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.HitResult;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -71,6 +73,7 @@ public abstract class MinecraftMixin {
     private void startAttackAsFallen(CallbackInfoReturnable<Boolean> cir){
         if (ClientUtil.getPlayer() == null) return;
         if (!FallenCapability.get(ClientUtil.getPlayer()).isFallen()) return;
+        if (reviveMe_canAttack()) return;
 
         cir.setReturnValue(false);
     }
@@ -84,7 +87,13 @@ public abstract class MinecraftMixin {
     private void continueAttackAsFallen(CallbackInfo ci){
         if (ClientUtil.getPlayer() == null) return;
         if (!FallenCapability.get(ClientUtil.getPlayer()).isFallen()) return;
+        if (reviveMe_canAttack()) return;
 
         ci.cancel();
+    }
+
+    @Unique
+    private boolean reviveMe_canAttack(){
+        return VanillaKeybindHandler.isAllowedKeybind(mC.options.keyAttack);
     }
 }

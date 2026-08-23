@@ -43,25 +43,6 @@ public abstract class EntityMixin {
         return this.revive_Me$cap;
     }
 
-    //TODO: DELETE COMMENTED CODE
-//    @Inject(
-//            method = "getPose",
-//            at = {
-//                    @At(value = "HEAD")
-//            }, cancellable = true)
-//    private void getPose(CallbackInfoReturnable<Pose> cir){
-//        if (this.revive_Me$grabOriginal)return;
-//
-//        if (revive_Me$getCap() == null) return;
-//        if (!revive_Me$getCap().isFallen()) return;
-//
-//        switch (ReviveMeConfig.fallenPose){
-//            case CROUCH -> cir.setReturnValue(Pose.CROUCHING);
-//            case PRONE -> cir.setReturnValue(Pose.SWIMMING);
-//            case SLEEP -> cir.setReturnValue(Pose.SLEEPING);
-//        }
-//    }
-
     @Inject(
             method = "isInvulnerable",
             at = {
@@ -72,27 +53,11 @@ public abstract class EntityMixin {
         if (revive_Me$getCap() == null) return;
         if (!revive_Me$getCap().isFallen()) return;
         if (this.level.isClientSide) return;
-        if (!ReviveMeConfig.dieWhenTimerEnds && revive_Me$getCap().timeRanOut()) return;
+        boolean isTargetable = ReviveMeConfig.fallenIsTargetable;
+        if (revive_Me$getCap().timeRanOut() && ReviveMeConfig.timerType == ReviveMeConfig.TIMER_TYPE.TARGETABLE) isTargetable = !isTargetable;
+        if (isTargetable) return;
 
         cir.setReturnValue(true);
     }
-
-//    @Inject(
-//            method = "refreshDimensions",
-//            at = {
-//                    @At(value = "HEAD")
-//            })
-//    private void refreshDimensionsHead(CallbackInfo ci){
-//        this.revive_Me$grabOriginal = true;
-//    }
-//
-//    @Inject(
-//            method = "refreshDimensions",
-//            at = {
-//                    @At(value = "TAIL")
-//            })
-//    private void refreshDimensionsTail(CallbackInfo ci){
-//        this.revive_Me$grabOriginal = false;
-//    }
 
 }
