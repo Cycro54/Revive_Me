@@ -1,6 +1,7 @@
 package invoker54.reviveme.mixin;
 
 import invoker54.invocore.client.util.ClientUtil;
+import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.data.ReviveItemData;
 import net.minecraft.client.multiplayer.PlayerController;
@@ -11,6 +12,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -35,14 +37,11 @@ public class PlayerControllerMixin {
 
             canRevive = targetCap.hasEnough(player);
 
-//            if (lookingAtFallen && player.getMainHandItem() != ItemStack.EMPTY){
-//                player.getCooldowns().addCooldown(player.getMainHandItem().getItem(), 30);
-//            }
         }
 
         if (!canRevive) canRevive = ReviveItemData.getData(player.getMainHandItem(), ReviveItemData.USER.REVIVER) != null;
 
-        if (myCap.isFallen() || (lookingAtFallen && (canRevive && !player.isShiftKeyDown()))) cir.setReturnValue(ActionResultType.FAIL);
+        if ((myCap.isFallen() && !reviveMe_canUseItems()) || (lookingAtFallen && (canRevive && !player.isShiftKeyDown()))) cir.setReturnValue(ActionResultType.FAIL);
         if (myCap.getOtherPlayer() != null){
             player.stopUsingItem();
             cir.setReturnValue(ActionResultType.FAIL);
@@ -58,7 +57,12 @@ public class PlayerControllerMixin {
         if (ClientUtil.getPlayer() == null) return;
         FallenCapability myCap = FallenCapability.get(ClientUtil.getPlayer());
 
-        if (!myCap.isFallen()) return;
+        if (!myCap.isFallen() || reviveMe_canUseItems()) return;
         cir.setReturnValue(false);
+    }
+
+    @Unique
+    private static boolean reviveMe_canUseItems(){
+        return VanillaKeybindHandler.isAllowedKeybind(ClientUtil.mC.options.keyUse);
     }
 }

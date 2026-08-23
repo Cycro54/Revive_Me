@@ -10,6 +10,8 @@ import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
 import invoker54.reviveme.common.network.NetworkHandler;
 import invoker54.reviveme.common.network.message.RefreshOptionsMsg;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
@@ -368,7 +370,7 @@ public class ReviveItemData extends ReviveConfigData {
     }
 
     @Override
-    public void revivePlayer(PlayerEntity fallen, boolean isCommand, PlayerEntity reviver, InvoText reviveText) {
+    public void revivePlayer(PlayerEntity fallen, boolean isCommand, Entity reviver, InvoText reviveText) {
         FallenCapability cap = FallenCapability.get(fallen);
         if (fallen.level.random.nextFloat() <= this.reviveChance || isCommand) {
             if (!this.getDisplayName().getString().isEmpty()){
@@ -408,20 +410,20 @@ public class ReviveItemData extends ReviveConfigData {
         cap.syncClient(true);
         if (this.refreshOptions) NetworkHandler.sendToPlayer(fallen, new RefreshOptionsMsg());
 
-        if (fallen != reviver && reviver != null) {
-            FallenCapability reviveCap = FallenCapability.get(reviver);
+        if (fallen != reviver && reviver instanceof PlayerEntity) {
+            FallenCapability reviveCap = FallenCapability.get((LivingEntity) reviver);
             reviveCap.setOtherPlayerAndItem(null, null);
             reviveCap.syncClient(true);
         }
     }
 
-    public void runCommands(PlayerEntity fallen, PlayerEntity reviver){
+    public void runCommands(PlayerEntity fallen, Entity reviver){
         GameRules.BooleanValue commandFeedback = fallen.getServer().getGameRules().getRule(GameRules.RULE_SENDCOMMANDFEEDBACK);
         boolean isAlreadySilenced = commandFeedback.get();
 
         if (ReviveMeConfig.silenceCommandMessages) commandFeedback.set(false, fallen.getServer());
         for (String s : this.getReviveCommands()){
-            String properString = s.replace("@s", reviver.getName().getString())
+            String properString = s.replace("@s", reviver.getStringUUID())
                     .replace("@p", fallen.getName().getString());
             fallen.getServer().getCommands().performCommand(
                     fallen.createCommandSourceStack().withPermission(5), properString);

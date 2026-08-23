@@ -88,6 +88,7 @@ public class FallScreenEvent {
     private static final InvoText cantForceDeathText = InvoText.translate("fallenScreen.cant_force_death_text");
     public static final DecimalFormat df = new DecimalFormat("0.#");
     public static final int goldProgCircle = new Color(227, 175, 7,244).getRGB();
+    public static final int purpleProgCircle = new Color(132, 31, 205,244).getRGB();
     private static final int greenColor = new Color(39, 235, 86, 255).getRGB();
     private static final int whiteColor = new Color(255, 255, 255, 255).getRGB();
     private static final int blackFadeColor = new Color(0, 0, 0, 71).getRGB();
@@ -115,6 +116,12 @@ public class FallScreenEvent {
     private static final InvoText experienceTxt = InvoText.translate(fallenDirectory+"experience_1");
     private static final InvoText callToggleTip = InvoText.translate(fallenDirectory+"revive_help_toggle");
     private static final InvoText screenToggleTip = InvoText.translate(fallenDirectory+"revive_switch_screen");
+    private static final InvoText toggleGUITip = InvoText.translate(fallenDirectory+"revive_toggle_gui");
+    private static final InvoText giveUpTip = InvoText.translate(fallenDirectory+"revive_give_up");
+
+    public static boolean guiToggled = false;
+    public static double guiToggleTransitionStartTicks = 0;
+    public final static float guiToggleTransitionTicks = 8;
 
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void renderReviveButton(RenderGameOverlayEvent.Post event){
@@ -148,15 +155,34 @@ public class FallScreenEvent {
         Color toggleFGColor = new Color(0,0,0,200);
 
         ClientUtil.blitColor(stack, toggleZone, toggleBGColor.getRGB());
-        ClientUtil.blitColor(stack, toggleZone.inflate(-1,-1), toggleFGColor.getRGB());
+        ClientUtil.blitColor(stack, toggleZone.copy().inflate(-1, -1), toggleFGColor.getRGB());
         TextUtil.renderText(stack, toggleText.getText(), false, 2,
-                toggleZone.copy().inflate(-1,-0.5f), TextUtil.txtAlignment.MIDDLE);
+                toggleZone.copy().inflate(-2, -1.5f), TextUtil.txtAlignment.MIDDLE);
         //endregion
 
         boolean isOptionsDisabled = ReviveMeConfig.selfReviveOptions.isEmpty();
-        boolean isItemsDisabled = ReviveItemData.reviveItemMap.isEmpty();
+        boolean isItemsDisabled = ReviveMeConfig.itemUser == ReviveItemData.USER.REVIVER || ReviveMeConfig.itemUser == ReviveItemData.USER.NONE;
         boolean canSwitchScreens = cap.canSelfRevive() && !isOptionsDisabled && !isItemsDisabled;
-        if (canSwitchScreens) {
+
+        //Toggle GUI option
+        if (ReviveMeConfig.canToggleGUI){
+            toggleText = toggleGUITip.setArgs(InvoText.literal(mC.options.keyShift.getKey().getDisplayName().getString())
+                    .withStyle(false, InvoTextFormat.filter(TextFormatting.YELLOW)).getText());
+            if (isSneaking) toggleText = toggleGUITip.setArgs(InvoText.literal(KeyInit.toggleGUIKey
+                    .keyBind.getKey().getDisplayName().getString()).withStyle(false, InvoTextFormat.filter(TextFormatting.YELLOW)).getText());
+            toggleText.withStyle(true, InvoTextFormat.filter(TextFormatting.BOLD, TextFormatting.WHITE));
+
+            toggleZone.setDown(toggleZone.y() - 4);
+
+            toggleBGColor = guiToggled ? new Color(251, 201, 38, 200) : new Color(0, 0, 0, 200);
+
+            ClientUtil.blitColor(stack, toggleZone, toggleBGColor.getRGB());
+            ClientUtil.blitColor(stack, toggleZone.copy().inflate(-1, -1), toggleFGColor.getRGB());
+            TextUtil.renderText(stack, toggleText.getText(), false, 2,
+                    toggleZone.copy().inflate(-2, -1.5f), TextUtil.txtAlignment.MIDDLE);
+        }
+
+        if (!guiToggled && canSwitchScreens) {
             //region This is for switching self revive modes (GENERAL or ITEMS)
             toggleText = screenToggleTip.setArgs(InvoText.literal(mC.options.keyShift.getKey().getDisplayName().getString())
                     .withStyle(false, InvoTextFormat.filter(TextFormatting.YELLOW)).getText());
@@ -169,11 +195,32 @@ public class FallScreenEvent {
             toggleBGColor = new Color(0, 0, 0, 200);
 
             ClientUtil.blitColor(stack, toggleZone, toggleBGColor.getRGB());
-            ClientUtil.blitColor(stack, toggleZone.inflate(-1, -1), toggleFGColor.getRGB());
+            ClientUtil.blitColor(stack, toggleZone.copy().inflate(-1, -1), toggleFGColor.getRGB());
             TextUtil.renderText(stack, toggleText.getText(), false, 2,
-                    toggleZone.copy().inflate(-1, -0.5f), TextUtil.txtAlignment.MIDDLE);
+                    toggleZone.copy().inflate(-2, -1.5f), TextUtil.txtAlignment.MIDDLE);
             //endregion
         }
+
+        //Give up option
+        if (!guiToggled && cap.canSelfRevive() && !FallenItemScreenEvent.isItemScreenActive && ReviveMeConfig.selfReviveOptions.size() > 1){
+            toggleText = giveUpTip.setArgs(InvoText.literal(mC.options.keyShift.getKey().getDisplayName().getString())
+                    .withStyle(false, InvoTextFormat.filter(TextFormatting.YELLOW)).getText());
+            if (isSneaking) toggleText = screenToggleTip.setArgs(InvoText.literal(KeyInit.rightOption
+                    .keyBind.getKey().getDisplayName().getString()).withStyle(false, InvoTextFormat.filter(TextFormatting.YELLOW)).getText());
+            toggleText.withStyle(true, InvoTextFormat.filter(TextFormatting.BOLD, TextFormatting.WHITE));
+
+            toggleZone.setDown(toggleZone.y() - 4);
+
+            toggleBGColor = new Color(182, 55, 30, 200);
+
+            ClientUtil.blitColor(stack, toggleZone, toggleBGColor.getRGB());
+            ClientUtil.blitColor(stack, toggleZone.copy().inflate(-1, -1), toggleFGColor.getRGB());
+            TextUtil.renderText(stack, toggleText.getText(), false, 2,
+                    toggleZone.copy().inflate(-2, -1.5f), TextUtil.txtAlignment.MIDDLE);
+        }
+
+        //Give up popup will be a little red AND only shows on the self revive screen.
+        //Toggle GUI will ALWAYS show (unless disabled)
 
         //Basic GREEN animation to make revive button pop out
         //Every five seconds do a 0.2 second animation
@@ -223,6 +270,8 @@ public class FallScreenEvent {
         //Wait For text
         InvoZone waitTextZone  = workZone.copy().setWidth(workZone.width()/3).setHeight(8).setY((workZone.height()/4) + 12)
                 .centerX(workZone.middleX());
+        InvoZone toggledWaitTextZone = waitTextZone.copy().setDown(workZone.y());
+        waitTextZone = ReviveMathUtil.zoneLerp(FallenItemScreenEvent.getTogglePercentage(), waitTextZone, toggledWaitTextZone);
         TextUtil.renderText(stack, waitText.getText(), true, 1, waitTextZone, TextUtil.txtAlignment.MIDDLE);
 
         //Force death text
@@ -232,9 +281,20 @@ public class FallScreenEvent {
                 InvoText.literal(VanillaKeybindHandler.getKey(KeyInit.leftOption.keyBind).getDisplayName().getString()).getText(),
                 RenderFallPlateEvent.df.format(2 - (FallenPlayerActionsEvent.timeHeld / 20f)));
         InvoZone forceDeathTextZone = waitTextZone.copy().setY(waitTextZone.down() + 17).setWidth(workZone.width()).centerX(waitTextZone.middleX());
+        InvoZone toggledForceDeathTextZone = forceDeathTextZone.copy().setDown(workZone.y());
+
+        forceDeathTextZone = ReviveMathUtil.zoneLerp(FallenItemScreenEvent.getTogglePercentage(), forceDeathTextZone, toggledForceDeathTextZone);
+
+
         TextUtil.renderText(stack, forceDeathTextResult.getText(), true, 1, forceDeathTextZone, TextUtil.txtAlignment.MIDDLE);
 
-        renderTimer(stack, cap, workZone, workZone.down() - (workZone.down()/3), 36, 64);
+        if (!ReviveMeConfig.compactReviveUI) {
+            float timerMiddleY = workZone.down() - (workZone.down() / 3);
+            renderTimer(stack, cap, workZone, timerMiddleY, 36, 64);
+        } else {
+            float timerMiddleY = workZone.down() - (workZone.down() / 4);
+            renderTimer(stack, cap, workZone, timerMiddleY, 18, 32);
+        }
     }
 
     @SubscribeEvent
@@ -277,6 +337,7 @@ public class FallScreenEvent {
         double switchPercentage = FallenItemScreenEvent.getSwitchPercentage();
         boolean isSwitchDone = switchPercentage == 1;
         if (!FallenItemScreenEvent.isItemScreenActive) switchPercentage = 1 - switchPercentage;
+        double togglePercent = FallenItemScreenEvent.getTogglePercentage();
 
         if (FallenItemScreenEvent.isItemScreenActive || !isSwitchDone) {
             FallenItemScreenEvent.renderItemPage(stack, switchPercentage, workZone, leftZone.copy(), rightZone.copy());
@@ -300,10 +361,13 @@ public class FallScreenEvent {
             }
 
             leftZone.setY(MathUtil.lerp(switchPercentage, leftZone.y(), workZone.down()));
+            leftZone.setY(MathUtil.lerp(togglePercent, leftZone.y(), workZone.down()));
             rightZone.setY(MathUtil.lerp(switchPercentage, rightZone.y(), workZone.down()));
+            rightZone.setY(MathUtil.lerp(togglePercent, rightZone.y(), workZone.down()));
 
             renderReviveOption(GLFW.GLFW_MOUSE_BUTTON_1, stack, leftZone, cap, VanillaKeybindHandler.attackHeld);
-            renderReviveOption(GLFW.GLFW_MOUSE_BUTTON_2, stack, rightZone, cap, VanillaKeybindHandler.useHeld);
+            int secondOption = ClientUtil.getPlayer().isDiscrete() || ReviveMeConfig.selfReviveOptions.size() == 1 ? -1 : GLFW.GLFW_MOUSE_BUTTON_2;
+            renderReviveOption(secondOption, stack, rightZone, cap, VanillaKeybindHandler.useHeld);
             //endregion
         }
     }
@@ -312,6 +376,9 @@ public class FallScreenEvent {
         //Title text
         InvoZone titleTextZone = workZone.copy().setWidth(workZone.width() / 3).setHeight(workZone.height() / 5).inflate(0, -12)
                 .centerX(workZone.middleX());
+        InvoZone toggledTitleTextZone = titleTextZone.copy().setDown(workZone.y() - (titleTextZone.height() * 2));
+        titleTextZone = ReviveMathUtil.zoneLerp(FallenItemScreenEvent.getTogglePercentage(), titleTextZone, toggledTitleTextZone);
+
         TextUtil.renderText(stack, titleText.getText(), true, 1, titleTextZone, TextUtil.txtAlignment.MIDDLE);
 
         //All different renders
@@ -402,7 +469,6 @@ public class FallScreenEvent {
 
     public static void renderReviveOption(int mouseButton, MatrixStack stack, InvoZone workZone, FallenCapability cap, boolean beingHeld) {
         FallenCapability.SELFREVIVETYPE selfReviveType = cap.getSelfReviveOption(mouseButton);
-        if (selfReviveType == FallenCapability.SELFREVIVETYPE.NONE) return;
 
         boolean shouldPass = true;
         ClientUtil.blitColor(stack, workZone, blackFadeColor);
@@ -480,61 +546,6 @@ public class FallScreenEvent {
                 }
                 break;
             }
-//            case SPECIFIC_ITEM: {
-//                chosenTxt = specificItemTxt;
-//                Pair<Integer, List<ItemStack>> itemPair = cap.getSpecificItem(getPlayer());
-//                InvoZone itemZone = mainZone.copy().splitHeight(3,2);
-//                itemZone.setHeight(Math.min(itemZone.height(), itemZone.width())).setWidth(Math.min(itemZone.width(), itemZone.height()));
-//                itemZone.centerX(mainZone.middleX());
-//                InvoZone countZone = itemZone.copy().setY(itemZone.down()).setHeight(mainZone.down()-itemZone.down())
-//                        .setWidth(mainZone.width()).setX(mainZone.x());
-//
-//                InvoText badText = specificItemFalseTxt.withStyle(true, InvoTextFormat.filter(TextFormatting.RED, TextFormatting.BOLD));
-//
-//                if (itemPair.getKey() >= ReviveMeConfig.specificItemCount) {
-//                    PlayerInventory inventory = getPlayer().inventory;
-//                    int itemCount = 0;
-//                    ItemStack specificStack = itemPair.getRight().get(0);
-//                    for (int a = 0; a < inventory.getContainerSize(); a++) {
-//                        ItemStack containerStack = inventory.getItem(a);
-//                        if (!containerStack.sameItem(specificStack)) continue;
-//                        if (!ItemStack.tagMatches(specificStack, containerStack)) continue;
-//                        itemCount += containerStack.getCount();
-//                    }
-//
-//                    ClientUtil.blitColor(stack, mainZone, new Color(0, 0, 0, 100).getRGB());
-//                    ClientUtil.blitItem(stack, itemZone, specificStack);
-//                    ClientUtil.blitColor(stack, countZone, new Color(0, 0, 0, 100).getRGB());
-//                    countZone.splitWidth(3,1);
-//                    TextUtil.renderText(stack, InvoText.literal(itemCount+"").withStyle(true, InvoTextFormat.filter(TextFormatting.GREEN)).getText(),
-//                            true, 1, countZone.copy().inflate(-4,-4), TextUtil.txtAlignment.MIDDLE);
-//                    TextUtil.renderText(stack, InvoText.literal("->").getText(),
-//                            true, 1, countZone.setX(countZone.right()), TextUtil.txtAlignment.MIDDLE);
-//                    TextUtil.renderText(stack, InvoText.literal((itemCount-itemPair.getKey())+"").withStyle(true, InvoTextFormat.filter(TextFormatting.RED)).getText(),
-//                            true, 1, countZone.setX(countZone.right()).copy().inflate(-4,-4), TextUtil.txtAlignment.MIDDLE);
-//                }
-//                else {
-//                    shouldPass = false;
-////                    ClientUtil.blitItem(stack, itemZone, itemPair.getRight().get(0));
-////                    ClientUtil.blitColor(stack, mainZone, new Color(0,0,0,230).getRGB());
-//                    mainZone.splitHeight(2,1);
-//                    InvoText itemCountTxt = InvoText.literal(""+Math.abs(itemPair.getKey() - ReviveMeConfig.specificItemCount)).withStyle(true, InvoTextFormat.filter(TextFormatting.GREEN));
-//                    TextUtil.renderText(stack, badText.setArgs(itemCountTxt.getText()).getText(),true, 0,
-//                            mainZone.copy().inflate(-4,-2), TextUtil.txtAlignment.MIDDLE);
-//
-//                    mainZone.setY(mainZone.down());
-//                    if (ReviveMeConfig.showSpecificItemName) mainZone.splitHeight(2,1);
-//
-//                    ClientUtil.blitItem(stack, mainZone.copy().setWidth(mainZone.height()).centerX(mainZone.middleX()), itemPair.getRight().get(0));
-//                    if (ReviveMeConfig.showSpecificItemName){
-//                        InvoText itemNameTxt = InvoText.component((IFormattableTextComponent) itemPair.getRight().get(0)
-//                            .getDisplayName()).withStyle(false, InvoTextFormat.filter( TextFormatting.BOLD));
-//                        TextUtil.renderText(stack, itemNameTxt.getText(), true, 1, mainZone.setY(mainZone.down())
-//                                .inflate(-4,-4), TextUtil.txtAlignment.MIDDLE);
-//                    }
-//                }
-//                break;
-//            }
             case KILL: {
                 chosenTxt = killTxt1;
                 int seconds = (int) ((ReviveMeConfig.reviveKillTime * 20 * (1 - cap.getSelfPenaltyPercentage()))/20);
@@ -648,6 +659,14 @@ public class FallScreenEvent {
                 }
                 break;
             }
+            case NONE: {
+                shouldPass = false;
+                chosenTxt = chanceTxt;
+                ClientUtil.blitItem(stack, mainZone.copy().setWidth(Math.min(mainZone.width(), mainZone.height()))
+                        .setHeight(Math.min(mainZone.width(), mainZone.height())).center(mainZone), Items.BARRIER.getItem().getDefaultInstance());
+                break;
+
+            }
         }
 
         if (!shouldPass) ClientUtil.blitColor(stack, progressZone, blackFadeColor);
@@ -681,9 +700,13 @@ public class FallScreenEvent {
         }
     }
 
-    public static void renderTimer(MatrixStack stack, FallenCapability cap, InvoZone workZone, float y, int progressCircleRadius, int imageSize){
+    public static void renderTimer(MatrixStack stack, FallenCapability cap, InvoZone workZone, float y, float progressCircleRadius, int imageSize){
         //Where the timer will be placed.
-        InvoZone timerZone = timerIMG.getRenderZone().setWidth(imageSize).setHeight(imageSize).setY(y).centerX(workZone.middleX());
+        InvoZone timerZone = timerIMG.getRenderZone().copy().setWidth(imageSize).setHeight(imageSize).setY(y).centerX(workZone.middleX());
+        InvoZone timerZoneAdjusted = timerZone.copy().inflate(timerZone.width()/-4f, timerZone.height()/-4f).setDown(timerZone.down());
+
+        timerZone = ReviveMathUtil.zoneLerp(FallenItemScreenEvent.getTogglePercentage(), timerZone, timerZoneAdjusted);
+        progressCircleRadius = MathUtil.lerp(FallenItemScreenEvent.getTogglePercentage(), progressCircleRadius, progressCircleRadius/2F);
 
         //Increase seconds by 1 if seconds isn't at 0
         float seconds = cap.getTimeLeft(false);
@@ -697,6 +720,11 @@ public class FallScreenEvent {
         //This is the timer background
         timerZone.shift(0, -timerZone.height()/2);
 
+        //This is overkill
+        CircleRender.drawArc(stack, timerZone.middleX(), timerZone.middleY(), progressCircleRadius + 4,
+                0, Math.max(0.001D,cap.getOverkillPercentage() * 360), purpleProgCircle);
+
+        //This is overheal
         CircleRender.drawArc(stack, timerZone.middleX(), timerZone.middleY(), progressCircleRadius + 2,
                 0, Math.max(0.001D,cap.getOverhealPercentage() * 360), goldProgCircle);
 
@@ -706,7 +734,10 @@ public class FallScreenEvent {
         CircleRender.drawArc(stack, timerZone.middleX(),
                 timerZone.middleY(), progressCircleRadius, 0, endAngle, greenColor);
 
+        InvoZone originalZone = timerIMG.getRenderZone().copy();
+        timerIMG.getRenderZone().copy(timerZone);
         timerIMG.render(stack);
+        timerIMG.getRenderZone().copy(originalZone);
 
         TextUtil.renderText(stack, timeLeftTxt.getText(), false, 1,
                 timerZone.inflate(-imageSize/4F, -imageSize/4F), TextUtil.txtAlignment.MIDDLE);

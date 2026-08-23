@@ -81,7 +81,7 @@ public class SoundEvents{
         if (!ClientUtil.getPlayer().isDeadOrDying() &&
                 (cap.getTimeLeft(false) > 5 ||
                         ReviveMeConfig.timeLeft == -1 ||
-                        !ReviveMeConfig.dieWhenTimerEnds)) fallen_state_random_sound.playWhenStopped();
+                        ReviveMeConfig.timerType != ReviveMeConfig.TIMER_TYPE.DEATH)) fallen_state_random_sound.playWhenStopped();
         if ((cap.getTimeLeft(false) % 1 == 0)) fallen_state_ticking_sound.play();
     }
 

@@ -103,10 +103,20 @@ public class FallenTimerEvent {
         //Finally make sure they have all the required effects.
         FallEvent.modifyPotionEffects(event.player);
 
-        if (!ReviveMeConfig.dieWhenTimerEnds) return;
         if (!cap.timeRanOut()) return;
+        switch (ReviveMeConfig.timerType){
+            case TARGETABLE:
+                break;
+            case DEATH:
+                cap.forceDeath();
+                break;
+            case REVIVE:
+                cap.incrementReviveCount(cap.canSelfRevive() ? null : event.player);
+                ReviveMeConfig.configReviveData.revivePlayer(event.player, false, event.player, "countdown");
+                break;
+        }
 
-        cap.forceDeath();
+
         //System.out.println("Who's about to die: " + event.player.getDisplayName());
     }
 

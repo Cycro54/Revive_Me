@@ -47,7 +47,7 @@ public class ReviveMe
     }
 
     private void clientSetup(final FMLClientSetupEvent event){
-        if (ModList.get().isLoaded("controllable")){
+        if (ModList.get().isLoaded("controllable")) {
             ControllableModEvents.isControllableLoaded = true;
             MinecraftForge.EVENT_BUS.register(new ControllableModEvents());
             ControllableModEvents.init();

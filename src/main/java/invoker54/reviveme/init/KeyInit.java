@@ -7,6 +7,7 @@ import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.ReviveMe;
 import invoker54.reviveme.client.VanillaKeybindHandler;
 import invoker54.reviveme.client.event.CallForHelpEvent;
+import invoker54.reviveme.client.event.FallScreenEvent;
 import invoker54.reviveme.client.event.FallenItemScreenEvent;
 import invoker54.reviveme.client.event.ReviveToolTipEvents;
 import invoker54.reviveme.common.ReviveMathUtil;
@@ -34,6 +35,7 @@ public class KeyInit {
     public static final ModLogger LOGGER = ModLogger.getLogger(KeyInit.class, ReviveMeConfig.debugMode);
 
     public static CustomKeybind callForHelpKey;
+    public static CustomKeybind toggleGUIKey;
 
     public static CustomKeybind leftOption;
     public static CustomKeybind rightOption;
@@ -53,9 +55,26 @@ public class KeyInit {
                     CallForHelpEvent.sendCallToServer(isSneaking, cap.isCallingForHelp());
                 }));
 
+        toggleGUIKey = KeybindsInit.addBind(new CustomKeybind("toggleGUIKey", GLFW.GLFW_KEY_F, ReviveMe.MOD_ID,
+                (action) -> {
+                    if (action != GLFW.GLFW_PRESS) return;
+                    if (ClientUtil.mC.screen != null) return;
+                    FallenCapability cap = FallenCapability.get(ClientUtil.getPlayer());
+                    if (!cap.isFallen()) return;
+                    boolean isSneaking = ClientUtil.getPlayer().isShiftKeyDown();
+                    if (!isSneaking) return;
+
+                    FallScreenEvent.guiToggled = !FallScreenEvent.guiToggled;
+                    FallScreenEvent.guiToggleTransitionStartTicks = ClientUtil.getWorld().getGameTime();
+
+                    VanillaKeybindHandler.attackHeld = false;
+                    VanillaKeybindHandler.useHeld = false;
+                }));
+
         leftOption = KeybindsInit.addBind(new CustomKeybind(new KeyBinding("key." + ReviveMe.MOD_ID + "." + "leftOption",
                 KeyConflictContext.GUI, InputMappings.Type.MOUSE, GLFW.GLFW_MOUSE_BUTTON_1, "key.category." + ReviveMe.MOD_ID),
                 (action) -> {
+                    if (FallScreenEvent.guiToggled) return;
                     if (action == GLFW.GLFW_REPEAT) return;
                     if (ClientUtil.mC.screen != null) return;
                     FallenCapability cap = FallenCapability.get(ClientUtil.getPlayer());
@@ -65,10 +84,9 @@ public class KeyInit {
                     if (ClientUtil.getPlayer().isShiftKeyDown() && isClick) {
                         FallenItemScreenEvent.switchReviveScreens();
                         return;
-                    }
-                    else if (isClick && FallenItemScreenEvent.isItemScreenActive){
+                    } else if (isClick && FallenItemScreenEvent.isItemScreenActive) {
                         FallenItemScreenEvent.selectedPage = (int) ReviveMathUtil
-                                .clampLoop(FallenItemScreenEvent.selectedPage + 1, 0, FallenItemScreenEvent.pageList.size()-1);
+                                .clampLoop(FallenItemScreenEvent.selectedPage + 1, 0, FallenItemScreenEvent.pageList.size() - 1);
                     }
 
                     VanillaKeybindHandler.attackHeld = isClick;
@@ -78,6 +96,7 @@ public class KeyInit {
         rightOption = KeybindsInit.addBind(new CustomKeybind(new KeyBinding("key." + ReviveMe.MOD_ID + "." + "rightOption",
                 KeyConflictContext.GUI, InputMappings.Type.MOUSE, GLFW.GLFW_MOUSE_BUTTON_2, "key.category." + ReviveMe.MOD_ID),
                 (action) -> {
+                    if (FallScreenEvent.guiToggled) return;
                     if (action == GLFW.GLFW_REPEAT) return;
                     if (ClientUtil.mC.screen != null) return;
                     FallenCapability cap = FallenCapability.get(ClientUtil.getPlayer());

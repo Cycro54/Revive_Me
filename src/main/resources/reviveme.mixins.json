@@ -13,7 +13,8 @@
     "ServerPlayerMixin",
     "SlotMixin",
     "PlayerMixin",
-    "CommandsMixin"
+    "CommandsMixin",
+    "LivingEntityMixin"
   ],
   "client": [
     "SleepNameTagMixin",
@@ -27,7 +28,7 @@
     "PlayerControllerMixin",
     "PlayerInventoryMixin",
     "WidgetMixin",
-    "compatibility.ControllableButtonBindingMixin",
+    "compatibility.ControllableButtonBindingMixin"
   ],
   "injectors": {
     "defaultRequire": 1

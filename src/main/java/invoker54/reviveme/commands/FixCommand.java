@@ -49,8 +49,18 @@ public class FixCommand {
                 if (damageSource == null) damageSource = DamageSource.OUT_OF_WORLD;
 
                 //If they are out of time, smite them.
-                if (cap.timeRanOut() && ReviveMeConfig.dieWhenTimerEnds){
-                    cap.forceDeath();
+                if (cap.timeRanOut()){
+
+                    switch (ReviveMeConfig.timerType){
+                        case DEATH:{
+                            cap.forceDeath();
+                            continue;
+                        }
+                        case REVIVE:{
+                            ReviveMeConfig.configReviveData.revivePlayer(player, true, fixer, "command");
+                            continue;
+                        }
+                    }
                     continue;
                 }
 
