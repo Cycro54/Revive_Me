@@ -43,7 +43,10 @@ public class FallEvent {
 
     public static boolean cancelEvent(Player player, DamageSource source) {
         FallenData instance = FallenData.get(player);
-        if (canBypassReviveMe(source, true)) return false;
+        if (canBypassReviveMe(source, true)){
+            player.sendSystemMessage(InvoText.translate("death.reviveme.bypass", InvoText.translate(source.getMsgId()).getText()).getText());
+            return false;
+        }
 
         //Set last damage source for later
         instance.setDamageSource(source);
