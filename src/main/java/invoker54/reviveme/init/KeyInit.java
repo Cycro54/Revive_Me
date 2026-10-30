@@ -61,6 +61,7 @@ public class KeyInit {
                 (action) -> {
                     if (action != GLFW.GLFW_PRESS) return;
                     if (ClientUtil.getMinecraft().screen != null) return;
+                    if (!ReviveMeConfig.canToggleGUI) return;
                     FallenCapability cap = FallenCapability.get(ClientUtil.getPlayer());
                     if (!cap.isFallen()) return;
                     boolean isSneaking = ClientUtil.getPlayer().isShiftKeyDown();

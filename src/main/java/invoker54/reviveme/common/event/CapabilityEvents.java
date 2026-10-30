@@ -81,4 +81,14 @@ public class CapabilityEvents {
         FallenCapability cap = FallenCapability.get(player);
         cap.syncClient(false);
     }
+
+    @SubscribeEvent
+    public static void onRespawn(PlayerEvent.Clone event){
+        if (!event.isWasDeath()) return;
+        event.getOriginal().reviveCaps();
+        FallenCapability.get(event.getEntity()).callForHelp(
+                FallenCapability.get(event.getOriginal()).isCallToggled()
+        );
+        event.getOriginal().invalidateCaps();
+    }
 }
