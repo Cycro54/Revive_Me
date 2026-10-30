@@ -203,7 +203,7 @@ public class FallScreenEvent {
             if (!guiToggled && cap.canSelfRevive() && !FallenItemScreenEvent.isItemScreenActive && ReviveMeConfig.selfReviveOptions.size() > 1) {
                 toggleText = giveUpTip.setArgs(InvoText.literal(mC.options.keyShift.getKey().getDisplayName().getString())
                         .withStyle(false, InvoTextFormat.filter(ChatFormatting.YELLOW)).getText());
-                if (isSneaking) toggleText = screenToggleTip.setArgs(InvoText.literal(KeyInit.rightOption
+                if (isSneaking) toggleText = giveUpTip.setArgs(InvoText.literal(KeyInit.rightOption
                         .keyBind.getKey().getDisplayName().getString()).withStyle(false, InvoTextFormat.filter(ChatFormatting.YELLOW)).getText());
                 toggleText.withStyle(true, InvoTextFormat.filter(ChatFormatting.BOLD, ChatFormatting.WHITE));
 
@@ -252,7 +252,9 @@ public class FallScreenEvent {
             FallenData cap = getCap();
             if (cap == null) return;
             if ((ClientUtil.getMinecraft().screen instanceof ChatScreen)) return;
-            if (cap.canSelfRevive()) return;
+            boolean canUseSelfRevive = !ReviveMeConfig.selfReviveOptions.isEmpty() ||
+                    (ReviveMeConfig.itemUser == ReviveItemData.USER.FALLEN || ReviveMeConfig.itemUser == ReviveItemData.USER.BOTH);
+            if (cap.canSelfRevive() && canUseSelfRevive) return;
             //endregion
 
             InvoZone workZone = new InvoZone(0, guiGraphics.guiWidth(), 0, guiGraphics.guiHeight());
@@ -300,6 +302,9 @@ public class FallScreenEvent {
             FallenData cap = getCap();
             if (cap == null) return;
             if ((ClientUtil.getMinecraft().screen instanceof ChatScreen)) return;
+            boolean canUseSelfRevive = !ReviveMeConfig.selfReviveOptions.isEmpty() ||
+                    (ReviveMeConfig.itemUser == ReviveItemData.USER.FALLEN || ReviveMeConfig.itemUser == ReviveItemData.USER.BOTH);
+            if (!canUseSelfRevive) return;
             if (!cap.canSelfRevive()) return;
             if (ReviveMeConfig.selfReviveOptions.isEmpty() && !FallenItemScreenEvent.isItemScreenActive) {
                 FallenItemScreenEvent.switchReviveScreens();
