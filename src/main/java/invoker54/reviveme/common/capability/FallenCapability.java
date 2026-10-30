@@ -441,7 +441,7 @@ public class FallenCapability {
     }
 
     public SELFREVIVETYPE getSelfReviveOption(int mouseButton){
-        if (mouseButton == -1) return SELFREVIVETYPE.NONE;
+        if (mouseButton == -1 || this.selfReviveTypeList.isEmpty()) return SELFREVIVETYPE.NONE;
         if (mouseButton == 1 && this.selfReviveTypeList.size() == 1) return SELFREVIVETYPE.NONE;
         return this.selfReviveTypeList.get(mouseButton);
     }

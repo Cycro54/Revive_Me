@@ -205,7 +205,7 @@ public class FallScreenEvent {
         if (!guiToggled && cap.canSelfRevive() && !FallenItemScreenEvent.isItemScreenActive && ReviveMeConfig.selfReviveOptions.size() > 1){
             toggleText = giveUpTip.setArgs(InvoText.literal(mC.options.keyShift.getKey().getDisplayName().getString())
                     .withStyle(false, InvoTextFormat.filter(TextFormatting.YELLOW)).getText());
-            if (isSneaking) toggleText = screenToggleTip.setArgs(InvoText.literal(KeyInit.rightOption
+            if (isSneaking) toggleText = giveUpTip.setArgs(InvoText.literal(KeyInit.rightOption
                     .keyBind.getKey().getDisplayName().getString()).withStyle(false, InvoTextFormat.filter(TextFormatting.YELLOW)).getText());
             toggleText.withStyle(true, InvoTextFormat.filter(TextFormatting.BOLD, TextFormatting.WHITE));
 
@@ -255,7 +255,9 @@ public class FallScreenEvent {
         FallenCapability cap = getCap(event);
         if (cap == null) return;
         if ((mC.screen instanceof ChatScreen)) return;
-        if (cap.canSelfRevive()) return;
+        boolean canUseSelfRevive = !ReviveMeConfig.selfReviveOptions.isEmpty() ||
+                (ReviveMeConfig.itemUser == ReviveItemData.USER.FALLEN || ReviveMeConfig.itemUser == ReviveItemData.USER.BOTH);
+        if (cap.canSelfRevive() && canUseSelfRevive) return;
         //endregion
 
         MatrixStack stack = event.getMatrixStack();
@@ -302,6 +304,9 @@ public class FallScreenEvent {
         FallenCapability cap = getCap(event);
         if (cap == null) return;
         if ((mC.screen instanceof ChatScreen)) return;
+        boolean canUseSelfRevive = !ReviveMeConfig.selfReviveOptions.isEmpty() ||
+                (ReviveMeConfig.itemUser == ReviveItemData.USER.FALLEN || ReviveMeConfig.itemUser == ReviveItemData.USER.BOTH);
+        if (!canUseSelfRevive) return;
         if (!cap.canSelfRevive()) return;
         if (ReviveMeConfig.selfReviveOptions.isEmpty() && !FallenItemScreenEvent.isItemScreenActive){
             FallenItemScreenEvent.switchReviveScreens();
