@@ -50,7 +50,7 @@ public class FallenPlayerActionsEvent {
         }
 
         if (canSelfRevive && FallenItemScreenEvent.isItemScreenActive) useReviveItem();
-        else doReviveAction(canSelfRevive);
+        else doReviveAction(canSelfRevive && !ReviveMeConfig.selfReviveOptions.isEmpty());
     }
 
     public static void doReviveAction(boolean canSelfRevive){
