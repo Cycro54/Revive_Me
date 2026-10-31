@@ -1,18 +1,7 @@
 # 1.21.11-${mod_version}
 
-**Additions**
-```
-- Can now see what bypasses Revive Me! due to Damage_Source_Whitelist
-```
-**Changes**
-```
--Max total revives is now 4 instead of 6
--Call for help toggle state is now saved on death
--Shows multiplayer fallen screen if you can't use revive items and SELF_REVIVE_OPTIONS is empty
-```
 **Fixes**
 ```
-- CRITICAL: Game no longer crashes if you empty SELF_REVIVE_OPTIONS
-- Give Up Tip shows the correct text now
-- Can_Toggle_GUI config works now
+- Emptying SELF_REVIVE_OPTIONS config no longer kicks an error whilst trying to use a revive item.
+- Self revive items properly stack on the Revive Item screen
 ```
