@@ -16,7 +16,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 @EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class CapabilityEvents {
-    private static final ModLogger LOGGER = ModLogger.getLogger(FallScreenEvent.class, ReviveMeConfig.debugMode);
+    private static final ModLogger LOGGER = ModLogger.getLogger(CapabilityEvents.class, ReviveMeConfig.debugMode);
 
     @SubscribeEvent
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent event){
