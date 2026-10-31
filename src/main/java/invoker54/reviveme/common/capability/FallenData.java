@@ -485,6 +485,7 @@ public class FallenData implements ValueIOSerializable {
     }
 
     public void cycleReviveOptions(SELFREVIVETYPE selfrevivetype){
+        if (this.selfReviveTypeList.isEmpty()) return;
         if (selfrevivetype == null) selfrevivetype = this.selfReviveTypeList.get(0);
         this.selfReviveTypeList.remove(selfrevivetype);
         this.selfReviveTypeList.add(selfrevivetype);
@@ -784,7 +785,7 @@ public class FallenData implements ValueIOSerializable {
             if (data == null) continue;
 
             ItemStack listStack = null;
-            for (Pair<ItemStack, ReviveItemData> dataPair : this.reviveItemList) {
+            for (Pair<ItemStack, ReviveItemData> dataPair : tempList) {
                 if (!ItemStack.isSameItem(invStack, dataPair.getKey())) continue;
                 if (!FallenData.hasSimilarData(invStack, dataPair.getKey())) continue;
                 listStack = dataPair.getKey();

@@ -188,6 +188,10 @@ idea {
     }
 }
 
+tasks.register("RunFullCommit"){
+    dependsOn('PrependToChangelog', 'CommitMod')
+}
+
 tasks.register('PrependToChangelog', Copy) {
     from 'lastChange.md'              // Folder containing your original .md file
     into "build/"   // Where the modified file will be saved

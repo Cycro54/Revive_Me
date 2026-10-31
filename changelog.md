@@ -1,3 +1,10 @@
+# 26.1-7.3.2
+
+**Fixes**
+```
+- Emptying SELF_REVIVE_OPTIONS config no longer kicks an error whilst trying to use a revive item.
+- Self revive items properly stack on the Revive Item screen
+```
 # 26.1-7.3.1
 
 **Additions**
