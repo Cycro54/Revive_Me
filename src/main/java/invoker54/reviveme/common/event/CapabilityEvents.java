@@ -2,7 +2,6 @@ package invoker54.reviveme.common.event;
 
 import invoker54.invocore.common.ModLogger;
 import invoker54.reviveme.ReviveMe;
-import invoker54.reviveme.client.event.FallScreenEvent;
 import invoker54.reviveme.common.api.FallenProvider;
 import invoker54.reviveme.common.capability.FallenCapability;
 import invoker54.reviveme.common.config.ReviveMeConfig;
@@ -19,7 +18,7 @@ import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = ReviveMe.MOD_ID)
 public class CapabilityEvents {
-    private static final ModLogger LOGGER = ModLogger.getLogger(FallScreenEvent.class, ReviveMeConfig.debugMode);
+    private static final ModLogger LOGGER = ModLogger.getLogger(CapabilityEvents.class, ReviveMeConfig.debugMode);
 
     @SubscribeEvent
     public static void AttachCapability(AttachCapabilitiesEvent<Entity> event) {

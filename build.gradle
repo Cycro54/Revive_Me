@@ -235,6 +235,10 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
 }
 
+tasks.register("RunFullCommit"){
+    dependsOn('PrependToChangelog', 'CommitMod')
+}
+
 tasks.register('PrependToChangelog', Copy) {
     from 'lastChange.md'              // Folder containing your original .md file
     into "build/"   // Where the modified file will be saved
