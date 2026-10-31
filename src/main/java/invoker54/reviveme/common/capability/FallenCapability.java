@@ -447,6 +447,7 @@ public class FallenCapability {
     }
 
     public void cycleReviveOptions(SELFREVIVETYPE selfrevivetype){
+        if (this.selfReviveTypeList.isEmpty()) return;
         if (selfrevivetype == null) selfrevivetype = this.selfReviveTypeList.get(0);
         this.selfReviveTypeList.remove(selfrevivetype);
         this.selfReviveTypeList.add(selfrevivetype);
@@ -774,7 +775,7 @@ public class FallenCapability {
             if (data == null) continue;
 
             ItemStack listStack = null;
-            for (Pair<ItemStack, ReviveItemData> dataPair : this.reviveItemList) {
+            for (Pair<ItemStack, ReviveItemData> dataPair : tempList) {
                 if (!invStack.sameItem(dataPair.getKey())) continue;
                 if (!ItemStack.tagMatches(invStack, dataPair.getKey())) continue;
                 listStack = dataPair.getKey();
